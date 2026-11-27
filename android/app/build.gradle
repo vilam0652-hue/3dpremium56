@@ -1,0 +1,42 @@
+// Одна обёртка на все приложения «Капли»: какое именно собрать, задают параметры
+//   -PappId=blocks -PappPkg=app.kaplya.blocks -PappName="Капля Блоки" -PappVersion=3
+plugins { id "com.android.application" }
+
+def appId = findProperty("appId") ?: "blocks"
+def appPkg = findProperty("appPkg") ?: "app.kaplya.blocks"
+def appName = findProperty("appName") ?: "Капля"
+def appVersion = (findProperty("appVersion") ?: "1") as int
+def ks = System.getenv("KAPLYA_KEYSTORE")
+
+android {
+    namespace "app.kaplya"
+    compileSdk 34
+    defaultConfig {
+        applicationId appPkg
+        minSdk 24
+        targetSdk 34
+        versionCode appVersion
+        versionName "1.0." + appVersion
+        resValue "string", "app_name", appName
+        buildConfigField "String", "APP_DIR", "\"" + appId + "\""
+    }
+    buildFeatures { buildConfig true; resValues true }
+    sourceSets { main { assets.srcDirs = [rootProject.file("build/web/" + appId)] } }
+    signingConfigs {
+        release {
+            if (ks != null && file(ks).exists()) {
+                storeFile file(ks)
+                storePassword System.getenv("KAPLYA_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KAPLYA_KEY_ALIAS")
+                keyPassword System.getenv("KAPLYA_KEY_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig = (ks != null && file(ks).exists()) ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}

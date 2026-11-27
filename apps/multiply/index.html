@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Таблица-Турбо</title>
+<meta name="theme-color" content="#060a1c">
+<link rel="stylesheet" href="../../shared/k.css">
+<script src="../../shared/k.js"></script>
+<style>
+  main { padding-block: 18px 40px; }
+  .hello { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .hello h1 { font-size: clamp(1.6rem, 7vw, 2.4rem); }
+  .tables { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .tcard { padding: 16px; border-radius: 24px; text-align: left; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--stroke); cursor: pointer; color: var(--text); transition: transform .4s var(--spring); }
+  .tcard:active { transform: scale(.95); }
+  .tcard .n { font-family: var(--f-display); font-weight: 800; font-size: 2.2rem; line-height: 1; }
+  .tcard .n small { font-size: 1rem; opacity: .7; margin-right: 4px; }
+  .tcard .st { display: flex; gap: 2px; }
+  .tcard .st svg { width: 18px; height: 18px; }
+  .tcard .lbl { font-size: .82rem; color: var(--muted); }
+  .wide { grid-column: span 2; }
+  @media (max-width: 340px) { .wide { grid-column: auto; } }
+
+  .quiz { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-block: 10px 30px; }
+  .quiz .progress { width: min(420px, 100%); }
+  .qcard { width: min(420px, 100%); padding: 26px 20px 20px; border-radius: 32px; text-align: center; }
+  .qtext { font-family: var(--f-display); font-weight: 800; font-size: clamp(2.4rem, 13vw, 3.6rem); line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .ans { margin-top: 10px; min-height: 64px; font-family: var(--f-display); font-weight: 800; font-size: 2.6rem; color: var(--cyan); font-variant-numeric: tabular-nums; border-radius: 18px; background: rgba(0,0,0,.2); display: grid; place-items: center; }
+  .ans.empty::after { content: "?"; opacity: .3; }
+  .hint { display: grid; gap: 4px; justify-content: center; margin-top: 12px; }
+  .hint i { width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--sun) 40%, #d18a00); animation: k-pop .3s var(--spring) both; }
+  .meta { display: flex; justify-content: space-between; width: min(420px, 100%); color: var(--muted); font-weight: 800; font-size: .9rem; }
+  .fix { margin-top: 8px; color: var(--bad); font-weight: 800; min-height: 1.4em; }
+</style>
+</head>
+<body>
+<main class="wrap" id="app"></main>
+<script>
+(() => {
+  K.top({ title: "Таблица-Турбо" });
+  const app = document.getElementById("app");
+  const STAR = (on) => `<svg viewBox="0 0 24 24"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z" fill="${on ? "#ffd84d" : "rgba(255,255,255,.15)"}"/></svg>`;
+  const TINTS = ["tint-cyan", "tint-pink", "tint-sun", "tint-mint", "tint-violet", "tint-orange", "tint-cyan", "tint-pink"];
+  const prog = () => K.store.get("mul-stars", {});
+
+  function home() {
+    const p = prog();
+    const total = Object.values(p).reduce((a, b) => a + b, 0);
+    app.innerHTML = `<div class="hello"><span class="eyebrow">Тренажёр · 2–4 класс</span><h1 class="h-display">Выучи таблицу умножения на&nbsp;звёзды</h1>
+      <p class="muted" style="margin:0">Собрано звёзд: <b style="color:var(--sun)">${total}</b> из 30. Три звезды — когда ни одной ошибки.</p></div>
+      <div class="tables">${[2, 3, 4, 5, 6, 7, 8, 9].map((n, i) => `<button class="tcard glass ${TINTS[i]}" data-tilt data-n="${n}"><span class="n"><small>×</small>${n}</span><span class="st">${[0, 1, 2].map((k) => STAR(k < (p[n] || 0))).join("")}</span><span class="lbl">${p[n] ? "Пройдено" : "Начать"}</span></button>`).join("")}
+      <button class="tcard glass wide" data-tilt data-n="mix"><span class="n" style="font-size:1.5rem">Вперемешку</span><span class="st">${[0, 1, 2].map((k) => STAR(k < (p.mix || 0))).join("")}</span><span class="lbl">20 примеров из всей таблицы</span></button>
+      <button class="tcard glass wide tint-pink" data-tilt data-n="div"><span class="n" style="font-size:1.5rem">Деление</span><span class="st">${[0, 1, 2].map((k) => STAR(k < (p.div || 0))).join("")}</span><span class="lbl">Обратная таблица: 56 : 8</span></button></div>`;
+    app.querySelectorAll(".tcard").forEach((b) => b.addEventListener("click", () => { K.sfx("tap"); run(b.dataset.n); }));
+    K.tilt(app);
+  }
+
+  let qs, i, mistakes, input, cur, key;
+  function run(n) {
+    key = n;
+    if (n === "mix") qs = K.shuffle(Array.from({ length: 20 }, () => { const a = K.rnd(2, 9), b = K.rnd(2, 9); return { a, b, op: "×", r: a * b }; }));
+    else if (n === "div") qs = K.shuffle(Array.from({ length: 15 }, () => { const a = K.rnd(2, 9), b = K.rnd(2, 9); return { a: a * b, b, op: ":", r: a, ha: a }; }));
+    else { n = +n; qs = K.shuffle([2, 3, 4, 5, 6, 7, 8, 9, 10, 1].map((k) => Math.random() < .5 ? { a: n, b: k, op: "×", r: n * k } : { a: k, b: n, op: "×", r: n * k })); }
+    i = 0; mistakes = 0; show();
+  }
+  function show() {
+    cur = qs[i]; input = "";
+    app.innerHTML = `<div class="quiz"><div class="meta"><span>Пример ${i + 1} из ${qs.length}</span><span>Ошибок: ${mistakes}</span></div>
+      <div class="progress"><i style="width:${i / qs.length * 100}%"></i></div>
+      <div class="qcard glass" id="qc"><div class="qtext">${cur.a} ${cur.op} ${cur.b} =</div><div class="ans empty" id="ans"></div><div class="fix" id="fix"></div><div class="hint" id="hint"></div></div>
+      <div class="keypad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => `<button data-d="${d}">${d}</button>`).join("")}<button data-d="del" aria-label="Стереть">⌫</button><button data-d="0">0</button><button data-d="ok" class="ok" aria-label="Проверить">✓</button></div>
+      <div class="row"><button class="btn ghost" id="hb">Подсказка</button><button class="btn ghost" id="quit">Выйти</button></div></div>`;
+    app.querySelectorAll(".keypad button").forEach((b) => b.addEventListener("click", () => press(b.dataset.d)));
+    document.getElementById("hb").onclick = hint;
+    document.getElementById("quit").onclick = home;
+  }
+  function hint() {
+    const rows = cur.op === "×" ? cur.a : cur.ha, cols = cur.b;
+    const h = document.getElementById("hint");
+    h.style.gridTemplateColumns = `repeat(${cols}, 14px)`;
+    h.innerHTML = Array.from({ length: rows * cols }, (_, k) => `<i style="animation-delay:${k * 12}ms"></i>`).join("");
+    document.getElementById("fix").style.color = "var(--muted)";
+    document.getElementById("fix").textContent = cur.op === "×" ? `${cur.a} ряда по ${cur.b} точек` : `Сколько рядов по ${cur.b}, если всего ${cur.a}?`;
+    K.sfx("tap");
+  }
+  function press(d) {
+    K.sfx("tap"); K.vibrate(6);
+    const ans = document.getElementById("ans");
+    if (d === "del") input = input.slice(0, -1);
+    else if (d === "ok") return check();
+    else if (input.length < 3) input += d;
+    ans.textContent = input; ans.classList.toggle("empty", !input);
+    if (input.length >= String(cur.r).length && +input === cur.r) check();
+  }
+  addEventListener("keydown", (e) => { if (!document.getElementById("ans")) return; if (/^\d$/.test(e.key)) press(e.key); if (e.key === "Backspace") press("del"); if (e.key === "Enter") press("ok"); });
+  function check() {
+    if (!input) return;
+    const qc = document.getElementById("qc");
+    if (+input === cur.r) {
+      K.sfx("good"); qc.classList.add("pulse-good");
+      const r = qc.getBoundingClientRect(); K.burst(r.left + r.width / 2, r.top + 40, 14, undefined, { speed: 5 });
+      i++;
+      setTimeout(() => (i < qs.length ? show() : finish()), 420);
+    } else {
+      mistakes++; K.sfx("bad"); K.vibrate(50); qc.classList.add("shake");
+      document.getElementById("fix").style.color = "var(--bad)";
+      document.getElementById("fix").textContent = `Правильно: ${cur.a} ${cur.op} ${cur.b} = ${cur.r}`;
+      qs.push(cur); // повторим этот пример в конце
+      i++;
+      setTimeout(() => show(), 1500);
+    }
+  }
+  function finish() {
+    const stars = mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1;
+    const p = prog(); const prev = p[key] || 0; if (stars > prev) { p[key] = stars; K.store.set("mul-stars", p); }
+    K.sfx("win"); if (stars === 3) K.confetti();
+    const drops = stars * 3 + (stars > prev ? 5 : 0);
+    K.panel({ title: stars === 3 ? "Без единой ошибки!" : stars === 2 ? "Отлично!" : "Получилось!", stars,
+      text: `Ошибок: ${mistakes}. +${drops} ${K.plural(drops, "капелька", "капельки", "капелек")}${stars < 3 ? ". Пройди без ошибок, чтобы получить три звезды." : ""}`,
+      buttons: [{ label: "Ещё раз", cls: "big", onClick: () => run(key) }, { label: "К таблицам", cls: "ghost", onClick: home }] });
+    setTimeout(() => K.coins.add(drops, document.querySelector(".overlay .stars")), 500);
+  }
+  home();
+})();
+</script>
+</body>
+</html>

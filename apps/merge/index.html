@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Слияние планет</title>
+<meta name="theme-color" content="#060a1c">
+<link rel="stylesheet" href="../../shared/k.css">
+<script src="../../shared/k.js"></script>
+<script src="../../shared/matter.min.js"></script>
+<style>
+  .jar { position: relative; border-radius: 28px; padding: 0; overflow: hidden; }
+  canvas#c { display: block; touch-action: none; cursor: crosshair; }
+  .next { position: absolute; top: 10px; right: 12px; display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 12px; border-radius: 999px; font-size: .75rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .next canvas { width: 34px; height: 34px; }
+  .chain { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; margin-top: 12px; max-width: 100%; padding: 0 12px; }
+  .chain span { font-size: .7rem; color: var(--muted); font-weight: 800; display: flex; align-items: center; gap: 3px; }
+  .chain span i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; box-shadow: inset -2px -2px 3px rgba(0,0,0,.3), inset 2px 2px 2px rgba(255,255,255,.5); }
+  .namepop { position: fixed; z-index: 55; pointer-events: none; font-family: var(--f-display); font-weight: 800; font-size: 1.1rem; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.6); animation: namepop 1s var(--ease) forwards; white-space: nowrap; }
+  @keyframes namepop { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 0; } 25% { transform: translate(-50%, -70%) scale(1.15); opacity: 1; } 100% { transform: translate(-50%, -160%) scale(1); opacity: 0; } }
+</style>
+</head>
+<body class="game-page">
+<div class="hud">
+  <div class="stat glass"><b id="score" class="num">0</b><small>очки</small></div>
+  <div class="stat glass"><b id="best" class="num">0</b><small>рекорд</small></div>
+  <div class="stat glass"><b id="top" class="num">—</b><small>лучшая</small></div>
+</div>
+<main class="stage">
+  <div class="jar glass"><canvas id="c"></canvas><div class="next glass">дальше <canvas id="nx" width="68" height="68"></canvas></div></div>
+  <div class="chain" id="chain"></div>
+</main>
+<script>
+(() => {
+  K.top({ title: "Слияние планет" });
+  const { Engine, Bodies, Composite, Events, Body } = Matter;
+  const P = [
+    { n: "Астероид", r: .040, c: "#9aa3b8", d: "#5b6275" },
+    { n: "Луна", r: .052, c: "#e6e9f2", d: "#9ea6bb" },
+    { n: "Меркурий", r: .066, c: "#c8a27a", d: "#7d6247" },
+    { n: "Марс", r: .082, c: "#ff7a4d", d: "#b33b1f" },
+    { n: "Венера", r: .098, c: "#ffd27a", d: "#c98b2c" },
+    { n: "Земля", r: .118, c: "#4db8ff", d: "#1a5fbf", land: "#4ddb7a" },
+    { n: "Нептун", r: .138, c: "#5e7bff", d: "#2a36b3" },
+    { n: "Уран", r: .158, c: "#7ff0f0", d: "#2fa6b3" },
+    { n: "Сатурн", r: .178, c: "#f3d38f", d: "#b38a3f", ring: true },
+    { n: "Юпитер", r: .2, c: "#f0b98a", d: "#a8653a", bands: true },
+    { n: "Солнце", r: .23, c: "#ffe066", d: "#ff8a1f", sun: true }
+  ];
+  document.getElementById("chain").innerHTML = P.map((p) => `<span><i style="background:${p.c}"></i>${p.n}</span>`).join("");
+
+  const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+  const nx = document.getElementById("nx"), nctx = nx.getContext("2d");
+  const $score = document.getElementById("score"), $best = document.getElementById("best"), $top = document.getElementById("top");
+  let W, H, dpr, engine, aimX, next, cur, canDrop, score, playing = false, topLevel, lineY, dangerT, last, acc;
+
+  function layout() {
+    const st = document.querySelector(".stage").getBoundingClientRect();
+    W = Math.floor(Math.min(innerWidth - 32, (st.height - 60) / 1.38, 440));
+    H = Math.floor(W * 1.38);
+    dpr = Math.min(2, devicePixelRatio || 1);
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    lineY = H * .16;
+  }
+  const rad = (lv) => P[lv].r * W;
+
+  function newWorld() {
+    engine = Engine.create(); engine.gravity.y = 1.15;
+    const t = 60;
+    Composite.add(engine.world, [
+      Bodies.rectangle(W / 2, H + t / 2, W * 2, t, { isStatic: true, friction: .6 }),
+      Bodies.rectangle(-t / 2, H / 2, t, H * 3, { isStatic: true }),
+      Bodies.rectangle(W + t / 2, H / 2, t, H * 3, { isStatic: true })
+    ]);
+    Events.on(engine, "collisionStart", onHit);
+  }
+  function ball(lv, x, y) {
+    const b = Bodies.circle(x, y, rad(lv), { restitution: .18, friction: .08, frictionAir: .004, density: .0012 + lv * .0002 });
+    b.lv = lv; b.born = performance.now(); b.squash = 0;
+    Composite.add(engine.world, b); return b;
+  }
+  function onHit(ev) {
+    for (const pr of ev.pairs) {
+      const a = pr.bodyA, b = pr.bodyB;
+      if (a.lv == null || b.lv == null) {
+        const m = a.lv != null ? a : b.lv != null ? b : null;
+        if (m && Math.abs(m.velocity.y) > 3) m.squash = Math.min(.25, Math.abs(m.velocity.y) / 40);
+        continue;
+      }
+      if (a.lv !== b.lv || a.dead || b.dead) { a.squash = b.squash = .08; continue; }
+      a.dead = b.dead = true;
+      const lv = a.lv, x = (a.position.x + b.position.x) / 2, y = (a.position.y + b.position.y) / 2;
+      setTimeout(() => {
+        Composite.remove(engine.world, [a, b]);
+        const gain = (lv + 1) * (lv + 2) * 2;
+        score += gain; $score.textContent = score;
+        const r = cv.getBoundingClientRect();
+        K.burst(r.left + x, r.top + y, 10 + lv * 3, [P[lv].c, P[Math.min(lv + 1, 10)].c, "#fff"], { speed: 3 + lv * .5, size: 4 });
+        K.sfx("pop", 1 + lv * .1); K.vibrate(15);
+        if (lv < P.length - 1) {
+          const nb = ball(lv + 1, x, y); nb.squash = -.25;
+          Body.setVelocity(nb, { x: 0, y: -2 });
+          if (lv + 1 > topLevel) { topLevel = lv + 1; $top.textContent = P[topLevel].n; if (topLevel >= 5) namePop(P[topLevel].n + "!", r.left + x, r.top + y); }
+        } else {
+          score += 500; $score.textContent = score; K.confetti(); K.sfx("win"); namePop("Два Солнца! +500", r.left + x, r.top + y);
+        }
+      }, 0);
+    }
+  }
+  function namePop(t, x, y) { const d = document.createElement("div"); d.className = "namepop"; d.textContent = t; d.style.left = x + "px"; d.style.top = y + "px"; document.body.appendChild(d); setTimeout(() => d.remove(), 1000); }
+
+  /* ---------- рисование планет ---------- */
+  function planet(g, lv, x, y, r, sx = 1, sy = 1, rot = 0, face = true) {
+    const p = P[lv];
+    g.save(); g.translate(x, y); g.rotate(rot); g.scale(sx, sy);
+    if (p.sun) { const gl = g.createRadialGradient(0, 0, r * .8, 0, 0, r * 1.5); gl.addColorStop(0, "rgba(255,200,60,.55)"); gl.addColorStop(1, "rgba(255,200,60,0)"); g.fillStyle = gl; g.beginPath(); g.arc(0, 0, r * 1.5, 0, 7); g.fill(); }
+    if (p.ring) { g.save(); g.rotate(-.35); g.strokeStyle = "rgba(255,230,170,.75)"; g.lineWidth = r * .14; g.beginPath(); g.ellipse(0, 0, r * 1.55, r * .42, 0, Math.PI, 0); g.stroke(); g.restore(); }
+    const gr = g.createRadialGradient(-r * .35, -r * .4, r * .1, 0, 0, r);
+    gr.addColorStop(0, "#ffffff"); gr.addColorStop(.18, p.c); gr.addColorStop(1, p.d);
+    g.fillStyle = gr; g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill();
+    g.save(); g.beginPath(); g.arc(0, 0, r, 0, 7); g.clip();
+    if (p.bands) { g.fillStyle = "rgba(150,80,40,.35)"; for (let i = -2; i <= 2; i++) g.fillRect(-r, i * r * .36 - r * .07, r * 2, r * .14); g.fillStyle = "rgba(200,70,50,.6)"; g.beginPath(); g.ellipse(r * .35, r * .35, r * .18, r * .1, 0, 0, 7); g.fill(); }
+    if (p.land) { g.fillStyle = p.land; [[-.3, -.1, .35, .22], [.35, .3, .28, .18], [.1, -.5, .2, .12]].forEach(([a, b, c, d]) => { g.beginPath(); g.ellipse(a * r, b * r, c * r, d * r, .4, 0, 7); g.fill(); }); }
+    if (lv <= 2) { g.fillStyle = "rgba(0,0,0,.15)"; [[.4, -.2, .16], [-.2, .45, .12], [.1, .15, .08]].forEach(([a, b, c]) => { g.beginPath(); g.arc(a * r, b * r, c * r, 0, 7); g.fill(); }); }
+    g.restore();
+    if (p.ring) { g.save(); g.rotate(-.35); g.strokeStyle = "rgba(255,240,190,.9)"; g.lineWidth = r * .14; g.beginPath(); g.ellipse(0, 0, r * 1.55, r * .42, 0, 0, Math.PI); g.stroke(); g.restore(); }
+    // блик стекла
+    g.fillStyle = "rgba(255,255,255,.55)"; g.beginPath(); g.ellipse(-r * .38, -r * .45, r * .28, r * .16, -.6, 0, 7); g.fill();
+    if (face && r > 12) {
+      g.rotate(-rot);
+      const e = r * .13;
+      g.fillStyle = "#1a1030";
+      g.beginPath(); g.arc(-r * .28, -r * .02, e, 0, 7); g.arc(r * .28, -r * .02, e, 0, 7); g.fill();
+      g.fillStyle = "#fff"; g.beginPath(); g.arc(-r * .24, -r * .07, e * .4, 0, 7); g.arc(r * .32, -r * .07, e * .4, 0, 7); g.fill();
+      g.strokeStyle = "#1a1030"; g.lineWidth = Math.max(1.5, r * .06); g.lineCap = "round";
+      g.beginPath(); g.arc(0, r * .16, r * .16, .25, Math.PI - .25); g.stroke();
+      g.fillStyle = "rgba(255,90,140,.45)"; g.beginPath(); g.ellipse(-r * .48, r * .2, r * .1, r * .06, 0, 0, 7); g.ellipse(r * .48, r * .2, r * .1, r * .06, 0, 0, 7); g.fill();
+    }
+    g.restore();
+  }
+  function drawNext() {
+    nctx.clearRect(0, 0, 68, 68);
+    const r = Math.min(30, rad(next) * 1.1);
+    planet(nctx, next, 34, 34, Math.max(12, r * .8), 1, 1, 0, true);
+  }
+
+  function frame(t) {
+    if (!engine) return;
+    const dt = Math.min(50, t - (last || t)); last = t; acc += dt;
+    while (acc >= 1000 / 60) { Engine.update(engine, 1000 / 60); acc -= 1000 / 60; }
+    ctx.clearRect(0, 0, W, H);
+    // линия опасности
+    const bodies = Composite.allBodies(engine.world).filter((b) => b.lv != null);
+    let danger = false;
+    for (const b of bodies) if (!b.dead && t - b.born > 1200 && b.position.y - rad(b.lv) < lineY) danger = true;
+    dangerT = danger ? dangerT + dt : Math.max(0, dangerT - dt * 2);
+    const pulse = danger ? .5 + .5 * Math.sin(t / 90) : 0;
+    ctx.setLineDash([8, 8]); ctx.lineWidth = 2;
+    ctx.strokeStyle = danger ? `rgba(255,107,125,${.5 + pulse * .5})` : "rgba(255,255,255,.22)";
+    ctx.beginPath(); ctx.moveTo(10, lineY); ctx.lineTo(W - 10, lineY); ctx.stroke(); ctx.setLineDash([]);
+    // прицел
+    if (playing && canDrop) {
+      const r = rad(cur);
+      const x = Math.max(r, Math.min(W - r, aimX));
+      ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, lineY * .55 + r); ctx.lineTo(x, H); ctx.stroke();
+      planet(ctx, cur, x, lineY * .55, r, 1, 1, 0, true);
+    }
+    for (const b of bodies) {
+      b.squash *= .85;
+      const s = b.squash, ang = Math.atan2(b.velocity.y, b.velocity.x);
+      planet(ctx, b.lv, b.position.x, b.position.y, rad(b.lv), 1 + s * .6, 1 - s, b.angle, true);
+    }
+    if (dangerT > 2000 && playing) return over();
+    requestAnimationFrame(frame);
+  }
+
+  function aim(e) { const r = cv.getBoundingClientRect(); aimX = e.clientX - r.left; }
+  cv.addEventListener("pointermove", aim);
+  cv.addEventListener("pointerdown", (e) => { aim(e); cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointerup", (e) => {
+    if (!playing || !canDrop) return;
+    aim(e);
+    const r = rad(cur), x = Math.max(r, Math.min(W - r, aimX));
+    ball(cur, x, lineY * .55);
+    K.sfx("place"); canDrop = false;
+    cur = next; next = K.rnd(0, 4); drawNext();
+    setTimeout(() => { canDrop = true; }, 450);
+  });
+
+  function over() {
+    playing = false; engine && Events.off(engine);
+    const rec = K.best("merge", score); $best.textContent = K.getBest("merge");
+    K.sfx(rec ? "win" : "lose"); if (rec) K.confetti();
+    const drops = Math.floor(score / 50);
+    K.panel({
+      title: rec ? "Новый рекорд!" : "Банка переполнена",
+      score, scoreLabel: "очков", stars: topLevel >= 9 ? 3 : topLevel >= 7 ? 2 : topLevel >= 5 ? 1 : 0,
+      text: `Самая большая планета: ${P[topLevel].n}. ${drops ? "+" + drops + " " + K.plural(drops, "капелька", "капельки", "капелек") : ""}`,
+      buttons: [{ label: "Ещё раз", cls: "big", onClick: start }]
+    });
+    setTimeout(() => K.coins.add(drops, document.querySelector(".overlay .big-score")), 400);
+  }
+  function start() {
+    layout(); newWorld();
+    score = 0; topLevel = 0; dangerT = 0; acc = 0; last = 0; $score.textContent = 0; $top.textContent = P[0].n;
+    $best.textContent = K.getBest("merge");
+    aimX = W / 2; cur = K.rnd(0, 2); next = K.rnd(0, 3); drawNext(); canDrop = true; playing = true;
+    requestAnimationFrame(frame);
+  }
+  layout(); $best.textContent = K.getBest("merge");
+  // красивая заставка: планеты разложены в банке
+  { let x = W * .04; for (let i = 0; i < 6; i++) { const r = rad(i); x += r; planet(ctx, i, x, H - r - 4, r); x += r + 1; } }
+  next = 0; drawNext();
+  K.panel({
+    title: "Слияние планет",
+    text: "Бросай планеты в банку. Две одинаковые сливаются в следующую: от астероида до Солнца! Не дай банке переполниться выше пунктира.",
+    buttons: [{ label: "Играть", cls: "big", onClick: start }]
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Грамотей</title>
+<meta name="theme-color" content="#060a1c">
+<link rel="stylesheet" href="../../shared/k.css">
+<script src="../../shared/k.js"></script>
+<style>
+  main { padding-block: 18px 40px; }
+  .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 18px; }
+  .cat { text-align: left; padding: 18px; border-radius: 26px; border: 1px solid var(--stroke); color: var(--text); display: flex; flex-direction: column; gap: 6px; transition: transform .4s var(--spring); }
+  .cat:active { transform: scale(.96); }
+  .cat b { font-family: var(--f-display); font-weight: 800; font-size: 1.15rem; }
+  .cat .ex { font-family: var(--f-display); font-size: 1.5rem; letter-spacing: .02em; }
+  .cat .ex u { text-decoration: none; color: var(--sun); }
+  .cat small { color: var(--muted); }
+  .quiz { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-block: 10px 30px; }
+  .quiz .progress, .meta { width: min(460px, 100%); }
+  .meta { display: flex; justify-content: space-between; color: var(--muted); font-weight: 800; font-size: .9rem; }
+  .wcard { width: min(460px, 100%); padding: 34px 16px 24px; border-radius: 32px; text-align: center; }
+  .word { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.4rem, 8.4vw, 3.2rem); letter-spacing: .01em; line-height: 1.2; white-space: nowrap; }
+  .gap { display: inline-grid; place-items: center; min-width: .9em; height: 1.15em; margin: 0 .04em; border-radius: .25em; vertical-align: -.12em;
+    background: rgba(255,255,255,.12); border: 2px dashed rgba(255,255,255,.5); color: var(--sun); animation: gapglow 1.4s ease-in-out infinite alternate; }
+  @keyframes gapglow { to { border-color: var(--cyan); box-shadow: 0 0 18px rgba(94,231,255,.5); } }
+  .gap.ok { border-style: solid; border-color: var(--good); color: var(--good); animation: k-pop .4s var(--spring); }
+  .gap.no { border-style: solid; border-color: var(--bad); color: var(--bad); }
+  .rule { margin-top: 14px; color: var(--muted); font-size: .95rem; min-height: 1.4em; }
+  .letters { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .letter { width: 86px; height: 86px; border-radius: 28px; font-family: var(--f-display); font-weight: 800; font-size: 2.4rem; border: 1px solid rgba(255,255,255,.4);
+    background: radial-gradient(120% 120% at 30% 10%, rgba(255,255,255,.45), transparent 50%), linear-gradient(160deg, rgba(166,139,255,.65), rgba(90,60,200,.55));
+    box-shadow: inset 0 2px 1px rgba(255,255,255,.6), inset 0 -6px 12px rgba(0,0,0,.2), 0 14px 30px -12px rgba(166,139,255,.8); transition: transform .35s var(--spring); }
+  .letter:nth-child(2) { background: radial-gradient(120% 120% at 30% 10%, rgba(255,255,255,.45), transparent 50%), linear-gradient(160deg, rgba(255,95,162,.65), rgba(190,40,110,.55)); box-shadow: inset 0 2px 1px rgba(255,255,255,.6), inset 0 -6px 12px rgba(0,0,0,.2), 0 14px 30px -12px rgba(255,95,162,.8); }
+  .letter:nth-child(3) { background: radial-gradient(120% 120% at 30% 10%, rgba(255,255,255,.45), transparent 50%), linear-gradient(160deg, rgba(94,231,255,.6), rgba(20,120,200,.55)); }
+  .letter:active { transform: scale(.88); }
+  .streak { font-family: var(--f-display); font-weight: 800; color: var(--orange); }
+</style>
+</head>
+<body>
+<main class="wrap" id="app"></main>
+<script>
+(() => {
+  K.top({ title: "Грамотей" });
+  const app = document.getElementById("app");
+  // слово с пропуском «_», правильная буква, неправильные
+  const CATS = {
+    dict: { name: "Словарные слова", ex: "б<u>е</u>рёза", tint: "tint-violet", rule: "Словарные слова не проверяются — их запоминают.", words: [
+      "б_рёза|е|и", "в_рона|о|а", "в_робей|о|а", "с_рока|о|а", "м_дведь|е|и", "к_рова|о|а", "с_бака|о|а", "м_рковь|о|а", "к_пуста|а|о", "п_мидор|о|а",
+      "ог_рец|у|о", "к_ртофель|а|о", "яг_да|о|а", "м_лина|а|о", "п_нал|е|и", "т_традь|е|и", "к_рандаш|а|о", "уч_ник|е|и", "з_втрак|а|о", "р_бята|е|и",
+      "м_роз|о|а", "в_кзал|о|а", "г_рой|е|и", "д_рога|о|а", "з_вод|а|о", "г_род|о|а", "с_пог|а|о", "в_чер|е|и", "л_пата|о|а", "пл_тформа|а|о",
+      "ж_лтый|ё|о", "ч_рный|ё|о", "к_рабль|о|а", "к_лендарь|а|е", "р_кета|а|о", "с_лома|о|а", "ап_льсин|е|и", "г_зета|а|о", "б_гаж|а|о", "ин_й|е|и",
+      "к_мпьютер|о|а", "л_сица|и|е", "п_сок|е|и", "р_бина|я|и", "т_релка|а|е", "х_рошо|о|а", "ин_ересный|т|д", "к_ломбина|о|а"
+    ] },
+    vowel: { name: "Безударные гласные", ex: "в<u>о</u>да — воды", tint: "tint-cyan", rule: "Измени слово, чтобы гласная стала ударной: лиса — лисы.", words: [
+      "в_да|о|а|воды", "л_са|и|е|лисы", "тр_ва|а|о|травы", "з_мля|е|и|земли", "г_ра|о|а|горы", "з_ма|и|е|зимы", "гр_за|о|а|грозы", "ст_на|е|и|стены",
+      "р_ка|е|и|реки", "сл_ны|о|а|слон", "гл_за|а|о|глазки", "кр_чать|и|е|крик", "л_сник|е|и|лес", "м_ря|о|а|море", "п_ля|о|а|поле", "сн_жок|е|и|снег",
+      "в_сна|е|и|вёсны", "з_мой|и|е|зимний", "ч_сы|а|о|час", "п_сать|и|е|пишет", "л_тать|е|и|лёт", "др_зья|у|о|друг", "д_ма|о|а|дом"
+    ]},
+    cons: { name: "Парные согласные", ex: "ду<u>б</u> — дубы", tint: "tint-mint", rule: "Подставь гласную после согласной: дуб — дубы, сад — сады.", words: [
+      "ду_|б|п|дубы", "са_|д|т|сады", "сне_|г|к|снега", "гри_|б|п|грибы", "мё_|д|т|мёду", "ло_ка|ж|ш|ложечка", "ло_ка|д|т|лодочка", "ска_ка|з|с|сказочка",
+      "ре_кий|д|т|редок", "ры_ка|б|п|рыба", "ко_ка|ш|ж|кошечка", "кру_ка|ж|ш|кружечка", "моро_|з|с|морозы", "гла_|з|с|глаза", "хле_|б|п|хлеба", "клю_|в|ф|клювы",
+      "зу_|б|п|зубы", "но_ка|ж|ш|ножки", "ша_ка|п|б|шапочка", "сугро_|б|п|сугробы"
+    ] }
+  };
+  const best = () => K.store.get("words-best", {});
+
+  function home() {
+    const b = best();
+    app.innerHTML = `<span class="eyebrow">Русский язык · 3–4 класс</span>
+      <h1 class="h-display" style="font-size:clamp(1.6rem,7vw,2.4rem);margin-top:6px">Вставь пропущенную букву</h1>
+      <p class="muted" style="margin:6px 0 0">15 слов за раунд. Ошибёшься — увидишь правило и проверочное слово.</p>
+      <div class="cats">${Object.entries(CATS).map(([id, c]) => `<button class="cat glass ${c.tint}" data-tilt data-id="${id}"><b>${c.name}</b><span class="ex">${c.ex}</span><small>${c.words.length} слов · лучший результат: ${b[id] != null ? b[id] + " из 15" : "ещё нет"}</small></button>`).join("")}</div>`;
+    app.querySelectorAll(".cat").forEach((el) => el.addEventListener("click", () => { K.sfx("tap"); run(el.dataset.id); }));
+    K.tilt(app);
+  }
+  let cat, list, i, right, streak, lock;
+  function run(id) { cat = id; list = K.shuffle(CATS[id].words).slice(0, 15).map((w) => { const [word, ok, ...rest] = w.split("|"); const check = id === "dict" ? null : rest.pop(); return { word, ok, bad: rest, check }; }); i = 0; right = 0; streak = 0; show(); }
+  function show() {
+    lock = false;
+    const q = list[i], [a, b] = q.word.split("_");
+    const opts = K.shuffle([q.ok, ...q.bad]);
+    app.innerHTML = `<div class="quiz"><div class="meta"><span>Слово ${i + 1} из ${list.length}</span><span class="streak">${streak >= 3 ? "серия " + streak : ""}</span></div>
+      <div class="progress"><i style="width:${i / list.length * 100}%"></i></div>
+      <div class="wcard glass" id="wc"><div class="word">${a}<span class="gap" id="gap">&nbsp;</span>${b}</div><div class="rule" id="rule"></div></div>
+      <div class="letters">${opts.map((l) => `<button class="letter" data-l="${l}">${l}</button>`).join("")}</div>
+      <button class="btn ghost" id="quit">Выйти</button></div>`;
+    app.querySelectorAll(".letter").forEach((el) => el.addEventListener("click", () => pick(el)));
+    document.getElementById("quit").onclick = home;
+  }
+  function pick(el) {
+    if (lock) return; lock = true;
+    const q = list[i], gap = document.getElementById("gap"), wc = document.getElementById("wc"), rule = document.getElementById("rule");
+    // буква «летит» в пропуск
+    const from = el.getBoundingClientRect(), to = gap.getBoundingClientRect();
+    el.animate([{ transform: "translate(0,0) scale(1)" }, { transform: `translate(${to.left - from.left - from.width / 2 + to.width / 2}px,${to.top - from.top - from.height / 2 + to.height / 2}px) scale(.5)`, opacity: .2 }], { duration: 280, easing: "cubic-bezier(.5,0,.3,1)" });
+    setTimeout(() => {
+      if (el.dataset.l === q.ok) {
+        gap.textContent = q.ok; gap.classList.add("ok"); right++; streak++;
+        K.sfx("good"); wc.classList.add("pulse-good");
+        K.burst(to.left + to.width / 2, to.top + to.height / 2, 14, ["#6dffa8", "#fff", "#5ee7ff"], { speed: 5 });
+        rule.textContent = q.check ? `Проверочное слово: ${q.check}` : "Верно!";
+        setTimeout(next, q.check ? 1000 : 650);
+      } else {
+        gap.textContent = el.dataset.l; gap.classList.add("no"); streak = 0;
+        K.sfx("bad"); K.vibrate(50); wc.classList.add("shake");
+        setTimeout(() => { gap.textContent = q.ok; gap.classList.remove("no"); gap.classList.add("ok"); }, 600);
+        rule.innerHTML = `Правильно: <b style="color:var(--text)">${q.word.replace("_", q.ok)}</b>${q.check ? `. Проверка: ${q.check}` : ""}. ${CATS[cat].rule}`;
+        setTimeout(next, 2600);
+      }
+    }, 260);
+  }
+  function next() { i++; if (i < list.length) show(); else finish(); }
+  function finish() {
+    const b = best(); if (b[cat] == null || right > b[cat]) { b[cat] = right; K.store.set("words-best", b); }
+    const stars = right === 15 ? 3 : right >= 12 ? 2 : right >= 8 ? 1 : 0;
+    K.sfx(stars ? "win" : "lose"); if (stars === 3) K.confetti();
+    const drops = right;
+    K.panel({ title: stars === 3 ? "Ты настоящий грамотей!" : stars === 2 ? "Очень хорошо!" : "Продолжай тренироваться", stars, score: `${right}/15`, scoreLabel: "слов без ошибок",
+      text: `+${drops} ${K.plural(drops, "капелька", "капельки", "капелек")}`,
+      buttons: [{ label: "Ещё раунд", cls: "big", onClick: () => run(cat) }, { label: "Темы", cls: "ghost", onClick: home }] });
+    setTimeout(() => K.coins.add(drops, document.querySelector(".overlay .big-score")), 500);
+  }
+  home();
+})();
+</script>
+</body>
+</html>

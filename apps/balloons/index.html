@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Шарики-примеры</title>
+<meta name="theme-color" content="#060a1c">
+<link rel="stylesheet" href="../../shared/k.css">
+<script src="../../shared/k.js"></script>
+<style>
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; touch-action: none; }
+  .game-page .k-top, .game-page .hud, .q { position: relative; z-index: 2; }
+  .q { margin: 12px auto 0; padding: 12px 26px; border-radius: 26px; font-family: var(--f-display); font-weight: 800; font-size: clamp(1.8rem, 9vw, 2.8rem); text-align: center; font-variant-numeric: tabular-nums; width: fit-content; max-width: calc(100% - 32px); }
+  .q.new { animation: k-pop .45s var(--spring); }
+  .hearts { display: flex; gap: 4px; justify-content: center; }
+  .hearts svg { width: 22px; height: 22px; transition: transform .3s var(--spring), opacity .3s; }
+  .hearts svg.off { opacity: .2; transform: scale(.7); }
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+  .modes button { padding: 14px 10px; border-radius: 20px; border: 1px solid var(--stroke); background: rgba(255,255,255,.08); font-weight: 900; display: flex; flex-direction: column; gap: 2px; align-items: center; transition: transform .3s var(--spring); }
+  .modes button b { font-family: var(--f-display); font-size: 1.2rem; }
+  .modes button small { color: var(--muted); font-size: .78rem; }
+  .modes button:active { transform: scale(.94); }
+  .modes button:hover { background: rgba(255,255,255,.16); }
+</style>
+</head>
+<body class="game-page">
+<canvas id="c"></canvas>
+<div class="hud">
+  <div class="stat glass"><b id="score" class="num">0</b><small>очки</small></div>
+  <div class="stat glass"><b id="streak" class="num">0</b><small>подряд</small></div>
+  <div class="stat glass"><div class="hearts" id="hearts" style="height:26px;align-items:center"></div><small>жизни</small></div>
+</div>
+<div class="q glass" id="q">? </div>
+<script>
+(() => {
+  K.top({ title: "Шарики-примеры" });
+  const cv = document.getElementById("c"), g = cv.getContext("2d");
+  const $q = document.getElementById("q"), $score = document.getElementById("score"), $streak = document.getElementById("streak"), $hearts = document.getElementById("hearts");
+  const COLS = ["#ff5fa2", "#5ee7ff", "#ffd84d", "#6dffa8", "#a68bff", "#ff9a4d"];
+  let W, H, dpr, balloons = [], mode = "mix", task, score, streak, lives, playing = false, rise, last = 0, t = 0, solved;
+
+  function resize() { dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  addEventListener("resize", resize); resize();
+
+  const R = K.rnd;
+  function makeTask() {
+    let m = mode === "mix" ? ["mul", "div", "add", "sub", "big"][R(0, 4)] : mode;
+    if (m === "mul") { const a = R(2, 9), b = R(2, 9); return { q: `${a} × ${b}`, a: a * b }; }
+    if (m === "div") { const b = R(2, 9), c = R(2, 9); return { q: `${b * c} : ${b}`, a: c }; }
+    if (m === "add") { const a = R(120, 680), b = R(50, 300); return { q: `${a} + ${b}`, a: a + b }; }
+    if (m === "sub") { const a = R(300, 990), b = R(40, a - 50); return { q: `${a} − ${b}`, a: a - b }; }
+    const a = R(12, 49), b = R(2, 9); return { q: `${a} × ${b}`, a: a * b };
+  }
+  function wrongs(a) {
+    const s = new Set([a]), out = [];
+    const deltas = [1, -1, 2, -2, 10, -10, 3, -3, 5, -5, 9, -9, 100, -100];
+    for (const d of K.shuffle(deltas)) { const v = a + d; if (v > 0 && !s.has(v)) { s.add(v); out.push(v); } if (out.length >= 4) break; }
+    return out;
+  }
+  function round() {
+    task = makeTask(); solved = false;
+    $q.textContent = task.q + " = ?"; $q.classList.remove("new"); void $q.offsetWidth; $q.classList.add("new");
+    const vals = K.shuffle([task.a, ...wrongs(task.a)]);
+    const n = vals.length, slot = W / n;
+    const r = Math.min(48, slot * .42);
+    balloons = vals.map((v, i) => ({
+      v, ok: v === task.a, x: slot * (i + .5), y: H + r * 2 + R(0, 160), r,
+      c: COLS[(i + R(0, 5)) % COLS.length], ph: Math.random() * 6, vy: rise * (.85 + Math.random() * .3), popped: 0, wob: 0
+    }));
+  }
+  function drawBalloon(b) {
+    const x = b.x + Math.sin(t * 1.6 + b.ph) * 10, y = b.y, r = b.r;
+    b.dx = x;
+    const sc = b.popped ? 1 + b.popped * 1.2 : 1 + Math.sin(b.wob) * .06;
+    g.save(); g.translate(x, y);
+    // ниточка
+    g.strokeStyle = "rgba(255,255,255,.45)"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(0, r * 1.15);
+    for (let i = 1; i <= 6; i++) g.lineTo(Math.sin(t * 3 + i + b.ph) * 4, r * 1.15 + i * 12); g.stroke();
+    g.scale(sc, sc); g.globalAlpha = b.popped ? Math.max(0, 1 - b.popped * 3) : 1;
+    const gr = g.createRadialGradient(-r * .35, -r * .45, r * .05, 0, 0, r * 1.2);
+    gr.addColorStop(0, "#ffffff"); gr.addColorStop(.2, b.c); gr.addColorStop(1, shade(b.c));
+    g.fillStyle = gr;
+    g.beginPath(); g.ellipse(0, 0, r, r * 1.15, 0, 0, 7); g.fill();
+    g.beginPath(); g.moveTo(-6, r * 1.12); g.lineTo(6, r * 1.12); g.lineTo(0, r * 1.02); g.fill();
+    g.fillStyle = "rgba(255,255,255,.6)"; g.beginPath(); g.ellipse(-r * .4, -r * .5, r * .2, r * .34, -.5, 0, 7); g.fill();
+    g.fillStyle = "#0b1030"; g.font = `900 ${Math.round(r * (String(b.v).length > 3 ? .5 : .62))}px Unbounded, Nunito, sans-serif`;
+    g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(b.v, 0, 2);
+    g.restore();
+  }
+  function shade(hex) { const n = parseInt(hex.slice(1), 16); const f = (v) => Math.round(v * .55); return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`; }
+
+  function frame(ts) {
+    const dt = Math.min(.05, (ts - (last || ts)) / 1000); last = ts; t += dt;
+    g.clearRect(0, 0, W, H);
+    for (const b of balloons) {
+      if (b.popped) b.popped += dt * 3; else { b.y -= b.vy * dt; b.wob += dt * 4; }
+      drawBalloon(b);
+    }
+    balloons = balloons.filter((b) => !(b.popped > .4));
+    if (playing && !solved) {
+      const good = balloons.find((b) => b.ok);
+      if (!good || good.y < -good.r * 2) { miss("Шарик улетел! Ответ: " + task.a); }
+    }
+    requestAnimationFrame(frame);
+  }
+  function miss(msg) {
+    solved = true; streak = 0; $streak.textContent = 0; lives--; drawHearts(); K.sfx("bad"); K.vibrate(60);
+    K.toast(msg);
+    if (lives <= 0) return over();
+    setTimeout(round, 900);
+  }
+  cv.addEventListener("pointerdown", (e) => {
+    if (!playing || solved) return;
+    const x = e.clientX, y = e.clientY;
+    let hit = null;
+    for (const b of balloons) { if (b.popped) continue; const dx = x - b.dx, dy = (y - b.y) / 1.15; if (dx * dx + dy * dy < (b.r + 14) ** 2) hit = b; }
+    if (!hit) return;
+    hit.popped = .01;
+    K.burst(hit.dx, hit.y, 22, [hit.c, "#fff"], { speed: 6, size: 5 });
+    if (hit.ok) {
+      solved = true; streak++; const gain = 10 + streak * 2 + Math.round(Math.max(0, hit.y / H) * 10);
+      score += gain; $score.textContent = score; $streak.textContent = streak;
+      K.sfx("pop", 1.2); K.sfx("good"); K.vibrate(15);
+      if (streak % 10 === 0) { K.confetti(); K.toast(`${streak} подряд! Ты супер!`); if (lives < 3) { lives++; drawHearts(); } }
+      rise = Math.min(140, rise + 3);
+      balloons.forEach((b) => { if (!b.popped) b.vy = -40; });
+      setTimeout(round, 650);
+    } else {
+      document.getElementById("q").classList.add("shake"); setTimeout(() => document.getElementById("q").classList.remove("shake"), 400);
+      miss(`${task.q} = ${task.a}`);
+    }
+  });
+  const HEART = `<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.4-9.3C1.2 8.2 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.8 3.7 4.4 7.2C19.5 16.4 12 21 12 21z" fill="#ff5fa2" stroke="#ffd0e3"/></svg>`;
+  function drawHearts() { $hearts.innerHTML = [0, 1, 2].map((i) => HEART.replace("<svg", `<svg class="${i < lives ? "" : "off"}"`)).join(""); }
+
+  function over() {
+    playing = false;
+    const rec = K.best("balloons-" + mode, score);
+    K.sfx(rec ? "win" : "lose"); if (rec && score) K.confetti();
+    const drops = Math.floor(score / 15);
+    setTimeout(() => {
+      K.panel({
+        title: rec && score ? "Новый рекорд!" : "Игра окончена",
+        score, scoreLabel: "очков", stars: score > 400 ? 3 : score > 200 ? 2 : score > 60 ? 1 : 0,
+        text: `+${drops} ${K.plural(drops, "капелька", "капельки", "капелек")}`,
+        buttons: [{ label: "Ещё раз", cls: "big", onClick: () => begin(mode) }, { label: "Другой режим", cls: "ghost", onClick: menu }]
+      });
+      setTimeout(() => K.coins.add(drops, document.querySelector(".overlay .big-score")), 400);
+    }, 700);
+  }
+  function begin(m) { mode = m; score = 0; streak = 0; lives = 3; rise = 55; $score.textContent = 0; $streak.textContent = 0; drawHearts(); playing = true; round(); }
+  function menu() {
+    const MODES = [["mul", "×", "Таблица умножения"], ["div", ":", "Деление"], ["add", "+", "Сложение до 1000"], ["sub", "−", "Вычитание до 1000"], ["big", "48×7", "Умножение в столбик"], ["mix", "★", "Всё вперемешку"]];
+    const close = K.panel({
+      title: "Шарики-примеры",
+      text: "Лопни шарик с правильным ответом, пока он не улетел. Выбери, что тренируем:",
+      extra: `<div class="modes">${MODES.map(([id, s, n]) => `<button data-m="${id}"><b>${s}</b><small>${n}</small><small>рекорд ${K.getBest("balloons-" + id)}</small></button>`).join("")}</div>`
+    });
+    document.querySelectorAll(".modes button").forEach((b) => b.addEventListener("click", () => { K.sfx("tap"); close(); begin(b.dataset.m); }));
+  }
+  lives = 3; drawHearts(); requestAnimationFrame(frame);
+  // заставка: шарики летят ещё до старта
+  task = { q: "7 × 8", a: 56 }; rise = 40; round(); $q.textContent = "Готов?";
+  menu();
+})();
+</script>
+</body>
+</html>

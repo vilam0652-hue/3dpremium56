@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Kaplya" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/kaplya_bg</item>
+        <item name="android:statusBarColor">@color/kaplya_bg</item>
+        <item name="android:navigationBarColor">@color/kaplya_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+    <color name="kaplya_bg">#060A1C</color>
+</resources>

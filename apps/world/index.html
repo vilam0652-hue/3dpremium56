@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Знайка</title>
+<meta name="theme-color" content="#060a1c">
+<link rel="stylesheet" href="../../shared/k.css">
+<script src="../../shared/k.js"></script>
+<style>
+  main { padding-block: 18px 40px; }
+  .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-top: 18px; }
+  .cat { text-align: left; padding: 16px; border-radius: 26px; border: 1px solid var(--stroke); color: var(--text); display: flex; flex-direction: column; gap: 4px; min-height: 150px; transition: transform .4s var(--spring); }
+  .cat:active { transform: scale(.96); }
+  .cat .ico { font-size: 2.4rem; line-height: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
+  .cat b { font-family: var(--f-display); font-weight: 800; font-size: 1.02rem; margin-top: auto; }
+  .cat small { color: var(--muted); }
+  .quiz { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-block: 10px 30px; }
+  .quiz > * { width: min(520px, 100%); }
+  .meta { display: flex; justify-content: space-between; color: var(--muted); font-weight: 800; font-size: .9rem; }
+  .qcard { padding: 22px 20px; border-radius: 30px; }
+  .qcard .ico { font-size: 2.6rem; }
+  .qcard h2 { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.15rem, 5vw, 1.45rem); line-height: 1.3; margin: 8px 0 0; text-wrap: balance; }
+  .opts { display: grid; gap: 10px; }
+  .opt { text-align: left; padding: 16px 18px; border-radius: 20px; border: 1px solid var(--stroke); background: linear-gradient(150deg, rgba(255,255,255,.16), rgba(255,255,255,.04)); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); font-weight: 800; font-size: 1.05rem; display: flex; gap: 12px; align-items: center; transition: transform .3s var(--spring), background .2s, border-color .2s; animation: k-pop .45s var(--spring) both; }
+  .opt:nth-child(2) { animation-delay: .05s; } .opt:nth-child(3) { animation-delay: .1s; } .opt:nth-child(4) { animation-delay: .15s; }
+  .opt:active { transform: scale(.97); }
+  .opt i { font-style: normal; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.15); font-family: var(--f-display); font-size: .85rem; flex: none; }
+  .opt.right { border-color: var(--good); background: linear-gradient(150deg, rgba(109,255,168,.45), rgba(109,255,168,.12)); }
+  .opt.wrong { border-color: var(--bad); background: linear-gradient(150deg, rgba(255,107,125,.4), rgba(255,107,125,.1)); }
+  .opt[disabled] { cursor: default; }
+  .explain { padding: 16px 18px; border-radius: 22px; animation: k-pop .45s var(--spring); }
+  .explain b { font-family: var(--f-display); }
+</style>
+</head>
+<body>
+<main class="wrap" id="app"></main>
+<script>
+(() => {
+  K.top({ title: "Знайка · Окружающий мир" });
+  const app = document.getElementById("app");
+  // [вопрос, правильный, неверный, неверный, неверный, объяснение]
+  const CATS = {
+    zones: { ico: "🌍", name: "Природные зоны", tint: "tint-mint", q: [
+      ["В какой природной зоне живёт белый медведь?", "Арктика (зона льдов)", "Тундра", "Тайга", "Степь", "Белый медведь охотится на тюленей среди льдов Северного Ледовитого океана."],
+      ["Какое растение типично для тундры?", "Ягель (олений мох)", "Кактус", "Ковыль", "Дуб", "Ягель — это лишайник. Им зимой питаются северные олени."],
+      ["Какая зона занимает в России самую большую площадь?", "Зона лесов (тайга)", "Тундра", "Степь", "Пустыня", "Тайга тянется от западных границ России до Тихого океана."],
+      ["Почему в степи мало деревьев?", "Мало влаги и сухое жаркое лето", "Слишком холодно", "Мешает вечная мерзлота", "Всё вытоптали животные", "Деревьям не хватает воды: дождей мало, а летом сильная жара."],
+      ["Какое животное живёт в пустыне?", "Верблюд", "Морж", "Лось", "Песец", "Верблюд долго обходится без воды и не проваливается в песок."],
+      ["Где находится вечная мерзлота?", "В тундре", "В степи", "На Черноморском побережье", "В смешанном лесу", "Летом в тундре оттаивает лишь тонкий слой почвы, глубже земля всегда мёрзлая."],
+      ["Какое дерево растёт в субтропиках Черноморского побережья?", "Пальма", "Лиственница", "Карликовая берёза", "Кедр", "На побережье Чёрного моря тёплая зима, там растут пальмы и магнолии."],
+      ["Какие почвы самые плодородные в России?", "Чернозёмы", "Тундровые", "Песчаные", "Подзолистые", "Чернозёмы степной зоны содержат много перегноя — поэтому там выращивают пшеницу."],
+      ["Кто живёт в смешанном лесу?", "Кабан", "Тюлень", "Сайгак", "Белый медведь", "Кабаны любят леса, где растут дубы: они едят жёлуди."],
+      ["Что такое природная зона?", "Территория с похожим климатом, растениями и животными", "Заповедник", "Граница между странами", "Горный хребет", "Зоны сменяют друг друга с севера на юг, потому что меняется количество тепла."]
+    ] },
+    space: { ico: "🪐", name: "Земля и космос", tint: "tint-violet", q: [
+      ["Какая планета самая большая в Солнечной системе?", "Юпитер", "Земля", "Марс", "Венера", "В Юпитер поместилось бы больше 1300 планет размером с Землю."],
+      ["Сколько планет в Солнечной системе?", "8", "9", "7", "12", "Меркурий, Венера, Земля, Марс, Юпитер, Сатурн, Уран, Нептун."],
+      ["Что такое Солнце?", "Звезда", "Планета", "Спутник", "Комета", "Солнце — ближайшая к нам звезда, огромный раскалённый газовый шар."],
+      ["Почему на Земле день сменяется ночью?", "Земля вращается вокруг своей оси", "Солнце гаснет", "Луна закрывает Солнце", "Земля летит вокруг Луны", "Полный оборот вокруг оси Земля делает за сутки — 24 часа."],
+      ["Почему бывают времена года?", "Земля движется вокруг Солнца с наклонённой осью", "Солнце то приближается, то удаляется", "Так решили люди", "Из-за Луны", "Из-за наклона оси летом наше полушарие получает больше солнечного света."],
+      ["Кто первым полетел в космос?", "Юрий Гагарин", "Валентина Терешкова", "Сергей Королёв", "Алексей Леонов", "12 апреля 1961 года Гагарин облетел Землю. Этот день — День космонавтики."],
+      ["Что такое Луна?", "Спутник Земли", "Звезда", "Планета", "Астероид", "Луна светит отражённым солнечным светом."],
+      ["Какая планета называется «красной»?", "Марс", "Венера", "Сатурн", "Меркурий", "Почва Марса содержит много ржавчины — оксида железа."],
+      ["Какая планета ближе всех к Солнцу?", "Меркурий", "Венера", "Земля", "Нептун", "Год на Меркурии длится всего 88 земных суток."],
+      ["У какой планеты самые заметные кольца?", "Сатурн", "Марс", "Земля", "Меркурий", "Кольца Сатурна состоят из кусочков льда и камня."]
+    ] },
+    body: { ico: "🫀", name: "Тело человека", tint: "tint-pink", q: [
+      ["Какой орган качает кровь по всему телу?", "Сердце", "Лёгкие", "Желудок", "Печень", "Сердце работает без отдыха всю жизнь, примерно 70 ударов в минуту."],
+      ["Каким органом мы дышим?", "Лёгкими", "Желудком", "Почками", "Сердцем", "В лёгких кислород из воздуха попадает в кровь."],
+      ["Какой орган управляет всем организмом?", "Головной мозг", "Сердце", "Желудок", "Кожа", "Мозг получает сигналы от органов чувств и отдаёт команды мышцам."],
+      ["Сколько всего органов чувств у человека?", "5", "3", "7", "10", "Зрение, слух, обоняние, вкус и осязание."],
+      ["Что защищает головной мозг?", "Череп", "Рёбра", "Позвоночник", "Кожа ладоней", "Череп — это прочная костяная «шкатулка» для мозга."],
+      ["Где начинается переваривание пищи?", "Во рту", "В желудке", "В лёгких", "В сердце", "Во рту зубы измельчают пищу, а слюна начинает её переваривать."],
+      ["Сколько раз в день нужно чистить зубы?", "2 раза: утром и вечером", "1 раз в неделю", "Только перед праздником", "5 раз", "Чистка утром и вечером защищает зубы от кариеса."],
+      ["Что нужно делать, чтобы не испортить осанку?", "Сидеть прямо и заниматься спортом", "Носить портфель на одном плече", "Спать сидя", "Сутулиться", "Осанку держат мышцы спины, а спорт делает их сильнее."],
+      ["Какой орган самый большой у человека?", "Кожа", "Печень", "Сердце", "Мозг", "Кожа покрывает всё тело и защищает его от микробов."],
+      ["Сколько часов нужно спать школьнику?", "9–11 часов", "4 часа", "15 часов", "Можно не спать", "Во сне растёт тело и отдыхает мозг."]
+    ] },
+    history: { ico: "🏰", name: "История России", tint: "tint-sun", q: [
+      ["Как называется столица России?", "Москва", "Санкт-Петербург", "Киев", "Новгород", "Москва — столица и самый большой город России."],
+      ["Кто основал Санкт-Петербург?", "Пётр I", "Иван Грозный", "Юрий Долгорукий", "Александр Невский", "Пётр I заложил город в 1703 году на реке Неве."],
+      ["Кто считается основателем Москвы?", "Юрий Долгорукий", "Пётр I", "Дмитрий Донской", "Владимир Мономах", "Первое упоминание Москвы в летописи — 1147 год."],
+      ["Кто крестил Русь?", "Князь Владимир", "Князь Олег", "Пётр I", "Екатерина II", "В 988 году князь Владимир принял христианство."],
+      ["Кто победил на Куликовской битве (1380)?", "Дмитрий Донской", "Хан Мамай", "Наполеон", "Иван III", "За эту победу князь Дмитрий получил прозвище Донской."],
+      ["Кто изобрёл радио в России?", "Александр Попов", "Михаил Ломоносов", "Дмитрий Менделеев", "Иван Кулибин", "Попов показал работу радиоприёмника в 1895 году."],
+      ["Какой праздник отмечают 9 мая?", "День Победы", "День космонавтики", "Новый год", "День знаний", "9 мая 1945 года закончилась Великая Отечественная война."],
+      ["По чьему проекту открыли первый университет в Москве?", "Михаила Ломоносова", "Петра I", "Александра Пушкина", "Льва Толстого", "Московский университет открыт в 1755 году по проекту Ломоносова."],
+      ["Как называется главный документ (закон) России?", "Конституция", "Летопись", "Указ", "Грамота", "Конституция определяет права и обязанности граждан."],
+      ["Какие цвета на флаге России?", "Белый, синий, красный", "Красный, жёлтый, зелёный", "Синий и жёлтый", "Белый и красный", "Полосы идут сверху вниз: белая, синяя, красная."]
+    ] }
+  };
+  const best = () => K.store.get("world-best", {});
+  function home() {
+    const b = best();
+    app.innerHTML = `<span class="eyebrow">Окружающий мир · 4 класс</span>
+      <h1 class="h-display" style="font-size:clamp(1.6rem,7vw,2.4rem);margin-top:6px">Узнай мир за 10 вопросов</h1>
+      <p class="muted" style="margin:6px 0 0">После каждого ответа — короткое объяснение. Так запоминается лучше.</p>
+      <div class="cats">${Object.entries(CATS).map(([id, c]) => `<button class="cat glass ${c.tint}" data-tilt data-id="${id}"><span class="ico">${c.ico}</span><b>${c.name}</b><small>${b[id] != null ? "лучший: " + b[id] + " из 10" : c.q.length + " вопросов"}</small></button>`).join("")}</div>`;
+    app.querySelectorAll(".cat").forEach((el) => el.addEventListener("click", () => { K.sfx("tap"); run(el.dataset.id); }));
+    K.tilt(app);
+  }
+  let cat, qs, i, right;
+  function run(id) { cat = id; qs = K.shuffle(CATS[id].q).slice(0, 10); i = 0; right = 0; show(); }
+  function show() {
+    const [q, ok, ...rest] = qs[i]; const why = rest.pop();
+    const opts = K.shuffle([ok, ...rest]);
+    app.innerHTML = `<div class="quiz"><div class="meta"><span>Вопрос ${i + 1} из ${qs.length}</span><span>Верно: ${right}</span></div>
+      <div class="progress"><i style="width:${i / qs.length * 100}%"></i></div>
+      <div class="qcard glass ${CATS[cat].tint}"><div class="ico">${CATS[cat].ico}</div><h2>${q}</h2></div>
+      <div class="opts">${opts.map((o, k) => `<button class="opt" data-o="${encodeURIComponent(o)}"><i>${"АБВГ"[k]}</i><span>${o}</span></button>`).join("")}</div>
+      <div id="ex"></div><button class="btn ghost" id="quit" style="width:auto;align-self:center">Выйти</button></div>`;
+    app.querySelectorAll(".opt").forEach((el) => el.addEventListener("click", () => {
+      const pickOk = decodeURIComponent(el.dataset.o) === ok;
+      app.querySelectorAll(".opt").forEach((b) => { b.disabled = true; if (decodeURIComponent(b.dataset.o) === ok) b.classList.add("right"); });
+      const r = el.getBoundingClientRect();
+      if (pickOk) { right++; K.sfx("good"); K.burst(r.left + r.width / 2, r.top + r.height / 2, 16, undefined, { speed: 5 }); }
+      else { el.classList.add("wrong", "shake"); K.sfx("bad"); K.vibrate(50); }
+      document.getElementById("ex").innerHTML = `<div class="explain glass ${pickOk ? "tint-mint" : "tint-orange"}"><b>${pickOk ? "Верно!" : "Запомни:"}</b> ${why}<div style="margin-top:12px"><button class="btn" id="nx">${i + 1 < qs.length ? "Дальше" : "Результат"}</button></div></div>`;
+      document.getElementById("nx").onclick = () => { K.sfx("tap"); i++; i < qs.length ? show() : finish(); };
+      document.getElementById("nx").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }));
+    document.getElementById("quit").onclick = home;
+  }
+  function finish() {
+    const b = best(); if (b[cat] == null || right > b[cat]) { b[cat] = right; K.store.set("world-best", b); }
+    const stars = right === 10 ? 3 : right >= 8 ? 2 : right >= 5 ? 1 : 0;
+    K.sfx(stars ? "win" : "lose"); if (stars === 3) K.confetti();
+    const drops = right * 2;
+    K.panel({ title: stars === 3 ? "Ты настоящий Знайка!" : stars >= 2 ? "Отличный результат!" : "Хорошее начало!", stars, score: `${right}/10`, scoreLabel: "правильных ответов",
+      text: `+${drops} ${K.plural(drops, "капелька", "капельки", "капелек")}`,
+      buttons: [{ label: "Ещё раз", cls: "big", onClick: () => run(cat) }, { label: "Темы", cls: "ghost", onClick: home }] });
+    setTimeout(() => K.coins.add(drops, document.querySelector(".overlay .big-score")), 500);
+  }
+  home();
+})();
+</script>
+</body>
+</html>
