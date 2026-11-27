@@ -18,7 +18,7 @@ for row in $(jq -r '.[] | @base64' apps.json); do
   rm -rf "$web" && mkdir -p "$web/apps" "$web/shared"
   cp -r "apps/$id" "$web/apps/$id"
   cp -r shared/k.css shared/k.js shared/fonts.css shared/fonts "$web/shared/"
-  [ "$id" = "space" ] && cp shared/three.min.js "$web/shared/"
+  [ "$id" = "space" ] && cp -r shared/three.min.js shared/lib "$web/shared/"
   [ "$id" = "merge" ] && cp shared/matter.min.js "$web/shared/"
 
   cp "icons/$id-192.png" "$RES/mipmap-xxxhdpi/ic_launcher.png"
