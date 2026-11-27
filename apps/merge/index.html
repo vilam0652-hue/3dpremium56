@@ -111,8 +111,12 @@
   function namePop(t, x, y) { const d = document.createElement("div"); d.className = "namepop"; d.textContent = t; d.style.left = x + "px"; d.style.top = y + "px"; document.body.appendChild(d); setTimeout(() => d.remove(), 1000); }
 
   /* ---------- рисование планет ---------- */
+  // картинки планет из Gemini: img/planet-01.png … planet-11.png (нет файла — рисуется сама)
+  const PIMG = [];
+  P.forEach((_, i) => K.img(`img/planet-${String(i + 1).padStart(2, "0")}.png`).then((im) => { PIMG[i] = im; }));
   function planet(g, lv, x, y, r, sx = 1, sy = 1, rot = 0, face = true) {
     const p = P[lv];
+    if (PIMG[lv]) { const k = P[lv].ring ? 1.45 : 1.08; g.save(); g.translate(x, y); g.rotate(rot * .3); g.scale(sx, sy); g.drawImage(PIMG[lv], -r * k, -r * k, r * k * 2, r * k * 2); g.restore(); return; }
     g.save(); g.translate(x, y); g.rotate(rot); g.scale(sx, sy);
     if (p.sun) { const gl = g.createRadialGradient(0, 0, r * .8, 0, 0, r * 1.5); gl.addColorStop(0, "rgba(255,200,60,.55)"); gl.addColorStop(1, "rgba(255,200,60,0)"); g.fillStyle = gl; g.beginPath(); g.arc(0, 0, r * 1.5, 0, 7); g.fill(); }
     if (p.ring) { g.save(); g.rotate(-.35); g.strokeStyle = "rgba(255,230,170,.75)"; g.lineWidth = r * .14; g.beginPath(); g.ellipse(0, 0, r * 1.55, r * .42, 0, Math.PI, 0); g.stroke(); g.restore(); }

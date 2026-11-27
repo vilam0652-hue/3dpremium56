@@ -68,6 +68,10 @@
       c: COLS[(i + R(0, 5)) % COLS.length], ph: Math.random() * 6, vy: rise * (.85 + Math.random() * .3), popped: 0, wob: 0
     }));
   }
+  // картинки шариков из Gemini: img/balloon-gold.png, balloon-black.png, balloon-white.png
+  const BIMG = {};
+  ["gold", "black", "white"].forEach((k) => K.img(`img/balloon-${k}.png`).then((im) => { if (im) BIMG[k] = im; }));
+  const imgFor = (c) => (c === "#2b2b31" ? BIMG.black : c === "#f1ede4" || c === "#b8b4ad" ? BIMG.white : BIMG.gold);
   function drawBalloon(b) {
     const x = b.x + Math.sin(t * 1.6 + b.ph) * 10, y = b.y, r = b.r;
     b.dx = x;
@@ -77,6 +81,13 @@
     g.strokeStyle = "rgba(255,255,255,.45)"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(0, r * 1.15);
     for (let i = 1; i <= 6; i++) g.lineTo(Math.sin(t * 3 + i + b.ph) * 4, r * 1.15 + i * 12); g.stroke();
     g.scale(sc, sc); g.globalAlpha = b.popped ? Math.max(0, 1 - b.popped * 3) : 1;
+    const bim = imgFor(b.c);
+    if (bim) {
+      const h = r * 3.1, w = h * bim.width / bim.height;
+      g.drawImage(bim, -w / 2, -r * 1.25, w, h);
+      g.fillStyle = b.c === "#2b2b31" ? "#f3e3b0" : "#17130b"; g.font = `700 ${Math.round(r * (String(b.v).length > 3 ? .5 : .6))}px Unbounded, sans-serif`;
+      g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(b.v, 0, 0); g.restore(); return;
+    }
     const gr = g.createRadialGradient(-r * .35, -r * .45, r * .05, 0, 0, r * 1.2);
     gr.addColorStop(0, "#ffffff"); gr.addColorStop(.2, b.c); gr.addColorStop(1, shade(b.c));
     g.fillStyle = gr; g.shadowColor = "rgba(0,0,0,.5)"; g.shadowBlur = 18;
