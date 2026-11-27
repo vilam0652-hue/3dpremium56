@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Бадди — английский</title>
-<meta name="theme-color" content="#fff3e3">
+<meta name="theme-color" content="#f7f5f0">
 <link rel="stylesheet" href="../../shared/fonts.css">
 <script async src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="buddy-dog.js"></script>
@@ -13,22 +13,24 @@
 /* Тёплая гостиная Бадди: кремовый фон, медовые и небесные пятна света, мягкое стекло. */
 :root {
   color-scheme: light;
-  --bg: #fff3e3; --bg2: #ffe4c6;
-  --ink: #3a2618; --muted: #8b6c55; --faint: #b59a84; --line: rgba(122,74,31,.13);
-  --glass: rgba(255,255,255,.58); --glass-hi: rgba(255,255,255,.85);
-  --honey: #ffb547; --honey-d: #e08a12; --orange: #ff8a3d; --orange-d: #d9621a;
-  --green: #3ccf91; --green-d: #1f9e68; --green-bg: #dcf8ea;
-  --red: #ff5d6c; --red-d: #d93648; --red-bg: #ffe1e3;
-  --blue: #4fb3ff; --blue-d: #1f86d6; --violet: #b27cff; --violet-d: #8650dc;
-  --lock: #e8d9c8; --lock-d: #cdb69e;
-  --f: "Nunito", "Segoe UI Rounded", system-ui, -apple-system, sans-serif;
-  --spring: cubic-bezier(.34,1.56,.64,1); --ease: cubic-bezier(.22,1,.36,1);
+  --bg: #f7f5f0; --bg2: #ebe5d8;
+  --ink: #141414; --muted: #6f6a62; --faint: #a8a298; --line: rgba(20,20,20,.1);
+  --glass: rgba(255,255,255,.6); --glass-hi: rgba(255,255,255,.9);
+  --honey: #d6b15e; --honey-d: #9c7731; --orange: #1a1a1c; --orange-d: #000000;
+  --green: #3fae7c; --green-d: #2b8a5f; --green-bg: #e3f4ea;
+  --red: #e0675c; --red-d: #b84a40; --red-bg: #fbe7e4;
+  --blue: #1a1a1c; --blue-d: #000000; --violet: #9c7731; --violet-d: #6e5320;
+  --gold-grad: linear-gradient(100deg, #f3e3b0 0%, #d6b15e 38%, #9c7731 70%, #e6c97f 100%);
+  --lock: #e4dfd4; --lock-d: #cbc3b3;
+  --f: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-display: "Unbounded", "Manrope", system-ui, sans-serif;
+  --spring: cubic-bezier(.3,1.35,.5,1); --ease: cubic-bezier(.22,1,.36,1);
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; height: 100%; }
 body {
-  font-family: var(--f); font-weight: 700; color: var(--ink); font-size: 16px; line-height: 1.4;
-  background: radial-gradient(120% 70% at 50% -10%, #fffaf2 0%, var(--bg) 45%, var(--bg2) 100%) fixed, var(--bg);
+  font-family: var(--f); font-weight: 600; color: var(--ink); font-size: 16px; line-height: 1.4;
+  background: radial-gradient(120% 70% at 50% -10%, #ffffff 0%, var(--bg) 45%, var(--bg2) 100%) fixed, var(--bg);
   overflow: hidden; user-select: none; -webkit-user-select: none;
 }
 button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; padding: 0; }
@@ -38,16 +40,16 @@ input { font: inherit; color: inherit; user-select: text; -webkit-user-select: t
 
 .blobs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 .blobs i { position: absolute; border-radius: 50%; filter: blur(50px); opacity: .55; animation: drift 24s ease-in-out infinite alternate; }
-.blobs i:nth-child(1) { width: 60vmax; height: 60vmax; left: -25vmax; top: -20vmax; background: #ffc98d; }
-.blobs i:nth-child(2) { width: 45vmax; height: 45vmax; right: -20vmax; top: 25vh; background: #bfe3ff; animation-delay: -8s; }
-.blobs i:nth-child(3) { width: 40vmax; height: 40vmax; left: 5vmax; bottom: -22vmax; background: #ffb8c4; opacity: .4; animation-delay: -14s; }
+.blobs i:nth-child(1) { width: 60vmax; height: 60vmax; left: -25vmax; top: -20vmax; background: #ead7a6; }
+.blobs i:nth-child(2) { width: 45vmax; height: 45vmax; right: -20vmax; top: 25vh; background: #ffffff; animation-delay: -8s; }
+.blobs i:nth-child(3) { width: 40vmax; height: 40vmax; left: 5vmax; bottom: -22vmax; background: #d9c39a; opacity: .35; animation-delay: -14s; }
 @keyframes drift { to { transform: translate(5vmax, 4vmax) scale(1.1); } }
 
 .glass {
   background: linear-gradient(150deg, rgba(255,255,255,.78), rgba(255,255,255,.45));
   -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%);
   border: 1.5px solid rgba(255,255,255,.9); border-radius: 26px;
-  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 14px 34px -14px rgba(150,80,20,.28);
+  box-shadow: 0 1px 0 rgba(255,255,255,.95) inset, 0 18px 40px -22px rgba(40,30,10,.35);
 }
 
 /* ---------- каркас ---------- */
@@ -61,7 +63,7 @@ input { font: inherit; color: inherit; user-select: text; -webkit-user-select: t
 .pill .e { font-size: 1.2rem; line-height: 1; }
 .pill.bump { animation: bump .6s var(--spring); }
 @keyframes bump { 40% { transform: scale(1.35) rotate(-6deg); } }
-.pill.bone { color: var(--orange-d); } .pill.cookie { color: #a8641c; } .pill.heart { color: var(--red-d); } .pill.cat { color: var(--violet-d); }
+.pill.bone { color: var(--ink); } .pill.cookie { color: var(--honey-d); } .pill.heart { color: var(--red-d); } .pill.cat { color: var(--violet-d); }
 .pill.dim { opacity: .45; filter: grayscale(.8); }
 
 main.scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 120px max(16px, env(safe-area-inset-left, 0px)); }
@@ -74,34 +76,38 @@ nav.tabs {
 }
 nav.tabs button { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px; border-radius: 22px; font-size: .68rem; font-weight: 900; color: var(--muted); transition: background .25s, color .25s, transform .35s var(--spring); }
 nav.tabs button .e { font-size: 1.45rem; line-height: 1.1; filter: grayscale(.4); transition: transform .4s var(--spring), filter .2s; }
-nav.tabs button[aria-current="page"] { background: rgba(255,181,71,.25); color: var(--orange-d); }
+nav.tabs button[aria-current="page"] { background: #141414; color: #f3e3b0; }
 nav.tabs button[aria-current="page"] .e { transform: scale(1.18) translateY(-2px); filter: none; }
 nav.tabs button:active { transform: scale(.9); }
 
 /* ---------- кнопки как мармелад ---------- */
 .btn {
-  --c: var(--green); --d: var(--green-d);
+  --c: #1a1a1c; --d: #000;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 0 24px; border-radius: 18px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 82%, white), var(--c)); color: #fff; font-weight: 900; font-size: 1.05rem; letter-spacing: .02em; text-transform: uppercase;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 82%, white), var(--c)); color: #fff; font-weight: 900; font-size: 1.05rem; letter-spacing: .02em; 
   box-shadow: 0 5px 0 var(--d), inset 0 2px 0 rgba(255,255,255,.45); transition: transform .08s, box-shadow .08s, filter .2s; text-shadow: 0 1px 0 rgba(0,0,0,.12);
 }
 .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--d), inset 0 2px 0 rgba(255,255,255,.45); }
 .btn.wide { width: 100%; }
 .btn.orange { --c: var(--orange); --d: var(--orange-d); }
+.btn.green { --c: var(--green); --d: var(--green-d); }
 .btn.blue { --c: var(--blue); --d: var(--blue-d); }
 .btn.red { --c: var(--red); --d: var(--red-d); }
 .btn.violet { --c: var(--violet); --d: var(--violet-d); }
-.btn.honey { --c: var(--honey); --d: var(--honey-d); color: #5a3205; text-shadow: none; }
-.btn.ghost { --d: var(--line); background: rgba(255,255,255,.75); color: var(--blue-d); box-shadow: 0 4px 0 rgba(122,74,31,.16); border: 2px solid rgba(122,74,31,.1); }
+.btn.honey { --c: var(--honey); --d: var(--honey-d); background: var(--gold-grad); color: #17130b; text-shadow: none; }
+.btn.ghost { --d: var(--line); background: rgba(255,255,255,.75); color: var(--ink); box-shadow: 0 4px 0 rgba(122,74,31,.16); border: 2px solid rgba(122,74,31,.1); }
 .btn:disabled { --c: var(--lock); --d: var(--lock-d); color: var(--faint); pointer-events: none; text-shadow: none; }
 .btn.sm { min-height: 42px; padding: 0 16px; font-size: .9rem; border-radius: 14px; }
 
-h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-weight: 900; }
+h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-family: var(--f-display); font-weight: 700; letter-spacing: -.01em; }
 .muted { color: var(--muted); }
 .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.eyebrow { font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 900; color: var(--orange-d); }
+.eyebrow { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 800; color: var(--honey-d); }
 
 .buddy { display: block; width: 100%; height: auto; overflow: visible; }
+.buddy-img { object-fit: contain; aspect-ratio: 1; filter: drop-shadow(0 16px 18px rgba(40,30,10,.22)); animation: bdbob 3.4s ease-in-out infinite; -webkit-user-drag: none; }
+.buddy-img.bd-cheer { animation: hop .7s var(--ease) infinite alternate; }
+@keyframes bdbob { 50% { transform: translateY(-4px) rotate(-1.5deg); } }
 .buddy .bd-head { transform-origin: 100px 150px; animation: nod 4s ease-in-out infinite; }
 .buddy .bd-tail { transform-origin: 146px 168px; animation: wag .45s ease-in-out infinite alternate; }
 .buddy .bd-eyes { transform-origin: 100px 86px; animation: blink 5s infinite; }
@@ -126,30 +132,30 @@ h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-weight: 900;
   box-shadow: 0 7px 0 color-mix(in srgb, var(--c) 65%, black), inset 0 -4px 8px rgba(0,0,0,.12); transition: transform .1s;
 }
 .node:active { transform: translateY(5px); box-shadow: 0 2px 0 color-mix(in srgb, var(--c) 65%, black); }
-.node.done { --c: var(--honey); }
+.node.done { --c: #d6b15e; }
 .node.locked { --c: var(--lock); filter: saturate(.6); cursor: default; }
 .node.locked .ic { opacity: .5; }
 .node.current::before { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 5px solid color-mix(in srgb, var(--u) 50%, white); animation: ring 1.6s ease-in-out infinite; }
 @keyframes ring { 50% { transform: scale(1.08); opacity: .55; } }
 .node .crown { position: absolute; right: -4px; bottom: -6px; font-size: 1.1rem; }
-.start-bubble { position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 8px 14px; border-radius: 14px; background: #fff; color: var(--u); font-weight: 900; font-size: .9rem; text-transform: uppercase; box-shadow: 0 4px 0 rgba(122,74,31,.14); animation: float 1.8s ease-in-out infinite; }
-.start-bubble::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -8px; border: 8px solid transparent; border-top-color: #fff; }
+.start-bubble { position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 8px 16px; border-radius: 999px; background: #141414; color: #f3e3b0; font-weight: 800; font-size: .85rem; letter-spacing: .04em; box-shadow: 0 4px 0 rgba(122,74,31,.14); animation: float 1.8s ease-in-out infinite; }
+.start-bubble::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -8px; border: 8px solid transparent; border-top-color: #141414; }
 @keyframes float { 50% { transform: translate(-50%, -5px); } }
 .path-buddy { position: absolute; width: 96px; top: -18px; pointer-events: none; }
 .fact-card { padding: 14px 16px; display: flex; gap: 12px; align-items: center; }
 .fact-card .flag { font-size: 2rem; }
 
 /* ---------- урок ---------- */
-.lesson { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: radial-gradient(120% 70% at 50% -10%, #fffaf2 0%, var(--bg) 50%, var(--bg2) 100%); animation: slideup .45s var(--ease); }
+.lesson { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: radial-gradient(120% 70% at 50% -10%, #ffffff 0%, var(--bg) 50%, var(--bg2) 100%); animation: slideup .45s var(--ease); }
 @keyframes slideup { from { transform: translateY(40px); opacity: 0; } }
 .l-top { display: flex; align-items: center; gap: 12px; width: min(620px, calc(100% - 28px)); margin: max(14px, env(safe-area-inset-top, 0px)) auto 0; }
 .l-close { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--faint); font-size: 1.6rem; }
 .bar { flex: 1; height: 18px; border-radius: 999px; background: rgba(122,74,31,.12); overflow: hidden; }
-.bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(180deg, #7ff0b8, var(--green)); box-shadow: inset 0 3px 0 rgba(255,255,255,.45); transition: width .5s var(--spring); }
+.bar i { display: block; height: 100%; border-radius: inherit; background: var(--gold-grad); box-shadow: inset 0 3px 0 rgba(255,255,255,.45); transition: width .5s var(--spring); }
 .l-hearts { font-weight: 900; color: var(--red-d); display: flex; align-items: center; gap: 4px; }
 .l-body { flex: 1; min-height: 0; overflow-y: auto; width: min(620px, 100%); margin: 0 auto; padding: 18px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 18px; }
 .l-title { font-size: clamp(1.3rem, 5.5vw, 1.7rem); }
-.tag-new { align-self: flex-start; padding: 4px 10px; border-radius: 10px; background: var(--violet); color: #fff; font-size: .75rem; letter-spacing: .1em; font-weight: 900; }
+.tag-new { align-self: flex-start; padding: 5px 12px; border-radius: 999px; background: var(--gold-grad); color: #17130b; font-size: .75rem; letter-spacing: .1em; font-weight: 900; }
 .say-row { display: flex; align-items: flex-end; gap: 10px; }
 .say-row .mini { width: 92px; flex: none; }
 .bubble { position: relative; flex: 1; padding: 14px 16px; border-radius: 20px; border: 2px solid var(--line); background: #fff; font-size: 1.25rem; font-weight: 800; }
@@ -166,7 +172,7 @@ h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-weight: 900;
 .choices .choice:nth-child(2) { animation-delay: .05s; } .choices .choice:nth-child(3) { animation-delay: .1s; } .choices .choice:nth-child(4) { animation-delay: .15s; }
 @keyframes pop { from { transform: scale(.7); opacity: 0; } }
 .choice:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
-.choice.sel { border-color: var(--blue); background: #e6f4ff; box-shadow: 0 4px 0 #a9d6fb; color: var(--blue-d); }
+.choice.sel { border-color: #141414; background: #f6f1e4; box-shadow: 0 4px 0 #d6c9a8; color: var(--ink); }
 .choice.ok { border-color: var(--green); background: var(--green-bg); box-shadow: 0 4px 0 #9fe4c3; color: var(--green-d); }
 .choice.bad { border-color: var(--red); background: var(--red-bg); box-shadow: 0 4px 0 #f6b0b7; color: var(--red-d); }
 .choice.gone { opacity: .25; pointer-events: none; transform: scale(.94); }
@@ -177,7 +183,7 @@ h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-weight: 900;
 
 .intro-card { padding: 26px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .intro-card .pic { font-size: 5.5rem; line-height: 1.1; animation: pop .6s var(--spring); }
-.intro-card .en { font-size: 2.2rem; font-weight: 900; color: var(--blue-d); }
+.intro-card .en { font-family: var(--f-display); font-size: 2rem; font-weight: 700; color: var(--ink); }
 .intro-card .ru { font-size: 1.2rem; color: var(--muted); }
 
 .answer-line { min-height: 64px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; padding: 10px 0; border-top: 2px solid var(--line); border-bottom: 2px solid var(--line); }
@@ -193,7 +199,7 @@ h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-weight: 900;
 .fb { display: flex; align-items: center; gap: 12px; animation: slideup .3s var(--ease); }
 .fb .ic { width: 52px; height: 52px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 1.7rem; flex: none; }
 .fb b { font-size: 1.3rem; display: block; }
-.l-foot.ok .fb { color: var(--green-d); } .l-foot.bad .fb { color: var(--red-d); }
+.l-foot.ok .fb { color: var(--green-d); } .l-foot.bad .fb { color: var(--red-d); } .fb b { font-family: var(--f-display); font-weight: 700; }
 .shake { animation: shake .4s; }
 @keyframes shake { 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
 
@@ -202,13 +208,13 @@ h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-weight: 900;
 .quest { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; align-items: center; padding: 14px; }
 .quest .qe { font-size: 2rem; text-align: center; }
 .qbar { height: 14px; border-radius: 999px; background: rgba(122,74,31,.12); overflow: hidden; margin-top: 6px; }
-.qbar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--honey), var(--orange)); }
+.qbar i { display: block; height: 100%; border-radius: inherit; background: var(--gold-grad); }
 .quest.claimed { opacity: .6; }
 .shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .item { padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 .item .prev { width: 110px; }
 .item .price { font-weight: 900; color: #a8641c; }
-.plus { position: relative; overflow: hidden; padding: 20px; border-radius: 28px; color: #fff; background: linear-gradient(135deg, #7d5cff, #4fb3ff 55%, #3ccf91); box-shadow: 0 18px 40px -18px #7d5cff; }
+.plus { position: relative; overflow: hidden; padding: 22px; border-radius: 28px; color: #f6f4ef; background: radial-gradient(120% 90% at 0% 0%, #2b2b31, #0d0d10 70%); box-shadow: inset 0 0 0 1px rgba(214,177,94,.4), 0 24px 50px -24px rgba(0,0,0,.6); }
 .plus::after { content: ""; position: absolute; inset: 0; background: radial-gradient(60% 70% at 20% 0%, rgba(255,255,255,.45), transparent 60%); pointer-events: none; }
 .plus ul { margin: 10px 0 14px; padding-left: 20px; line-height: 1.7; }
 .chip { display: inline-flex; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.3); font-size: .78rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
@@ -226,7 +232,7 @@ h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-weight: 900;
 /* ---------- чат ---------- */
 .chat { display: flex; flex-direction: column; gap: 10px; }
 .msg { max-width: 86%; padding: 12px 14px; border-radius: 20px; font-weight: 700; white-space: pre-wrap; overflow-wrap: anywhere; animation: pop .35s var(--spring) both; }
-.msg.me { align-self: flex-end; background: var(--blue); color: #fff; border-bottom-right-radius: 6px; }
+.msg.me { align-self: flex-end; background: #141414; color: #f6f4ef; border-bottom-right-radius: 6px; }
 .msg.bot { align-self: flex-start; background: #fff; border: 2px solid var(--line); border-bottom-left-radius: 6px; }
 .msg.bot .s { margin-left: 6px; color: var(--blue-d); font-size: .85rem; }
 .typing span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); margin: 0 2px; animation: dot 1s infinite; }
@@ -244,7 +250,7 @@ h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-weight: 900;
 .modal .panel .hero { width: 170px; }
 .big-num { font-size: 2.6rem; font-weight: 900; line-height: 1; }
 .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
-.results div { padding: 10px 4px; border-radius: 16px; border: 2px solid var(--c); background: color-mix(in srgb, var(--c) 12%, white); font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--c); font-weight: 900; }
+.results div { padding: 10px 4px; border-radius: 16px; border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 12%, white); font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--c); font-weight: 900; }
 .results b { display: block; font-size: 1.3rem; color: var(--ink); letter-spacing: 0; text-transform: none; }
 .bone-burst { font-size: 4rem; animation: boneIn 1s var(--spring); }
 @keyframes boneIn { 0% { transform: scale(0) rotate(-180deg); } 60% { transform: scale(1.3) rotate(10deg); } }
@@ -253,7 +259,7 @@ canvas#fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events
 @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -16px); } 10%, 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 
 /* ---------- первое знакомство ---------- */
-.onb { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px max(20px, env(safe-area-inset-right, 0px)) 24px max(20px, env(safe-area-inset-left, 0px)); text-align: center; background: radial-gradient(120% 70% at 50% -10%, #fffaf2 0%, var(--bg) 50%, var(--bg2) 100%); }
+.onb { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px max(20px, env(safe-area-inset-right, 0px)) 24px max(20px, env(safe-area-inset-left, 0px)); text-align: center; background: radial-gradient(120% 70% at 50% -10%, #ffffff 0%, var(--bg) 50%, var(--bg2) 100%); }
 .onb .hero { width: min(230px, 56vw); }
 .onb h1 { font-size: clamp(1.7rem, 7vw, 2.3rem); }
 .goals { display: grid; gap: 10px; width: min(360px, 100%); }
@@ -416,7 +422,7 @@ const OFFS = [0, 56, 76, 46, -10];
 function renderLearn() {
   const [cu, cl] = current();
   let h = `<div class="inner">`;
-  h += `<div class="glass card row" style="flex-wrap:nowrap"><div style="width:84px;flex:none">${buddySVG({ mood: S.lastDay === dayKey() ? "cheer" : "happy", outfit: S.outfit })}</div>
+  h += `<div class="glass card row" style="flex-wrap:nowrap"><div style="width:84px;flex:none">${buddyArt({ mood: S.lastDay === dayKey() ? "cheer" : "happy", outfit: S.outfit })}</div>
     <div><div class="eyebrow">${S.lastDay === dayKey() ? "Сегодня ты молодец" : "Привет" + (S.name ? ", " + esc(S.name) : "") + "!"}</div>
     <div style="font-weight:800">${S.lastDay === dayKey() ? `Серия: ${S.streak} ${plural(S.streak, "косточка", "косточки", "косточек")} 🦴 Возвращайся завтра!` : S.streak ? `Пройди урок, чтобы получить ${S.streak + 1}-ю косточку 🦴` : "Пройди первый урок и получи косточку 🦴"}</div></div></div>`;
   C.forEach((u, i) => {
@@ -430,7 +436,7 @@ function renderLearn() {
         ${isCur ? `<div class="start-bubble">${k === 0 && i === 0 && !S.lessons ? "Начать" : "Дальше"}</div>` : ""}
         <button class="node ${isDone ? "done" : ""} ${isCur ? "current" : ""} ${locked && !isDone ? "locked" : ""}" data-u="${i}" data-l="${k}" aria-label="${u.title}: ${L.n}${locked && !isDone ? " (закрыто)" : ""}">
           <span class="ic">${locked && !isDone ? "🔒" : isDone ? (k === 4 ? "🏆" : "✓") : L.ic}</span>${isDone ? `<span class="crown">👑</span>` : ""}</button>
-        ${isCur ? `<div class="path-buddy" style="${OFFS[k] > 20 ? "right:110px" : "left:110px"}">${buddySVG({ mood: "happy", outfit: S.outfit })}</div>` : ""}
+        ${isCur ? `<div class="path-buddy" style="${OFFS[k] > 20 ? "right:110px" : "left:110px"}">${buddyArt({ mood: "happy", outfit: S.outfit })}</div>` : ""}
       </div>`;
     });
     h += `</div>`;
@@ -499,7 +505,7 @@ function startLesson(ui, k) {
   el.innerHTML = `<div class="l-top"><button class="l-close" id="lx" aria-label="Закрыть урок">✕</button><div class="bar"><i id="lbar" style="width:0"></i></div><div class="l-hearts">❤️ <span id="lh">${S.hearts}</span></div></div>
     <div class="l-body" id="lb"></div><div class="l-foot" id="lf"><div class="in"></div></div>`;
   document.body.appendChild(el);
-  $("#lx").onclick = () => modal(`<div class="hero">${buddySVG({ mood: "oops", outfit: S.outfit })}</div><h2>Уже уходишь?</h2><p class="muted">Если выйти сейчас, прогресс урока не сохранится.</p>
+  $("#lx").onclick = () => modal(`<div class="hero">${buddyArt({ mood: "oops", outfit: S.outfit })}</div><h2>Уже уходишь?</h2><p class="muted">Если выйти сейчас, прогресс урока не сохранится.</p>
     <button class="btn wide" data-a="stay">Остаться</button><button class="btn ghost wide" data-a="quit">Выйти</button>`, (m, close) => {
       m.querySelector('[data-a="stay"]').onclick = close;
       m.querySelector('[data-a="quit"]').onclick = () => { close(); endLesson(); };
@@ -515,7 +521,7 @@ function checkBtn(enabled) { foot(`<button class="btn wide" id="chk" ${enabled ?
 function showTask() {
   const T = L.tasks[L.i]; L.state = "ask"; L.answer = null; setBar();
   const b = $("#lb"); b.scrollTop = 0;
-  const mini = (mood = "happy") => `<div class="mini">${buddySVG({ mood, outfit: S.outfit })}</div>`;
+  const mini = (mood = "happy") => `<div class="mini">${buddyArt({ mood, outfit: S.outfit })}</div>`;
   switch (T.t) {
     case "intro":
       b.innerHTML = `<span class="tag-new">НОВОЕ СЛОВО</span><div class="glass intro-card"><div class="pic">${T.w[2]}</div><div class="en">${esc(T.w[0])}</div><div class="ru">${esc(T.w[1])}</div><button class="speak" id="sp" aria-label="Послушать">${SPK}</button></div>`;
@@ -619,13 +625,13 @@ function feedback(ok, extra) {
   ok ? sfx.ok() : sfx.bad();
   try { navigator.vibrate && navigator.vibrate(ok ? 12 : [30, 40, 30]); } catch (e) { /* нет вибрации */ }
   foot(`<div class="fb"><span class="ic">${ok ? "🦴" : "🐾"}</span><div><b>${ok ? PRAISE[(Math.random() * PRAISE.length) | 0] : "Правильно так:"}</b>${extra ? `<span>${esc(extra)}</span>` : ""}</div></div>
-    <button class="btn wide ${ok ? "" : "red"}" id="nx">Дальше</button>`, ok ? "ok" : "bad");
+    <button class="btn wide ${ok ? "green" : "red"}" id="nx">Дальше</button>`, ok ? "ok" : "bad");
   $("#nx").onclick = () => { if (!ok && L.ui >= 0 && S.hearts <= 0) return noHearts(true); next(); };
 }
 function next() { sfx.tap(); L.i++; if (L.i >= L.tasks.length) finishLesson(); else showTask(); }
 
 function noHearts(inLesson) {
-  modal(`<div class="hero">${buddySVG({ mood: "sleep", outfit: S.outfit })}</div><h2>Сердечки закончились</h2>
+  modal(`<div class="hero">${buddyArt({ mood: "sleep", outfit: S.outfit })}</div><h2>Сердечки закончились</h2>
     <p class="muted">Бадди немного устал. Новое сердечко появится через ${HEART_MIN} минут, или сделай доп. задание.</p>
     <button class="btn honey wide" data-a="practice">🔁 Повторение (+1 ❤️)</button>
     <button class="btn wide" data-a="buy" ${S.cookies < 30 ? "disabled" : ""}>Восстановить за 30 🍪</button>
@@ -655,7 +661,7 @@ function finishLesson() {
   const ui = L.ui;
   $("#lesson").remove(); L = null;
   sfx.win(); confetti();
-  modal(`<div class="hero">${buddySVG({ mood: "cheer", outfit: S.outfit })}</div>
+  modal(`<div class="hero">${buddyArt({ mood: "cheer", outfit: S.outfit })}</div>
     <h2>${unitFinished ? "Раздел пройден!" : perfect ? "Без единой ошибки!" : practice ? "Повторение — мать учения!" : "Урок пройден!"}</h2>
     <div class="results"><div style="--c:var(--honey-d)">Опыт<b>+${xp} XP</b></div><div style="--c:#a8641c">Печеньки<b>+${cookies} 🍪</b></div><div style="--c:var(--green-d)">Время<b>${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}</b></div></div>
     ${newDay ? `<div class="bone-burst">🦴</div><b style="color:var(--orange-d);font-size:1.2rem">Серия: ${S.streak} ${plural(S.streak, "день", "дня", "дней")} подряд!</b>` : ""}
@@ -676,7 +682,7 @@ const QUESTS = [
 function renderQuests() {
   const q = questsToday();
   view.innerHTML = `<div class="inner">
-    <div class="glass card row" style="flex-wrap:nowrap"><div style="width:90px;flex:none">${buddySVG({ mood: "think", outfit: S.outfit })}</div><div><h2>Задания дня</h2><p class="muted" style="margin:4px 0 0">Выполняй и копи печеньки 🍪. За печеньки можно взять котика-хранителя: он спасёт серию, если пропустишь день.</p></div></div>
+    <div class="glass card row" style="flex-wrap:nowrap"><div style="width:90px;flex:none">${buddyArt({ mood: "think", outfit: S.outfit })}</div><div><h2>Задания дня</h2><p class="muted" style="margin:4px 0 0">Выполняй и копи печеньки 🍪. За печеньки можно взять котика-хранителя: он спасёт серию, если пропустишь день.</p></div></div>
     ${QUESTS.map((x) => { const have = Math.min(x.n, q.c[x.k] || 0), done = have >= x.n, claimed = q.claimed[x.k];
       return `<div class="glass quest ${claimed ? "claimed" : ""}"><span class="qe">${x.e}</span><div><b>${x.t}</b><div class="qbar"><i style="width:${have / x.n * 100}%"></i></div><small class="muted">${have} / ${x.n}</small></div>
       ${claimed ? `<span style="font-size:1.5rem">✅</span>` : `<button class="btn sm ${done ? "honey" : ""}" data-q="${x.k}" ${done ? "" : "disabled"}>+${x.r} 🍪</button>`}</div>`; }).join("")}
@@ -702,7 +708,7 @@ function renderShop() {
       ${S.cats.length ? `<small class="muted">${S.cats.map((c) => "🐱 " + c).join(" · ")}</small>` : ""}</div></div>
     <h2 style="margin-top:6px">Наряды для Бадди</h2>
     <div class="shop-grid">${OUTFITS.map((o) => { const own = S.owned.includes(o.id), on = S.outfit === o.id;
-      return `<div class="glass item"><div class="prev">${buddySVG({ mood: "happy", outfit: o.id })}</div><b>${o.n}</b>
+      return `<div class="glass item"><div class="prev">${buddyArt({ mood: "happy", outfit: o.id })}</div><b>${o.n}</b>
         ${own ? `<button class="btn sm ${on ? "ghost" : "blue"}" data-wear="${o.id}">${on ? "Снять" : "Надеть"}</button>` : `<button class="btn sm honey" data-buy="${o.id}" ${S.cookies < o.p ? "disabled" : ""}>${o.p} 🍪</button>`}</div>`; }).join("")}</div>
     <div class="plus"><span class="chip">Скоро</span><h2 style="margin-top:8px;font-size:1.5rem">Бадди Плюс</h2>
       <ul><li>Бесконечные сердечки ❤️</li><li>Двойные печеньки 🍪</li><li>1 котик-хранитель каждую неделю 🐱</li><li>Без ограничений в чате с Бадди 💬</li></ul>
@@ -732,7 +738,7 @@ function checkAch() {
 let confirmReset = false;
 function renderMe() {
   view.innerHTML = `<div class="inner">
-    <div class="glass card" style="text-align:center"><div style="width:180px;margin:0 auto">${buddySVG({ mood: "happy", outfit: S.outfit })}</div>
+    <div class="glass card" style="text-align:center"><div style="width:180px;margin:0 auto">${buddyArt({ mood: "happy", outfit: S.outfit })}</div>
       <h2>${esc(S.name || "Ученик")} и Бадди</h2><p class="muted" style="margin:4px 0 0">Учимся вместе с ${S.lessons ? S.lessons + " " + plural(S.lessons, "урока", "уроков", "уроков") : "сегодняшнего дня"}</p></div>
     <div class="stats">
       <div class="glass stat"><span class="e">🦴</span><div><b>${S.streak}</b><small>серия, дней</small></div></div>
@@ -818,7 +824,7 @@ function renderChat() {
   if (!S.chat.length) S.chat = [{ r: "bot", t: `Woof! Hi${S.name ? ", " + S.name : ""}! I am Buddy 🐶 Let's talk in English! How are you today? (Как у тебя дела сегодня?)` }];
   const ready = S.apiKey || S.proxyUrl;
   view.innerHTML = `<div class="inner" style="padding-bottom:80px">
-    <div class="glass card row" style="flex-wrap:nowrap"><div style="width:76px;flex:none">${buddySVG({ mood: "happy", outfit: S.outfit })}</div><div><h2>Болтаем с Бадди</h2><small class="muted">Пиши по-английски или спрашивай по-русски. Нажми 🔊, чтобы послушать.</small></div></div>
+    <div class="glass card row" style="flex-wrap:nowrap"><div style="width:76px;flex:none">${buddyArt({ mood: "happy", outfit: S.outfit })}</div><div><h2>Болтаем с Бадди</h2><small class="muted">Пиши по-английски или спрашивай по-русски. Нажми 🔊, чтобы послушать.</small></div></div>
     ${ready ? "" : `<div class="glass card"><b>Бадди пока не умеет говорить 🙊</b><p class="muted" style="margin:6px 0 10px">Попроси учителя или родителя вставить бесплатный ключ OpenRouter во вкладке «Я» → «ИИ-собеседник».</p><button class="btn blue sm" id="toMe">Открыть настройки</button></div>`}
     <div class="chat" id="chat">${S.chat.map(msgHTML).join("")}</div>
     <div class="quick" id="quick">${QUICK.map((q) => `<button>${esc(q)}</button>`).join("")}</div>
@@ -851,6 +857,7 @@ async function send(text) {
 
 /* ================= навигация ================= */
 let current_tab = "learn";
+window.addEventListener("buddy-art-ready", () => { if (!L) render(); });
 function go(tab) {
   current_tab = tab;
   document.querySelectorAll("nav.tabs button").forEach((b) => { if (b.dataset.tab === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
@@ -865,7 +872,7 @@ $("#pBone").onclick = () => toast(S.lastDay === dayKey() ? `Сегодняшня
 /* ================= знакомство ================= */
 function onboarding() {
   const o = document.createElement("div"); o.className = "onb";
-  o.innerHTML = `<div class="hero">${buddySVG({ mood: "cheer" })}</div><h1>Hi! I'm Buddy!</h1>
+  o.innerHTML = `<div class="hero">${buddyArt({ mood: "cheer" })}</div><h1>Hi! I'm Buddy!</h1>
     <p class="muted" style="max-width:340px;margin:0">Я щенок английского бульдога из Лондона. Давай вместе учить английский — по чуть-чуть каждый день!</p>
     <label class="field" style="width:min(360px,100%);text-align:left"><span>Как тебя зовут?</span><input id="on" maxlength="20" placeholder="Твоё имя"></label>
     <div class="goals">${[[1, "🐾 Спокойно", "1 урок в день"], [2, "🐶 Нормально", "2 урока в день"], [3, "🚀 Серьёзно", "3 урока в день"]].map(([g, n, d]) => `<button class="choice ${g === 2 ? "sel" : ""}" data-g="${g}"><b>${n}</b> <span class="muted">· ${d}</span></button>`).join("")}</div>
@@ -877,14 +884,14 @@ function onboarding() {
 }
 
 /* ================= старт ================= */
-try { const tg = window.Telegram && Telegram.WebApp; if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor("#fff3e3"); tg.setBackgroundColor && tg.setBackgroundColor("#fff3e3"); } } catch (e) { /* не в Telegram */ }
+try { const tg = window.Telegram && Telegram.WebApp; if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor("#f7f5f0"); tg.setBackgroundColor && tg.setBackgroundColor("#f7f5f0"); } } catch (e) { /* не в Telegram */ }
 addEventListener("load", () => { try { const tg = window.Telegram && Telegram.WebApp; if (tg) { tg.ready(); tg.expand(); } } catch (e) { /* нет */ } });
 if ("speechSynthesis" in window) speechSynthesis.getVoices();
 const st = checkStreak();
 render();
 if (!S.lessons && !S.name) onboarding();
 else if (st && st.saved) setTimeout(() => { modal(`<div style="font-size:5rem">🐱</div><h2>Котик спас твою серию!</h2><p class="muted">${st.used.join(" и ")} ${st.used.length > 1 ? "сторожили" : "сторожил"} твои косточки, пока тебя не было. Серия: ${S.streak} 🦴</p><button class="btn wide violet" data-a="ok">Спасибо, котик!</button>`, (m, c) => m.querySelector("[data-a]").onclick = c); paintTop(); }, 400);
-else if (st && !st.saved) setTimeout(() => { modal(`<div class="hero">${buddySVG({ mood: "oops" })}</div><h2>Серия прервалась</h2><p class="muted">Было ${st.lost} ${plural(st.lost, "день", "дня", "дней")} подряд. Ничего страшного — начнём новую! Совет: купи котика-хранителя в магазине 🐱</p><button class="btn wide" data-a="ok">Начать новую серию</button>`, (m, c) => m.querySelector("[data-a]").onclick = c); }, 400);
+else if (st && !st.saved) setTimeout(() => { modal(`<div class="hero">${buddyArt({ mood: "oops" })}</div><h2>Серия прервалась</h2><p class="muted">Было ${st.lost} ${plural(st.lost, "день", "дня", "дней")} подряд. Ничего страшного — начнём новую! Совет: купи котика-хранителя в магазине 🐱</p><button class="btn wide" data-a="ok">Начать новую серию</button>`, (m, c) => m.querySelector("[data-a]").onclick = c); }, 400);
 setInterval(paintTop, 60000);
 })();
 </script>

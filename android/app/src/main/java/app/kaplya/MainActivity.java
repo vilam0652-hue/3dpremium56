@@ -23,12 +23,14 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         web = new WebView(this);
-        web.setBackgroundColor(0xFF060A1C);
+        web.setBackgroundColor(0xFF08080A);
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);          // сохранение рекордов и оценок
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setTextZoom(100);                    // крупный шрифт в системе не ломает вёрстку игр
+        s.setAllowFileAccess(true);             // 3D-модели и картинки лежат внутри APK
+        s.setAllowFileAccessFromFileURLs(true);
         web.setWebViewClient(new WebViewClient());
         web.setWebChromeClient(new WebChromeClient());
         web.addJavascriptInterface(new Bridge(), "KaplyaNative");

@@ -10,17 +10,17 @@
 <style>
   #c { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; touch-action: none; }
   .game-page .k-top, .game-page .hud, .q { position: relative; z-index: 2; }
-  .q { margin: 12px auto 0; padding: 12px 26px; border-radius: 18px; font-family: var(--f-display); font-weight: 400; text-shadow: 0 0 12px rgba(63,211,230,.6); font-size: clamp(1.8rem, 9vw, 2.8rem); text-align: center; font-variant-numeric: tabular-nums; width: fit-content; max-width: calc(100% - 32px); }
+  .q { margin: 12px auto 0; padding: 12px 26px; border-radius: 18px; font-family: var(--f-display); font-weight: 700;  font-size: clamp(1.8rem, 9vw, 2.8rem); text-align: center; font-variant-numeric: tabular-nums; width: fit-content; max-width: calc(100% - 32px); }
   .q.new { animation: k-pop .45s var(--spring); }
   .hearts { display: flex; gap: 4px; justify-content: center; }
   .hearts svg { width: 22px; height: 22px; transition: transform .3s var(--spring), opacity .3s; }
   .hearts svg.off { opacity: .2; transform: scale(.7); }
   .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-  .modes button { padding: 14px 10px; border-radius: 16px; border: 1px solid var(--stroke-c); background: rgba(18,14,44,.6); font-weight: 900; display: flex; flex-direction: column; gap: 2px; align-items: center; transition: transform .3s var(--spring); }
-  .modes button b { font-family: var(--f-display); font-weight: 400; font-size: 1.3rem; color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
+  .modes button { padding: 14px 10px; border-radius: 16px; border: 1px solid var(--stroke-c); background: rgba(255,255,255,.05); font-weight: 900; display: flex; flex-direction: column; gap: 2px; align-items: center; transition: transform .3s var(--spring); }
+  .modes button b { font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; color: var(--cyan);  }
   .modes button small { color: var(--muted); font-size: .78rem; }
   .modes button:active { transform: scale(.94); }
-  .modes button:hover { background: rgba(63,211,230,.14); box-shadow: 0 0 14px rgba(63,211,230,.35); }
+  .modes button:hover { background: rgba(214,177,94,.14); box-shadow: 0 0 14px rgba(214,177,94,.35); }
 </style>
 </head>
 <body class="game-page">
@@ -36,7 +36,7 @@
   K.top({ title: "Шарики-примеры" });
   const cv = document.getElementById("c"), g = cv.getContext("2d");
   const $q = document.getElementById("q"), $score = document.getElementById("score"), $streak = document.getElementById("streak"), $hearts = document.getElementById("hearts");
-  const COLS = ["#e45cc4", "#3fd3e6", "#ffd24a", "#8bdc5c", "#9b7bff", "#ff9a4d"];
+  const COLS = ["#d6b15e", "#f1ede4", "#2b2b31", "#e6c97f", "#c9a37a", "#b8b4ad"];
   let W, H, dpr, balloons = [], mode = "mix", task, score, streak, lives, playing = false, rise, last = 0, t = 0, solved;
 
   function resize() { dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0); }
@@ -79,12 +79,12 @@
     g.scale(sc, sc); g.globalAlpha = b.popped ? Math.max(0, 1 - b.popped * 3) : 1;
     const gr = g.createRadialGradient(-r * .35, -r * .45, r * .05, 0, 0, r * 1.2);
     gr.addColorStop(0, "#ffffff"); gr.addColorStop(.2, b.c); gr.addColorStop(1, shade(b.c));
-    g.fillStyle = gr; g.shadowColor = b.c; g.shadowBlur = 22;
+    g.fillStyle = gr; g.shadowColor = "rgba(0,0,0,.5)"; g.shadowBlur = 18;
     g.beginPath(); g.ellipse(0, 0, r, r * 1.15, 0, 0, 7); g.fill(); g.shadowBlur = 0;
     g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 1.5; g.stroke();
     g.beginPath(); g.moveTo(-6, r * 1.12); g.lineTo(6, r * 1.12); g.lineTo(0, r * 1.02); g.fill();
     g.fillStyle = "rgba(255,255,255,.6)"; g.beginPath(); g.ellipse(-r * .4, -r * .5, r * .2, r * .34, -.5, 0, 7); g.fill();
-    g.fillStyle = "#0b1030"; g.font = `900 ${Math.round(r * (String(b.v).length > 3 ? .5 : .62))}px "Russo One", sans-serif`;
+    g.fillStyle = b.c === "#2b2b31" ? "#f3e3b0" : "#17130b"; g.font = `900 ${Math.round(r * (String(b.v).length > 3 ? .5 : .62))}px Unbounded, sans-serif`;
     g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(b.v, 0, 2);
     g.restore();
   }
@@ -131,7 +131,7 @@
       miss(`${task.q} = ${task.a}`);
     }
   });
-  const HEART = `<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.4-9.3C1.2 8.2 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.8 3.7 4.4 7.2C19.5 16.4 12 21 12 21z" fill="#ff5fa2" stroke="#ffd0e3"/></svg>`;
+  const HEART = `<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.4-9.3C1.2 8.2 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.8 3.7 4.4 7.2C19.5 16.4 12 21 12 21z" fill="#d6b15e" stroke="#f3e3b0"/></svg>`;
   function drawHearts() { $hearts.innerHTML = [0, 1, 2].map((i) => HEART.replace("<svg", `<svg class="${i < lives ? "" : "off"}"`)).join(""); }
 
   function over() {

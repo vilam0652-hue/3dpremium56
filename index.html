@@ -4,93 +4,116 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Капля — игры и учёба</title>
-<meta name="description" content="Капля: 10 приложений для 4 класса. 3D-игры с физикой, английский с щенком Бадди, тренажёры по школьной программе. Скачай APK бесплатно.">
-<meta name="theme-color" content="#0c0b1e">
+<meta name="description" content="Капля: 10 приложений для 4 класса. Игры, английский с щенком Бадди и тренажёры по школьной программе. Бесплатно, без рекламы, работают без интернета.">
+<meta name="theme-color" content="#08080a">
 <meta property="og:title" content="Капля — игры и учёба для 4 класса">
-<meta property="og:description" content="3D-игры, английский с щенком Бадди и тренажёры. Бесплатно, без рекламы, работают без интернета.">
-<meta property="og:image" content="icons/bust.png">
-<link rel="icon" href="icons/bust-96.png">
+<meta property="og:description" content="Игры, английский с щенком Бадди и тренажёры. Бесплатно, без рекламы, работают без интернета.">
+<meta property="og:image" content="site/og.jpg">
+<link rel="icon" href="icons/buddy-96.png">
 <link rel="stylesheet" href="shared/k.css">
 <script src="shared/k.js"></script>
 <style>
   html { scroll-behavior: smooth; }
   body { -webkit-user-select: auto; user-select: auto; }
-  .site-top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; margin: 10px auto 0; width: min(1100px, calc(100% - 24px)); display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 18px; }
-  .brand { display: flex; align-items: center; gap: 8px; font-family: var(--f-display); font-size: 1.1rem; letter-spacing: .08em; text-decoration: none; text-shadow: 0 0 8px rgba(63,211,230,.6); }
-  .brand b { font-weight: 400; color: var(--cyan); }
-  .site-top nav { margin-left: auto; display: flex; gap: 4px; }
-  .site-top nav a { padding: 8px 12px; border-radius: 10px; text-decoration: none; color: var(--muted); font-weight: 800; font-size: .9rem; letter-spacing: .04em; }
-  .site-top nav a:hover { color: #fff; background: rgba(63,211,230,.1); }
-  @media (max-width: 560px) { .site-top nav a:not(.dl) { display: none; } }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 40; background: var(--void); }
 
-  .hero { position: relative; min-height: min(680px, 84vh); display: grid; place-items: center; text-align: center; overflow: hidden; margin-top: calc(-1 * env(safe-area-inset-top, 0px) - 70px); padding-top: calc(env(safe-area-inset-top, 0px) + 110px); padding-bottom: 60px; }
-  #hero3d { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  .hero::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 42% at 50% 52%, rgba(12,11,30,.62), rgba(12,11,30,.2) 70%, transparent), linear-gradient(transparent 70%, var(--void)); pointer-events: none; }
-  .hero .in { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 16px; padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
-  .logo-big { font-family: var(--f-display); font-size: clamp(4rem, 19vw, 9rem); line-height: .9; letter-spacing: .06em; color: #fff; text-shadow: 0 0 14px rgba(228,92,196,.55), 0 0 40px rgba(228,92,196,.3); }
-  .logo-big span { display: inline-block; animation: drop .9s cubic-bezier(.2,1.5,.4,1) backwards, bob 4s ease-in-out infinite; }
-  .logo-big span:nth-child(odd) { color: var(--cyan); text-shadow: 0 0 14px rgba(63,211,230,.6), 0 0 40px rgba(63,211,230,.3); }
-  .logo-big span:nth-child(1) { animation-delay: .05s, 1s; } .logo-big span:nth-child(2) { animation-delay: .13s, 1.2s; } .logo-big span:nth-child(3) { animation-delay: .21s, 1.4s; }
-  .logo-big span:nth-child(4) { animation-delay: .29s, 1.6s; } .logo-big span:nth-child(5) { animation-delay: .37s, 1.8s; }
-  @keyframes drop { from { opacity: 0; transform: translateY(-90px) rotate(-14deg) scale(.6); } }
-  @keyframes bob { 50% { transform: translateY(-6px); } }
-  .tagline { text-shadow: 0 2px 12px rgba(12,11,30,.9); max-width: 34ch; font-size: clamp(1.05rem, 3.8vw, 1.3rem); color: var(--text); text-wrap: balance; margin: 0; }
-  .facts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-  .facts span { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--stroke-c); background: rgba(18,14,44,.6); color: var(--muted); font-size: .85rem; font-weight: 800; letter-spacing: .03em; }
-  .facts b { color: #fff; }
+  .nav { position: sticky; top: max(10px, env(safe-area-inset-top, 0px)); z-index: 30; margin: 10px auto 0; width: min(1120px, calc(100% - 24px)); display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 999px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-weight: 700; font-size: 1.02rem; letter-spacing: .02em; text-decoration: none; }
+  .nav nav { margin-left: auto; display: flex; gap: 2px; align-items: center; }
+  .nav nav a:not(.btn) { padding: 10px 14px; border-radius: 999px; text-decoration: none; color: var(--muted); font-weight: 700; font-size: .92rem; transition: color .2s, background .2s; }
+  .nav nav a:not(.btn):hover { color: var(--text); background: rgba(255,255,255,.06); }
+  .nav .btn { min-height: 42px; padding: 0 18px; font-size: .88rem; }
+  @media (max-width: 620px) { .nav nav a:not(.btn) { display: none; } }
 
-  section.block { padding-block: 56px 10px; }
-  .sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
-  .sec-head h2 { font-size: clamp(1.8rem, 6vw, 2.6rem); }
-  .sec-head p { margin: 0; color: var(--muted); max-width: 60ch; }
+  /* ---------- первый экран ---------- */
+  .hero { position: relative; overflow: hidden; margin-top: -70px; padding-top: 150px; padding-bottom: 90px; isolation: isolate; }
+  .hero-art { position: absolute; inset: 0; z-index: -1; background-size: cover; background-position: 70% 50%; opacity: 0; transition: opacity 1.2s var(--ease); }
+  .hero-art.on { opacity: 1; }
+  .hero-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,8,10,.92) 0%, rgba(8,8,10,.55) 45%, rgba(8,8,10,.1) 75%), linear-gradient(transparent 70%, var(--void)); }
+  .liquid { position: absolute; z-index: -2; inset: -20% -10% 0 30%; pointer-events: none; }
+  .liquid i { position: absolute; border-radius: 50%; filter: blur(40px); mix-blend-mode: screen; animation: k-flow 18s var(--ease) infinite alternate; }
+  .liquid i:nth-child(1) { width: 46vmax; height: 46vmax; left: 15%; top: 10%; background: radial-gradient(circle at 35% 35%, rgba(243,227,176,.55), rgba(214,177,94,.25) 40%, transparent 68%); }
+  .liquid i:nth-child(2) { width: 30vmax; height: 30vmax; left: 45%; top: 40%; background: radial-gradient(circle, rgba(156,119,49,.55), transparent 65%); animation-duration: 24s; animation-delay: -6s; }
+  .liquid i:nth-child(3) { width: 22vmax; height: 22vmax; left: 5%; top: 55%; background: radial-gradient(circle, rgba(255,255,255,.22), transparent 65%); animation-duration: 30s; animation-delay: -12s; }
+  .hero .in { display: flex; flex-direction: column; gap: 22px; max-width: 640px; }
+  .hero h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(2.6rem, 8.5vw, 5.4rem); line-height: .98; letter-spacing: -.03em; margin: 0; text-wrap: balance; }
+  .hero h1 .gold-text { display: inline-block; }
+  .hero .lead { font-size: clamp(1.05rem, 2.6vw, 1.25rem); color: #d7d2c8; max-width: 46ch; margin: 0; font-weight: 500; }
+  .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 18px; border-radius: 22px; overflow: hidden; border: 1px solid var(--stroke); background: var(--stroke); }
+  .facts div { padding: 16px 18px; background: rgba(12,12,14,.82); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+  .facts b { display: block; font-family: var(--f-display); font-weight: 700; font-size: 1.5rem; line-height: 1.1; }
+  .facts span { color: var(--muted); font-size: .85rem; font-weight: 600; }
+  @media (max-width: 720px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; }
-  .app { --c: var(--cyan); display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; padding: 14px; border-radius: 22px; align-items: start; }
-  .phone { width: 112px; aspect-ratio: 360 / 738; border-radius: 16px; overflow: hidden; border: 1.5px solid color-mix(in srgb, var(--c) 60%, transparent); box-shadow: 0 0 18px color-mix(in srgb, var(--c) 35%, transparent); background: var(--void); }
-  .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
-  .app .meta { display: flex; flex-direction: column; gap: 8px; min-width: 0; height: 100%; }
-  .app .name { display: flex; align-items: center; gap: 10px; }
-  .app .name img { width: 44px; height: 44px; border-radius: 12px; flex: none; }
-  .app h3 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: 1.15rem; line-height: 1.1; text-shadow: 0 0 8px color-mix(in srgb, var(--c) 55%, transparent); }
-  .app p { margin: 0; color: var(--muted); font-size: .92rem; font-weight: 600; }
-  .app .btn { margin-top: auto; align-self: flex-start; min-height: 42px; padding: 0 16px; font-size: .85rem; }
+  section.block { padding-block: 72px 8px; }
+  .sec-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: end; margin-bottom: 26px; }
+  .sec-head h2 { font-size: clamp(1.9rem, 5.5vw, 3rem); }
+  .sec-head p { margin: 0; color: var(--muted); max-width: 52ch; justify-self: end; }
+  @media (max-width: 720px) { .sec-head { grid-template-columns: 1fr; } .sec-head p { justify-self: start; } }
 
-  .buddy-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: center; padding: 26px; border-radius: 30px; overflow: hidden; position: relative;
-    background: radial-gradient(120% 90% at 0% 0%, #fff6e8, #ffe1bd 55%, #ffc98d); color: #3a2618; box-shadow: 0 0 50px rgba(255,181,71,.35), 0 30px 60px -30px rgba(0,0,0,.6); }
-  .buddy-card h2 { font-family: "Nunito", var(--f-body); font-weight: 900; font-size: clamp(2rem, 6vw, 2.8rem); text-shadow: none; }
-  .buddy-card .eyebrow { color: #d9621a; text-shadow: none; }
-  .buddy-card ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-family: "Nunito", var(--f-body); font-weight: 800; }
-  .buddy-card li { display: flex; gap: 10px; align-items: flex-start; }
-  .buddy-card li span { font-size: 1.3rem; line-height: 1.2; }
-  .buddy-card .dog { max-width: 330px; justify-self: center; width: 100%; }
-  .buddy-card .btn { --c: #ff8a3d; background: linear-gradient(180deg, #ffa766, #ff8a3d); border: 0; color: #fff; box-shadow: 0 5px 0 #d9621a; text-shadow: none; font-family: "Nunito", var(--f-body); font-weight: 900; }
-  .buddy-card .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #d9621a; }
-  @media (max-width: 720px) { .buddy-card { grid-template-columns: 1fr; padding: 20px; } .buddy-card .dog { max-width: 220px; order: -1; } }
+  /* ---------- Бадди: светлая карточка Liquid White ---------- */
+  .buddy-card { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 24px; align-items: center; padding: clamp(22px, 4vw, 44px); border-radius: 34px;
+    background: radial-gradient(120% 100% at 100% 0%, #ffffff 0%, #f4f0e6 55%, #e6dcc6 100%); color: #141414;
+    box-shadow: inset 0 1px 0 #fff, 0 40px 80px -40px rgba(0,0,0,.8); }
+  .buddy-card .eyebrow { color: #9c7731; }
+  .buddy-card h2 { font-size: clamp(1.9rem, 5vw, 2.9rem); color: #141414; }
+  .buddy-card p { margin: 0; color: #5c574f; font-weight: 600; max-width: 46ch; }
+  .feat { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 6px 0 4px; }
+  .feat div { padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,.7); border: 1px solid rgba(20,20,20,.07); font-size: .9rem; font-weight: 700; }
+  .feat div small { display: block; color: #7a746a; font-weight: 600; font-size: .8rem; margin-top: 2px; }
+  .buddy-card .art-box { justify-self: center; width: min(360px, 100%); }
+  .buddy-card .btn.dark { background: #141414; color: #f3e3b0; box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 14px 30px -14px rgba(0,0,0,.6); }
+  @media (max-width: 760px) { .buddy-card { grid-template-columns: 1fr; } .buddy-card .art-box { order: -1; width: min(240px, 70%); } .feat { grid-template-columns: 1fr; } }
 
-  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 14px; counter-reset: s; }
-  .step { padding: 18px; border-radius: 20px; display: flex; flex-direction: column; gap: 8px; }
-  .step b.n { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-family: var(--f-display); font-weight: 400; color: var(--cyan); border: 1.5px solid var(--cyan); text-shadow: 0 0 8px var(--cyan); box-shadow: 0 0 14px rgba(63,211,230,.35); }
-  .step p { margin: 0; color: var(--muted); }
-  .trust { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px; }
-  .trust div { padding: 16px; border-radius: 20px; }
-  .trust div b { display: block; font-family: var(--f-display); font-weight: 400; margin-bottom: 4px; }
-  .trust div span { color: var(--muted); font-size: .92rem; }
-  footer { padding-block: 50px calc(40px + env(safe-area-inset-bottom, 0px)); text-align: center; color: var(--faint); font-size: .85rem; }
+  /* ---------- каталог ---------- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 16px; }
+  .app { display: grid; grid-template-rows: auto 1fr; border-radius: 28px; overflow: hidden; }
+  .shot { position: relative; height: 220px; overflow: hidden; border-bottom: 1px solid var(--stroke); background: #0b0b0d; }
+  .shot img { position: absolute; left: 50%; top: 18px; width: 62%; transform: translateX(-50%); border-radius: 18px; border: 1px solid rgba(255,255,255,.12); box-shadow: 0 30px 50px -20px #000; transition: transform .6s var(--ease); }
+  .app:hover .shot img { transform: translateX(-50%) translateY(-8px); }
+  .shot::after { content: ""; position: absolute; inset: auto 0 0 0; height: 60px; background: linear-gradient(transparent, rgba(12,12,14,.95)); }
+  .app .body { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .app .name { display: flex; align-items: center; gap: 12px; }
+  .app .name img { width: 48px; height: 48px; border-radius: 14px; flex: none; box-shadow: 0 8px 18px -8px #000; }
+  .app h3 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 1.1rem; line-height: 1.15; }
+  .app .kind { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); font-weight: 800; }
+  .app p { margin: 0; color: var(--muted); font-size: .93rem; font-weight: 500; }
+  .app .btn { margin-top: auto; align-self: flex-start; min-height: 44px; padding: 0 20px; font-size: .88rem; }
+
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 16px; }
+  .step { padding: 22px; border-radius: 26px; display: flex; flex-direction: column; gap: 8px; }
+  .step .n { font-family: var(--f-display); font-weight: 700; font-size: 2.2rem; line-height: 1; }
+  .step b { font-size: 1.05rem; }
+  .step p { margin: 0; color: var(--muted); font-weight: 500; }
+  .trust { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 16px; }
+  .trust div { padding: 22px; border-radius: 26px; }
+  .trust div b { display: block; font-family: var(--f-display); font-weight: 700; margin-bottom: 6px; }
+  .trust div span { color: var(--muted); font-size: .93rem; font-weight: 500; }
+  footer { padding-block: 70px calc(40px + env(safe-area-inset-bottom, 0px)); color: var(--faint); font-size: .85rem; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--stroke); margin-top: 70px; }
 </style>
 </head>
 <body>
-<header class="site-top glass">
-  <a class="brand" href="#top"><span id="logoDrop"></span><span>КАП<b>ЛЯ</b></span></a>
-  <nav><a href="#games">Игры</a><a href="#learn">Учёба</a><a href="#install">Установка</a><a class="dl btn sm" style="min-height:38px;padding:0 14px" href="#games">Скачать</a></nav>
+<header class="nav glass">
+  <a class="brand" href="#top"><span id="logoDrop"></span><span>Капля</span></a>
+  <nav><a href="#buddy">Английский</a><a href="#games">Игры</a><a href="#learn">Учёба</a><a href="#install">Установка</a><a class="btn" href="#games">Скачать</a></nav>
 </header>
 
 <section class="hero" id="top">
-  <canvas id="hero3d" aria-hidden="true"></canvas>
-  <div class="in">
-    <div class="logo-big" aria-label="Капля"><span>К</span><span>А</span><span>П</span><span>Л</span><span>Я</span></div>
-    <p class="tagline">Игры и тренажёры для 4 класса. 3D, неон и настоящая физика, а учиться — как играть.</p>
-    <div class="facts"><span><b>10</b> приложений</span><span>работают <b>без интернета</b></span><span><b>бесплатно</b> и без рекламы</span></div>
-    <div class="row" style="justify-content:center"><a class="btn big" href="#games">Скачать игры</a><a class="btn big pink" href="#buddy">Английский с Бадди</a></div>
+  <div class="hero-art" id="heroArt"></div>
+  <div class="liquid" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="wrap">
+    <div class="in">
+      <span class="eyebrow">Для 4 класса · Android</span>
+      <h1>Учиться — как <span class="gold-text">играть</span></h1>
+      <p class="lead">Десять приложений в одном стиле: английский с щенком Бадди, игры с физикой и тренажёры по школьной программе. Бесплатно и без рекламы.</p>
+      <div class="row"><a class="btn big" href="#games">Скачать приложения</a><a class="btn big ghost" href="#buddy">Английский с Бадди</a></div>
+    </div>
+    <div class="facts">
+      <div><b>10</b><span>приложений</span></div>
+      <div><b>40</b><span>уроков английского</span></div>
+      <div><b>0 ₽</b><span>без рекламы и покупок</span></div>
+      <div><b>Офлайн</b><span>работают без интернета</span></div>
+    </div>
   </div>
 </section>
 
@@ -98,60 +121,54 @@
   <section class="block" id="buddy">
     <div class="buddy-card">
       <div class="stack">
-        <span class="eyebrow">Новинка · английский язык</span>
-        <h2>Бадди учит английский вместе с тобой</h2>
-        <ul>
-          <li><span>🐶</span>Щенок английского бульдога из Лондона ведёт тебя по 40 урокам</li>
-          <li><span>🦴</span>Косточки за каждый день подряд, а котики-хранители 🐱 берегут серию</li>
-          <li><span>🎧</span>Слушай, собирай фразы, находи пары — как в настоящем курсе</li>
-          <li><span>💬</span>Болтай с Бадди по-английски: он отвечает с помощью ИИ</li>
-          <li><span>🎩</span>Зарабатывай печеньки и наряжай Бадди</li>
-        </ul>
-        <div class="row"><a class="btn" data-dl="buddy" href="#">Скачать APK</a></div>
+        <span class="eyebrow">Английский язык</span>
+        <h2>Бадди — английский как в Duolingo</h2>
+        <p>Щенок английского бульдога из Лондона ведёт по 40 урокам: слова, фразы, аудирование. Каждый день немного, и английский становится привычкой.</p>
+        <div class="feat">
+          <div>🦴 Косточки<small>серия дней подряд</small></div>
+          <div>🐱 Котики-хранители<small>берегут серию, если пропустил день</small></div>
+          <div>🎧 6 видов заданий<small>слушай, собирай, переводи</small></div>
+          <div>💬 Чат с Бадди<small>собеседник на основе ИИ</small></div>
+        </div>
+        <div class="row"><a class="btn dark big" data-dl="buddy" href="#">Скачать APK</a></div>
       </div>
-      <div class="dog" id="dog"></div>
+      <div class="art-box" id="buddyArt"></div>
     </div>
   </section>
 
   <section class="block" id="games">
-    <div class="sec-head"><span class="eyebrow">Играть</span><h2 class="h-display">Игры</h2><p>Объёмная графика, свечение и физика. Рекорды, комбо и капельки за каждую игру.</p></div>
+    <div class="sec-head"><div class="stack" style="gap:8px"><span class="eyebrow">Играть</span><h2 class="h-display">Игры</h2></div><p>Головоломки, физика и космос. Рекорды и капельки за каждую игру.</p></div>
     <div class="grid" id="gamesGrid"></div>
   </section>
 
   <section class="block" id="learn">
-    <div class="sec-head"><span class="eyebrow">Учиться</span><h2 class="h-display">Учёба</h2><p>Тренажёры по программе 3–4 класса: математика, русский язык, окружающий мир и дневник оценок.</p></div>
+    <div class="sec-head"><div class="stack" style="gap:8px"><span class="eyebrow">Учиться</span><h2 class="h-display">Тренажёры</h2></div><p>Математика, русский язык, окружающий мир и дневник оценок. По программе 3–4 класса.</p></div>
     <div class="grid" id="learnGrid"></div>
   </section>
 
   <section class="block" id="install">
-    <div class="sec-head"><span class="eyebrow">Android</span><h2 class="h-display">Как установить</h2><p>Каждое приложение — отдельный APK. Ставится за минуту.</p></div>
+    <div class="sec-head"><div class="stack" style="gap:8px"><span class="eyebrow">Android</span><h2 class="h-display">Установка за минуту</h2></div><p>Каждое приложение — отдельный файл APK.</p></div>
     <div class="steps">
-      <div class="step glass tint-cyan"><b class="n">1</b><b>Скачай APK</b><p>Нажми «Скачать APK» у нужного приложения. Файл сохранится в «Загрузки».</p></div>
-      <div class="step glass tint-pink"><b class="n">2</b><b>Разреши установку</b><p>Открой файл. Если телефон спросит, разреши установку из этого источника (браузера или «Файлов»).</p></div>
-      <div class="step glass tint-mint"><b class="n">3</b><b>Играй</b><p>Иконка появится на главном экране. Интернет больше не нужен, кроме чата с Бадди.</p></div>
+      <div class="step glass"><span class="n gold-text">1</span><b>Скачай APK</b><p>Нажми «Скачать APK» у нужного приложения. Файл сохранится в «Загрузки».</p></div>
+      <div class="step glass"><span class="n gold-text">2</span><b>Разреши установку</b><p>Открой файл. Если телефон спросит, разреши установку из этого источника.</p></div>
+      <div class="step glass"><span class="n gold-text">3</span><b>Готово</b><p>Иконка появится на главном экране. Интернет нужен только для чата с Бадди.</p></div>
     </div>
   </section>
 
   <section class="block">
-    <div class="sec-head"><span class="eyebrow">Для родителей и учителей</span><h2 class="h-display">Спокойно за ребёнка</h2></div>
+    <div class="sec-head"><div class="stack" style="gap:8px"><span class="eyebrow">Родителям и учителям</span><h2 class="h-display">Спокойно за ребёнка</h2></div><p>Приложения сделаны для детей: ничего лишнего.</p></div>
     <div class="trust">
-      <div class="glass tint-cyan"><b>Без рекламы</b><span>Ни баннеров, ни видео, ни встроенных покупок за деньги.</span></div>
-      <div class="glass tint-pink"><b>Данные на телефоне</b><span>Рекорды и оценки хранятся только на устройстве ребёнка.</span></div>
-      <div class="glass tint-mint"><b>Офлайн</b><span>Все игры и тренажёры работают без интернета.</span></div>
-      <div class="glass tint-sun"><b>ИИ под контролем</b><span>Чат с Бадди включает взрослый своим ключом OpenRouter. Бадди отвечает просто и бережно.</span></div>
+      <div class="glass"><b>Без рекламы</b><span>Ни баннеров, ни видео, ни покупок за деньги.</span></div>
+      <div class="glass"><b>Данные на телефоне</b><span>Рекорды и оценки хранятся только на устройстве ребёнка.</span></div>
+      <div class="glass"><b>Офлайн</b><span>Игры и тренажёры работают без интернета.</span></div>
+      <div class="glass"><b>ИИ под контролем</b><span>Чат с Бадди включает взрослый своим ключом. Бадди отвечает просто и бережно.</span></div>
     </div>
   </section>
+
+  <footer><span>Капля · для 4 класса</span><span id="yr"></span></footer>
 </main>
-<footer>Капля · сделано для 4 класса · <span id="yr"></span></footer>
 
 <script src="apps/buddy/buddy-dog.js"></script>
-<script src="shared/three.min.js"></script>
-<script src="shared/lib/CopyShader.js"></script>
-<script src="shared/lib/LuminosityHighPassShader.js"></script>
-<script src="shared/lib/EffectComposer.js"></script>
-<script src="shared/lib/RenderPass.js"></script>
-<script src="shared/lib/ShaderPass.js"></script>
-<script src="shared/lib/UnrealBloomPass.js"></script>
 <script>
 (() => {
   const REPO = "vilam0652-hue/kaplya";
@@ -159,64 +176,19 @@
   const APPS = /*APPS*/[{"id": "bust", "name": "3D Bust", "kind": "game", "desc": "Головоломка из неоновых 3D-кубиков: ставь фигуры на поле 8×8, сжигай линии, собирай комбо. Свечение, объём, рекорды.", "tint": "#3fd3e6"}, {"id": "buddy", "name": "Бадди — английский", "kind": "learn", "desc": "Полный курс английского как в Duolingo: 8 разделов, 40 уроков, 6 видов заданий. Косточки за серию, котики-хранители, наряды и ИИ-собеседник Бадди.", "tint": "#ffb547"}, {"id": "merge", "name": "Слияние планет", "kind": "game", "desc": "Физика! Бросай планеты в банку: две одинаковые сливаются в следующую — от астероида до Солнца.", "tint": "#e45cc4"}, {"id": "space", "name": "Звёздный рейс", "kind": "game", "desc": "3D-полёт сквозь астероиды на стеклянном корабле. Звёзды, щит, скорость растёт.", "tint": "#ffd24a"}, {"id": "balloons", "name": "Шарики-примеры", "kind": "game", "desc": "Лопай шарик с правильным ответом, пока он не улетел. Умножение, деление, счёт до 1000.", "tint": "#8bdc5c"}, {"id": "breakout", "name": "Стеклобой", "kind": "game", "desc": "Арканоид, где стеклянные кирпичи разлетаются на осколки. 5 уровней, бонусы, три мяча.", "tint": "#ffb547"}, {"id": "multiply", "name": "Таблица-Турбо", "kind": "learn", "desc": "Таблица умножения и деления на звёзды. Подсказка-точки показывает, откуда берётся ответ.", "tint": "#3fd3e6"}, {"id": "words", "name": "Грамотей", "kind": "learn", "desc": "Словарные слова, безударные гласные и парные согласные. Ошибся — видишь правило и проверочное слово.", "tint": "#9b7bff"}, {"id": "world", "name": "Знайка", "kind": "learn", "desc": "Окружающий мир за 4 класс: природные зоны, космос, тело человека, история России.", "tint": "#8bdc5c"}, {"id": "grades", "name": "Мои оценки", "kind": "learn", "desc": "Ставь оценки одним касанием и узнавай, что выходит за месяц и сколько пятёрок нужно до «5».", "tint": "#e45cc4"}]/*END*/;
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   document.getElementById("logoDrop").innerHTML = K.dropSVG();
-  document.getElementById("dog").innerHTML = buddySVG({ mood: "cheer", outfit: "tophat" });
-  document.getElementById("yr").textContent = new Date().getFullYear();
-  const card = (a) => `<article class="app glass" style="--c:${a.tint}">
-      <div class="phone"><img src="site/shots/${a.id}.jpg" alt="Скриншот: ${esc(a.name)}" loading="lazy" width="360" height="738"></div>
-      <div class="meta"><div class="name"><img src="icons/${a.id}-96.png" alt="" width="44" height="44"><h3>${esc(a.name)}</h3></div>
-      <p>${esc(a.desc)}</p><a class="btn" style="--c:${a.tint}" href="${APK(a.id)}" rel="noopener">Скачать APK</a></div></article>`;
+  document.getElementById("yr").textContent = "© " + new Date().getFullYear();
+  const paintBuddy = () => { document.getElementById("buddyArt").innerHTML = buddyArt({ mood: "wave" }); };
+  paintBuddy(); addEventListener("buddy-art-ready", paintBuddy);
+  // картинка в шапке из Gemini, если она уже добавлена
+  const wide = matchMedia("(min-width: 760px)").matches;
+  K.img(wide ? "site/hero.jpg" : "site/hero-mobile.jpg").then((im) => { if (!im) return; const el = document.getElementById("heroArt"); el.style.backgroundImage = `url("${im.src}")`; el.classList.add("on"); });
+  const card = (a) => `<article class="app glass">
+      <div class="shot"><img src="site/shots/${a.id}.jpg" alt="Экран приложения «${esc(a.name)}»" loading="lazy" width="360" height="738"></div>
+      <div class="body"><div class="name"><img src="icons/${a.id}-96.png" alt="" width="48" height="48"><div><div class="kind">${a.kind === "game" ? "Игра" : "Учёба"}</div><h3>${esc(a.name)}</h3></div></div>
+      <p>${esc(a.desc)}</p><a class="btn" href="${APK(a.id)}" rel="noopener">Скачать APK</a></div></article>`;
   document.getElementById("gamesGrid").innerHTML = APPS.filter((a) => a.kind === "game").map(card).join("");
   document.getElementById("learnGrid").innerHTML = APPS.filter((a) => a.kind === "learn" && a.id !== "buddy").map(card).join("");
   document.querySelectorAll("[data-dl]").forEach((a) => (a.href = APK(a.dataset.dl)));
-  K.tilt();
-
-  /* ---------- 3D-сцена героя: сетка, неоновые кубики и стеклянная капля со свечением ---------- */
-  const cv = document.getElementById("hero3d");
-  if (!window.THREE || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  let renderer;
-  try { renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true }); } catch (e) { return; }
-  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
-  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0c0b1e); scene.fog = new THREE.FogExp2(0x0c0b1e, 0.035);
-  const cam = new THREE.PerspectiveCamera(50, 1, .1, 200); cam.position.set(0, 3.2, 13);
-  let composer = null;
-  try { composer = new THREE.EffectComposer(renderer); composer.addPass(new THREE.RenderPass(scene, cam)); composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(512, 512), .7, .4, .25)); } catch (e) { composer = null; }
-  scene.add(new THREE.HemisphereLight(0x8f8cff, 0x240026, .8));
-  const d = new THREE.DirectionalLight(0xffffff, .7); d.position.set(4, 12, 8); scene.add(d);
-  const p1 = new THREE.PointLight(0xe45cc4, 2, 30); p1.position.set(-6, 3, 4); scene.add(p1);
-  const p2 = new THREE.PointLight(0x3fd3e6, 2, 30); p2.position.set(6, 3, 5); scene.add(p2);
-  const grid = new THREE.GridHelper(160, 120, 0x9a4a8e, 0x2c1c56); grid.position.y = -2.6; grid.material.transparent = true; grid.material.opacity = .55; scene.add(grid);
-  // капля: профиль вращения
-  const pts = []; for (let i = 0; i <= 40; i++) { const t = i / 40, a = t * Math.PI; const r = Math.sin(a) * (1 - .55 * Math.pow(1 - t, 3)) * 1.6; pts.push(new THREE.Vector2(r, -Math.cos(a) * 1.7 + Math.pow(1 - t, 3) * 1.4)); }
-  const drop = new THREE.Mesh(new THREE.LatheGeometry(pts, 64), new THREE.MeshPhysicalMaterial({ color: 0x3fd3e6, emissive: 0x1a6f8f, emissiveIntensity: .5, metalness: .1, roughness: .05, clearcoat: 1, transparent: true, opacity: .9 }));
-  drop.rotation.z = Math.PI; drop.position.y = .6; scene.add(drop);
-  const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(2.6, 1)), new THREE.LineBasicMaterial({ color: 0xe45cc4, transparent: true, opacity: .35, blending: THREE.AdditiveBlending }));
-  edge.position.y = .6; scene.add(edge);
-  const COLS = [0x3fd3e6, 0xe45cc4, 0x8bdc5c, 0xffd24a, 0x9b7bff, 0xff9a4d];
-  const cubes = [];
-  for (let i = 0; i < 22; i++) {
-    const c = COLS[i % COLS.length], s = .45 + Math.random() * .6;
-    const m = new THREE.Mesh(new THREE.BoxGeometry(s, s, s), new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: .18, roughness: .35, metalness: .2 }));
-    const ang = Math.random() * Math.PI * 2, rad = 4.2 + Math.random() * 5;
-    m.userData = { ang, rad, y: -1.5 + Math.random() * 5, sp: (.08 + Math.random() * .15) * (Math.random() < .5 ? -1 : 1), spin: new THREE.Vector3(Math.random(), Math.random(), Math.random()) };
-    const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .3 })); m.add(e);
-    scene.add(m); cubes.push(m);
-  }
-  let mx = 0, my = 0, visible = true, t0 = performance.now();
-  addEventListener("pointermove", (e) => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
-  new IntersectionObserver((en) => { visible = en[0].isIntersecting; if (visible) requestAnimationFrame(tick); }).observe(cv);
-  function size() { const w = cv.clientWidth, h = cv.clientHeight; renderer.setSize(w, h, false); composer && composer.setSize(w, h); cam.aspect = w / h; cam.fov = cam.aspect < .8 ? 68 : 50; cam.updateProjectionMatrix(); }
-  addEventListener("resize", size); size();
-  function tick(now) {
-    if (!visible) return;
-    const t = (now - t0) / 1000;
-    drop.rotation.y = t * .4; drop.position.y = .6 + Math.sin(t * 1.2) * .25; edge.rotation.y = -t * .15; edge.rotation.x = t * .07;
-    cubes.forEach((m) => { const u = m.userData; u.ang += u.sp * .016; m.position.set(Math.cos(u.ang) * u.rad, u.y + Math.sin(t + u.rad) * .4, Math.sin(u.ang) * u.rad - 2); m.rotation.x += u.spin.x * .01; m.rotation.y += u.spin.y * .012; });
-    grid.position.z = (t * 2) % (160 / 120);
-    cam.position.x += (mx * 3 - cam.position.x) * .04; cam.position.y += (3.2 - my * 2 - cam.position.y) * .04; cam.lookAt(0, .6, 0);
-    composer ? composer.render() : renderer.render(scene, cam);
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
 })();
 </script>
 </body>

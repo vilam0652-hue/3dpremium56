@@ -82,3 +82,22 @@
 </svg>`;
   };
 })();
+
+/* Картинки Бадди из Gemini (img/buddy-<настроение>.png, img/buddy-outfit-<наряд>.png).
+   Если файла нет — показывается векторный Бадди. */
+(function () {
+  const MOODS = ["happy", "cheer", "think", "oops", "sleep", "wave"], OUTFITS = ["tophat", "cap", "crown", "scarf", "bow"];
+  const have = {};
+  const base = (document.currentScript && document.currentScript.src || "").replace(/[^/]*$/, "");
+  let pending = 0;
+  const tryLoad = (key, file) => { pending++; const im = new Image(); im.onload = () => { have[key] = im.src; done(); }; im.onerror = done; im.src = base + "img/" + file; };
+  function done() { if (--pending === 0 && Object.keys(have).length) window.dispatchEvent(new Event("buddy-art-ready")); }
+  MOODS.forEach((m) => tryLoad(m, "buddy-" + m + ".png"));
+  OUTFITS.forEach((o) => tryLoad("outfit-" + o, "buddy-outfit-" + o + ".png"));
+  window.buddyArt = function (opts = {}) {
+    const mood = opts.mood || "happy";
+    const src = (opts.outfit && mood === "happy" && have["outfit-" + opts.outfit]) || (!opts.outfit && have[mood]) || (opts.outfit && have["outfit-" + opts.outfit]) || have[mood] || null;
+    if (src) return `<img class="buddy buddy-img bd-${mood}" src="${src}" alt="Бадди — щенок бульдога" draggable="false">`;
+    return window.buddySVG(opts);
+  };
+})();

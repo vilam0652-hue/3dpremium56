@@ -17,7 +17,7 @@
   };
 
   /* ---------- иконка капли ---------- */
-  K.dropSVG = (cls = "drop-ico") => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true"><defs><radialGradient id="kd" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="#8ff0ff"/><stop offset="1" stop-color="#3fd3e6"/></radialGradient></defs><path d="M12 2.5C9 7 5.5 10.6 5.5 14.6a6.5 6.5 0 0 0 13 0C18.5 10.6 15 7 12 2.5z" fill="url(#kd)" stroke="rgba(255,255,255,.8)" stroke-width=".8"/><ellipse cx="9.6" cy="13" rx="1.5" ry="2.4" fill="#fff" opacity=".75"/></svg>`;
+  K.dropSVG = (cls = "drop-ico") => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true"><defs><radialGradient id="kd" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#fff8e0"/><stop offset=".35" stop-color="#e6c97f"/><stop offset="1" stop-color="#8c6a2a"/></radialGradient></defs><path d="M12 2.5C9 7 5.5 10.6 5.5 14.6a6.5 6.5 0 0 0 13 0C18.5 10.6 15 7 12 2.5z" fill="url(#kd)" stroke="rgba(255,240,200,.9)" stroke-width=".6"/><ellipse cx="9.6" cy="13" rx="1.5" ry="2.4" fill="#fff" opacity=".75"/></svg>`;
 
   /* ---------- капельки (общая валюта всех игр) ---------- */
   K.coins = {
@@ -121,7 +121,7 @@
     const rs = () => { const d = Math.min(2, devicePixelRatio || 1); fx.width = innerWidth * d; fx.height = innerHeight * d; fxc.setTransform(d, 0, 0, d, 0, 0); };
     rs(); addEventListener("resize", rs);
   }
-  const PAL = ["#3fd3e6", "#e45cc4", "#ffd24a", "#8bdc5c", "#9b7bff", "#ff9a4d", "#ffffff"];
+  const PAL = ["#f3e3b0", "#d6b15e", "#9c7731", "#ffffff", "#e9d8a6", "#2a2a2e"];
   K.burst = (x, y, n = 24, colors = PAL, opt = {}) => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     fxLayer();
@@ -163,7 +163,7 @@
   };
 
   /* ---------- окно (старт / конец) ---------- */
-  const STAR = (on) => `<svg viewBox="0 0 24 24" class="${on ? "on" : ""}"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z" fill="${on ? "#ffd84d" : "rgba(255,255,255,.15)"}" stroke="${on ? "#fff3b0" : "rgba(255,255,255,.3)"}" stroke-width="1"/></svg>`;
+  const STAR = (on) => `<svg viewBox="0 0 24 24" class="${on ? "on" : ""}"><defs><linearGradient id="kg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3e3b0"/><stop offset=".5" stop-color="#d6b15e"/><stop offset="1" stop-color="#8c6a2a"/></linearGradient></defs><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z" fill="${on ? "url(#kg)" : "rgba(255,255,255,.08)"}" stroke="${on ? "#f3e3b0" : "rgba(255,255,255,.18)"}" stroke-width=".8"/></svg>`;
   K.panel = ({ title, text, score, scoreLabel, stars, extra, buttons = [] }) => {
     const ov = document.createElement("div");
     ov.className = "overlay";
@@ -209,10 +209,7 @@
   /* ---------- живой фон и 3D-наклон ---------- */
   function bg() {
     if (document.querySelector(".k-bg")) return;
-    const b = document.createElement("div"); b.className = "k-bg";
-    const cubes = [["#3fd3e6", 34, 8, 18, 22], ["#e45cc4", 26, 82, 12, 17], ["#8bdc5c", 20, 14, 70, 26], ["#ffd24a", 16, 78, 64, 19], ["#9b7bff", 24, 50, 8, 30]]
-      .map(([c, s, x, y, t], i) => `<div class="k-cube" style="--c:${c};--s:${s}px;left:${x}%;top:${y}%;--t:${t}s;animation-delay:${-i * 3}s,${-i * 1.3}s"><b></b><b></b><b></b><b></b><b></b><b></b></div>`).join("");
-    b.innerHTML = `<div class="stars"></div><div class="glow"></div><div class="floor"></div>${cubes}`;
+    const b = document.createElement("div"); b.className = "k-bg"; b.innerHTML = "<i></i><i></i><i></i>";
     document.body.prepend(b);
   }
   K.tilt = (root = document) => {
@@ -227,6 +224,9 @@
       el.addEventListener("pointerleave", () => { el.style.transform = ""; });
     });
   };
+
+  const imgCache = {};
+  K.img = (src) => imgCache[src] || (imgCache[src] = new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; }));
 
   K.rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   K.shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };

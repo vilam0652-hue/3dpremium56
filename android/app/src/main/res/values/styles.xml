@@ -6,5 +6,5 @@
         <item name="android:navigationBarColor">@color/kaplya_bg</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
-    <color name="kaplya_bg">#060A1C</color>
+    <color name="kaplya_bg">#08080A</color>
 </resources>
