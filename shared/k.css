@@ -205,6 +205,7 @@ button.chip:active { transform: scale(.94); }
 .progress { height: 8px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
 .progress > i { display: block; height: 100%; border-radius: inherit; background: var(--gold-grad); transition: width .5s var(--ease); }
 
+.k-art { display: inline-block; width: 1.4em; height: 1.4em; object-fit: contain; vertical-align: -.3em; -webkit-user-drag: none; filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); }
 /* картинка-иллюстрация, когда есть (иначе прячется) */
 .art { display: block; width: 100%; height: auto; object-fit: contain; }
 

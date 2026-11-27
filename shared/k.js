@@ -228,6 +228,11 @@
   const imgCache = {};
   K.img = (src) => imgCache[src] || (imgCache[src] = new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; }));
 
+  /* 3D-иллюстрации Microsoft Fluent (shared/art/*.webp, лицензия MIT) */
+  const artBase = (document.currentScript && document.currentScript.src || "").replace(/[^/]*$/, "") + "art/";
+  K.artSrc = (name) => artBase + name + ".webp";
+  K.art = (name, cls = "", alt = "") => `<img class="k-art ${cls}" src="${artBase}${name}.webp" alt="${alt}" draggable="false">`;
+
   K.rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   K.shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
   K.plural = (n, one, few, many) => { const a = Math.abs(n) % 100, b = a % 10; if (a > 10 && a < 20) return many; if (b > 1 && b < 5) return few; if (b === 1) return one; return many; };

@@ -35,11 +35,21 @@
   .liquid i:nth-child(1) { width: 46vmax; height: 46vmax; left: 15%; top: 10%; background: radial-gradient(circle at 35% 35%, rgba(243,227,176,.55), rgba(214,177,94,.25) 40%, transparent 68%); }
   .liquid i:nth-child(2) { width: 30vmax; height: 30vmax; left: 45%; top: 40%; background: radial-gradient(circle, rgba(156,119,49,.55), transparent 65%); animation-duration: 24s; animation-delay: -6s; }
   .liquid i:nth-child(3) { width: 22vmax; height: 22vmax; left: 5%; top: 55%; background: radial-gradient(circle, rgba(255,255,255,.22), transparent 65%); animation-duration: 30s; animation-delay: -12s; }
-  .hero .in { display: flex; flex-direction: column; gap: 22px; max-width: 640px; }
+  .hero .in { display: flex; flex-direction: column; gap: 22px; max-width: 640px; position: relative; z-index: 2; }
+  .float-art { position: absolute; z-index: 1; right: max(8px, calc((100vw - 1120px) / 2)); top: 84px; width: min(470px, 40vw); aspect-ratio: 1.15; pointer-events: none; }
+  .float-art img { position: absolute; object-fit: contain; filter: drop-shadow(0 30px 30px rgba(0,0,0,.6)); animation: fl 7s ease-in-out infinite; -webkit-user-drag: none; }
+  .float-art .a1 { width: 46%; left: 30%; top: 26%; animation-duration: 6s; }
+  .float-art .a2 { width: 22%; left: 8%; top: 4%; animation-delay: -2s; transform: rotate(-12deg); }
+  .float-art .a3 { width: 22%; left: 74%; top: 4%; animation-delay: -4s; }
+  .float-art .a4 { width: 19%; left: 30%; top: 70%; animation-delay: -1s; }
+  .float-art .a5 { width: 18%; left: 78%; top: 58%; animation-delay: -3s; }
+  .float-art .a6 { width: 13%; left: 14%; top: 56%; animation-delay: -5s; }
+  @keyframes fl { 50% { translate: 0 -14px; rotate: 4deg; } }
+  @media (max-width: 760px) { .float-art { position: relative; right: auto; top: auto; width: min(380px, 92%); margin: 0 auto -10px; } .hero { padding-top: 110px; } }
   .hero h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(2.6rem, 8.5vw, 5.4rem); line-height: .98; letter-spacing: -.03em; margin: 0; text-wrap: balance; }
   .hero h1 .gold-text { display: inline-block; }
   .hero .lead { font-size: clamp(1.05rem, 2.6vw, 1.25rem); color: #d7d2c8; max-width: 46ch; margin: 0; font-weight: 500; }
-  .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 18px; border-radius: 22px; overflow: hidden; border: 1px solid var(--stroke); background: var(--stroke); }
+  .facts { position: relative; z-index: 3; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 18px; border-radius: 22px; overflow: hidden; border: 1px solid var(--stroke); background: var(--stroke); }
   .facts div { padding: 16px 18px; background: rgba(12,12,14,.82); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
   .facts b { display: block; font-family: var(--f-display); font-weight: 700; font-size: 1.5rem; line-height: 1.1; }
   .facts span { color: var(--muted); font-size: .85rem; font-weight: 600; }
@@ -101,6 +111,7 @@
 <section class="hero" id="top">
   <div class="hero-art" id="heroArt"></div>
   <div class="liquid" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="float-art" id="floatArt" aria-hidden="true"></div>
   <div class="wrap">
     <div class="in">
       <span class="eyebrow">Для 4 класса · Android</span>
@@ -123,7 +134,7 @@
       <div class="stack">
         <span class="eyebrow">Английский язык</span>
         <h2>Бадди — английский как в Duolingo</h2>
-        <p>Щенок английского бульдога из Лондона ведёт по 40 урокам: слова, фразы, аудирование. Каждый день немного, и английский становится привычкой.</p>
+        <p>Щенок Бадди из Лондона ведёт по 40 урокам: слова, фразы, аудирование. Каждый день немного, и английский становится привычкой.</p>
         <div class="feat">
           <div>🦴 Косточки<small>серия дней подряд</small></div>
           <div>🐱 Котики-хранители<small>берегут серию, если пропустил день</small></div>
@@ -173,10 +184,11 @@
 (() => {
   const REPO = "vilam0652-hue/kaplya";
   const APK = (id) => `https://github.com/${REPO}/releases/download/apk/kaplya-${id}.apk`;
-  const APPS = /*APPS*/[{"id": "bust", "name": "3D Bust", "kind": "game", "desc": "Головоломка из неоновых 3D-кубиков: ставь фигуры на поле 8×8, сжигай линии, собирай комбо. Свечение, объём, рекорды.", "tint": "#3fd3e6"}, {"id": "buddy", "name": "Бадди — английский", "kind": "learn", "desc": "Полный курс английского как в Duolingo: 8 разделов, 40 уроков, 6 видов заданий. Косточки за серию, котики-хранители, наряды и ИИ-собеседник Бадди.", "tint": "#ffb547"}, {"id": "merge", "name": "Слияние планет", "kind": "game", "desc": "Физика! Бросай планеты в банку: две одинаковые сливаются в следующую — от астероида до Солнца.", "tint": "#e45cc4"}, {"id": "space", "name": "Звёздный рейс", "kind": "game", "desc": "3D-полёт сквозь астероиды на стеклянном корабле. Звёзды, щит, скорость растёт.", "tint": "#ffd24a"}, {"id": "balloons", "name": "Шарики-примеры", "kind": "game", "desc": "Лопай шарик с правильным ответом, пока он не улетел. Умножение, деление, счёт до 1000.", "tint": "#8bdc5c"}, {"id": "breakout", "name": "Стеклобой", "kind": "game", "desc": "Арканоид, где стеклянные кирпичи разлетаются на осколки. 5 уровней, бонусы, три мяча.", "tint": "#ffb547"}, {"id": "multiply", "name": "Таблица-Турбо", "kind": "learn", "desc": "Таблица умножения и деления на звёзды. Подсказка-точки показывает, откуда берётся ответ.", "tint": "#3fd3e6"}, {"id": "words", "name": "Грамотей", "kind": "learn", "desc": "Словарные слова, безударные гласные и парные согласные. Ошибся — видишь правило и проверочное слово.", "tint": "#9b7bff"}, {"id": "world", "name": "Знайка", "kind": "learn", "desc": "Окружающий мир за 4 класс: природные зоны, космос, тело человека, история России.", "tint": "#8bdc5c"}, {"id": "grades", "name": "Мои оценки", "kind": "learn", "desc": "Ставь оценки одним касанием и узнавай, что выходит за месяц и сколько пятёрок нужно до «5».", "tint": "#e45cc4"}]/*END*/;
+  const APPS = /*APPS*/[{"id": "bust", "name": "3D Bust", "kind": "game", "desc": "Головоломка из неоновых 3D-кубиков: ставь фигуры на поле 8×8, сжигай линии, собирай комбо. Свечение, объём, рекорды.", "tint": "#3fd3e6"}, {"id": "buddy", "name": "Бадди — английский", "kind": "learn", "desc": "Полный курс английского как в Duolingo: 8 разделов, 40 уроков, 6 видов заданий. Косточки за серию, котики-хранители, наряды и ИИ-собеседник — щенок Бадди.", "tint": "#ffb547"}, {"id": "merge", "name": "Фруктовое слияние", "kind": "game", "desc": "Физика! Бросай фрукты в корзину: два одинаковых сливаются в следующий — от черники до арбуза. Заодно учишь названия фруктов по-английски.", "tint": "#e45cc4"}, {"id": "space", "name": "Звёздный рейс", "kind": "game", "desc": "3D-полёт сквозь астероиды на стеклянном корабле. Звёзды, щит, скорость растёт.", "tint": "#ffd24a"}, {"id": "balloons", "name": "Шарики-примеры", "kind": "game", "desc": "Лопай шарик с правильным ответом, пока он не улетел. Умножение, деление, счёт до 1000.", "tint": "#8bdc5c"}, {"id": "breakout", "name": "Стеклобой", "kind": "game", "desc": "Арканоид, где стеклянные кирпичи разлетаются на осколки. 5 уровней, бонусы, три мяча.", "tint": "#ffb547"}, {"id": "multiply", "name": "Таблица-Турбо", "kind": "learn", "desc": "Таблица умножения и деления на звёзды. Подсказка-точки показывает, откуда берётся ответ.", "tint": "#3fd3e6"}, {"id": "words", "name": "Грамотей", "kind": "learn", "desc": "Словарные слова, безударные гласные и парные согласные. Ошибся — видишь правило и проверочное слово.", "tint": "#9b7bff"}, {"id": "world", "name": "Знайка", "kind": "learn", "desc": "Окружающий мир за 4 класс: природные зоны, космос, тело человека, история России.", "tint": "#8bdc5c"}, {"id": "grades", "name": "Мои оценки", "kind": "learn", "desc": "Ставь оценки одним касанием и узнавай, что выходит за месяц и сколько пятёрок нужно до «5».", "tint": "#e45cc4"}]/*END*/;
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   document.getElementById("logoDrop").innerHTML = K.dropSVG();
   document.getElementById("yr").textContent = "© " + new Date().getFullYear();
+  document.getElementById("floatArt").innerHTML = [["dog", "a1"], ["rocket", "a2"], ["watermelon", "a3"], ["cube", "a4"], ["globe", "a5"], ["star", "a6"]].map(([n, c]) => `<img class="${c}" src="shared/art/${n}.webp" alt="">`).join("");
   const paintBuddy = () => { document.getElementById("buddyArt").innerHTML = buddyArt({ mood: "wave" }); };
   paintBuddy(); addEventListener("buddy-art-ready", paintBuddy);
   // картинка в шапке из Gemini, если она уже добавлена

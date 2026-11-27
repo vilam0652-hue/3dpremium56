@@ -83,21 +83,44 @@
   };
 })();
 
-/* Картинки Бадди из Gemini (img/buddy-<настроение>.png, img/buddy-outfit-<наряд>.png).
-   Если файла нет — показывается векторный Бадди. */
+/* Бадди из 3D-иллюстраций Microsoft Fluent (shared/art, MIT): щенок + наряд + настроение.
+   Если позже появятся свои картинки (img/buddy-<настроение>.png), они заменят иллюстрацию. */
 (function () {
-  const MOODS = ["happy", "cheer", "think", "oops", "sleep", "wave"], OUTFITS = ["tophat", "cap", "crown", "scarf", "bow"];
-  const have = {};
   const base = (document.currentScript && document.currentScript.src || "").replace(/[^/]*$/, "");
-  let pending = 0;
-  const tryLoad = (key, file) => { pending++; const im = new Image(); im.onload = () => { have[key] = im.src; done(); }; im.onerror = done; im.src = base + "img/" + file; };
-  function done() { if (--pending === 0 && Object.keys(have).length) window.dispatchEvent(new Event("buddy-art-ready")); }
-  MOODS.forEach((m) => tryLoad(m, "buddy-" + m + ".png"));
-  OUTFITS.forEach((o) => tryLoad("outfit-" + o, "buddy-outfit-" + o + ".png"));
+  const ART = base + "../../shared/art/";
+  const st = document.createElement("style");
+  st.textContent = `
+  .bda { position: relative; width: 100%; aspect-ratio: 1; display: block; }
+  .bda > img { position: absolute; object-fit: contain; -webkit-user-drag: none; user-select: none; pointer-events: none; }
+  .bda .dog { left: 8%; top: 12%; width: 84%; height: 84%; filter: drop-shadow(0 18px 18px rgba(60,40,10,.28)); animation: bda-bob 3.2s ease-in-out infinite; transform-origin: 50% 90%; }
+  .bda .fit { left: 22%; width: 56%; height: 42%; top: -10%; filter: drop-shadow(0 8px 8px rgba(0,0,0,.25)); animation: bda-bob 3.2s ease-in-out infinite; }
+  .bda .fit.scarf { top: 64%; left: 22%; width: 56%; height: 34%; }
+  .bda .fit.bow { left: 62%; top: 2%; width: 34%; height: 30%; transform: rotate(18deg); }
+  .bda .fit.crown { top: -9%; left: 26%; width: 48%; }
+  .bda .fit.cap { top: -11%; left: 20%; width: 60%; }
+  .bda .fx { width: 34%; height: 34%; right: -4%; top: -2%; animation: bda-fx 2.2s ease-in-out infinite; }
+  .bda.cheer .dog, .bda.cheer .fit { animation: bda-hop .6s cubic-bezier(.3,1.4,.5,1) infinite alternate; }
+  .bda.think .dog { animation: bda-tilt 3s ease-in-out infinite; }
+  .bda.sleep .dog { filter: drop-shadow(0 18px 18px rgba(60,40,10,.28)) saturate(.85) brightness(.96); animation: bda-breath 3.6s ease-in-out infinite; }
+  .bda.oops .dog { animation: bda-shake .5s ease-in-out 2; }
+  .bda.wave .fx { right: auto; left: -6%; top: 40%; animation: bda-wave .9s ease-in-out infinite alternate; transform-origin: 70% 90%; }
+  @keyframes bda-bob { 50% { transform: translateY(-3%) rotate(-1.5deg); } }
+  @keyframes bda-hop { to { transform: translateY(-9%) scale(1.03); } }
+  @keyframes bda-tilt { 50% { transform: rotate(-8deg); } }
+  @keyframes bda-breath { 50% { transform: scale(1.03, .97); } }
+  @keyframes bda-shake { 25% { transform: translateX(-4%) rotate(-4deg); } 75% { transform: translateX(4%) rotate(4deg); } }
+  @keyframes bda-fx { 50% { transform: translateY(-10%) scale(1.08); } }
+  @keyframes bda-wave { from { transform: rotate(-18deg); } to { transform: rotate(14deg); } }
+  @media (prefers-reduced-motion: reduce) { .bda * { animation: none !important; } }`;
+  document.head.appendChild(st);
+  const FX = { cheer: "sparkles", think: "thinking", oops: "sweat", sleep: "zzz", wave: "wave" };
+  const own = {};
+  ["happy", "cheer", "think", "oops", "sleep", "wave"].forEach((m) => { const im = new Image(); im.onload = () => { own[m] = im.src; window.dispatchEvent(new Event("buddy-art-ready")); }; im.src = base + "img/buddy-" + m + ".png"; });
   window.buddyArt = function (opts = {}) {
-    const mood = opts.mood || "happy";
-    const src = (opts.outfit && mood === "happy" && have["outfit-" + opts.outfit]) || (!opts.outfit && have[mood]) || (opts.outfit && have["outfit-" + opts.outfit]) || have[mood] || null;
-    if (src) return `<img class="buddy buddy-img bd-${mood}" src="${src}" alt="Бадди — щенок бульдога" draggable="false">`;
-    return window.buddySVG(opts);
+    const mood = opts.mood || "happy", o = opts.outfit;
+    if (own[mood] && !o) return `<img class="buddy buddy-img bd-${mood}" src="${own[mood]}" alt="Бадди" draggable="false">`;
+    const fx = FX[mood] && FX[mood] !== "sweat" ? `<img class="fx" src="${ART}${FX[mood]}.webp" alt="">` : "";
+    const fit = o ? `<img class="fit ${o}" src="${ART}${o}.webp" alt="">` : "";
+    return `<span class="buddy bda ${mood}" role="img" aria-label="Бадди — щенок"><img class="dog" src="${ART}dog.webp" alt="">${fit}${fx}</span>`;
   };
 })();
