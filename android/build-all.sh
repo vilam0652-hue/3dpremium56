@@ -7,6 +7,7 @@ VERSION="${GITHUB_RUN_NUMBER:-1}"
 ONLY="${1:-}"
 rm -rf dist && mkdir -p dist
 RES=android/app/src/main/res
+mkdir -p "$RES/mipmap-xxxhdpi" "$RES/mipmap-xxhdpi" "$RES/mipmap-xhdpi"
 
 for row in $(jq -r '.[] | @base64' apps.json); do
   get() { echo "$row" | base64 -d | jq -r "$1"; }
@@ -17,7 +18,7 @@ for row in $(jq -r '.[] | @base64' apps.json); do
   web="android/build/web/$id"
   rm -rf "$web" && mkdir -p "$web/apps" "$web/shared"
   cp -r "apps/$id" "$web/apps/$id"
-  cp -r shared/k.css shared/k.js shared/fonts.css shared/fonts "$web/shared/"
+  cp -r shared/k.css shared/k.js shared/fonts.css shared/fonts shared/art "$web/shared/"
   [ "$id" = "space" ] && cp -r shared/three.min.js shared/lib "$web/shared/"
   [ "$id" = "merge" ] && cp shared/matter.min.js "$web/shared/"
 
