@@ -4,9 +4,13 @@ set -euo pipefail
 APP=/opt/kaplya/repo
 DATA=/var/lib/kaplya
 cd "$APP"
+# не запускать два обновления одновременно
+exec 9>/run/kaplya-update.lock
+flock -n 9 || { echo "Обновление уже идёт"; exit 0; }
 G() { runuser -u kaplya -- git -C "$APP" "$@"; }
 OLD=$(G rev-parse HEAD)
-G pull -q --ff-only || echo "git pull не удался"
+# сервер только читает репозиторий, поэтому просто берём свежий main
+if G fetch -q --depth 50 origin main; then G reset -q --hard FETCH_HEAD; else echo "Не удалось связаться с GitHub"; fi
 NEW=$(G rev-parse HEAD)
 
 # какой репозиторий на GitHub (из адреса origin)
@@ -18,7 +22,8 @@ if [ -n "$REL" ]; then
   echo "$REL" | jq -r '.assets[] | [.name, .updated_at, .browser_download_url] | @tsv' | while IFS=$'\t' read -r NAME STAMP URL; do
     DEST="$DATA/apk/$NAME"; MARK="$DATA/apk/.$NAME.stamp"
     if [ ! -f "$DEST" ] || [ "$(cat "$MARK" 2>/dev/null)" != "$STAMP" ]; then
-      if curl -fsSL "${AUTH[@]}" -o "$DEST.tmp" "$URL"; then mv "$DEST.tmp" "$DEST"; echo "$STAMP" > "$MARK"; echo "APK обновлён: $NAME"; else rm -f "$DEST.tmp"; fi
+      TMP=$(mktemp "$DATA/apk/.dl.XXXXXX")
+      if curl -fsSL "${AUTH[@]}" -o "$TMP" "$URL" && [ -s "$TMP" ]; then mv -f "$TMP" "$DEST"; echo "$STAMP" > "$MARK"; echo "APK обновлён: $NAME"; else rm -f "$TMP"; echo "Не скачался: $NAME"; fi
     fi
   done
   chown -R kaplya:kaplya "$DATA/apk"

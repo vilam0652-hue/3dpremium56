@@ -58,7 +58,7 @@ fi
 say "Скачиваю Каплю с GitHub"
 id kaplya >/dev/null 2>&1 || useradd --system --home /opt/kaplya --shell /usr/sbin/nologin kaplya
 mkdir -p /opt/kaplya "$DATA/apk" "$ETC"
-if [ -d "$APP/.git" ]; then git -C "$APP" pull -q --ff-only; else git clone -q --depth 50 "$REPO_URL" "$APP"; fi
+if [ -d "$APP/.git" ]; then git -C "$APP" fetch -q --depth 50 origin main && git -C "$APP" reset -q --hard FETCH_HEAD; else git clone -q --depth 50 --branch main --single-branch "$REPO_URL" "$APP"; fi
 chown -R kaplya:kaplya /opt/kaplya "$DATA"
 
 say "Сертификаты для GigaChat (Минцифры)"
