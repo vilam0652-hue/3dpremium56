@@ -10,22 +10,23 @@
 <script src="buddy-dog.js"></script>
 <script src="course.js"></script>
 <script src="../../shared/art/e/map.js"></script>
+<script src="art/e/map-extra.js"></script>
 <style>
-/* Тёплая гостиная Бадди: кремовый фон, медовые и небесные пятна света, мягкое стекло. */
+/* «Liquid White»: белое жидкое стекло, чёрные кнопки, полированное золото. */
 :root {
   color-scheme: light;
   --bg: #f7f5f0; --bg2: #ebe5d8;
   --ink: #141414; --muted: #6f6a62; --faint: #a8a298; --line: rgba(20,20,20,.1);
-  --glass: rgba(255,255,255,.6); --glass-hi: rgba(255,255,255,.9);
-  --honey: #d6b15e; --honey-d: #9c7731; --orange: #1a1a1c; --orange-d: #000000;
+  --honey: #d6b15e; --honey-d: #9c7731; --gold-t: #f3e3b0;
   --green: #3fae7c; --green-d: #2b8a5f; --green-bg: #e3f4ea;
   --red: #e0675c; --red-d: #b84a40; --red-bg: #fbe7e4;
-  --blue: #1a1a1c; --blue-d: #000000; --violet: #9c7731; --violet-d: #6e5320;
+  --black: #1a1a1c;
   --gold-grad: linear-gradient(100deg, #f3e3b0 0%, #d6b15e 38%, #9c7731 70%, #e6c97f 100%);
   --lock: #e4dfd4; --lock-d: #cbc3b3;
   --f: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-display: "Unbounded", "Manrope", system-ui, sans-serif;
   --spring: cubic-bezier(.3,1.35,.5,1); --ease: cubic-bezier(.22,1,.36,1);
+  --tabs-h: 78px;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; height: 100%; }
@@ -36,10 +37,12 @@ body {
 }
 button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; padding: 0; }
 input { font: inherit; color: inherit; user-select: text; -webkit-user-select: text; }
-:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 14px; }
+:focus-visible { outline: 3px solid var(--honey); outline-offset: 3px; border-radius: 14px; }
 [hidden] { display: none !important; }
-.ea { display: inline-block; width: 1.3em; height: 1.3em; object-fit: contain; vertical-align: -.28em; -webkit-user-drag: none; filter: drop-shadow(0 4px 6px rgba(40,30,10,.18)); }
+.ea { display: inline-block; width: 1.3em; height: 1.3em; object-fit: contain; vertical-align: -.28em; -webkit-user-drag: none; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(40,30,10,.18)); }
 .ea.big { width: 62%; height: auto; aspect-ratio: 1; vertical-align: middle; filter: drop-shadow(0 12px 14px rgba(40,30,10,.22)); }
+.ea.fill { width: 100%; height: auto; aspect-ratio: 1; vertical-align: middle; }
+.emo { display: inline-block; line-height: 1; }
 
 .blobs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 .blobs i { position: absolute; border-radius: 50%; filter: blur(50px); opacity: .55; animation: drift 24s ease-in-out infinite alternate; }
@@ -49,7 +52,7 @@ input { font: inherit; color: inherit; user-select: text; -webkit-user-select: t
 @keyframes drift { to { transform: translate(5vmax, 4vmax) scale(1.1); } }
 
 .glass {
-  background: linear-gradient(150deg, rgba(255,255,255,.78), rgba(255,255,255,.45));
+  background: linear-gradient(150deg, rgba(255,255,255,.8), rgba(255,255,255,.48));
   -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%);
   border: 1.5px solid rgba(255,255,255,.9); border-radius: 26px;
   box-shadow: 0 1px 0 rgba(255,255,255,.95) inset, 0 18px 40px -22px rgba(40,30,10,.35);
@@ -58,142 +61,208 @@ input { font: inherit; color: inherit; user-select: text; -webkit-user-select: t
 /* ---------- каркас ---------- */
 #app { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
 .top {
-  flex: none; display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  flex: none; display: flex; align-items: center; justify-content: space-between; gap: 4px;
   margin: max(10px, env(safe-area-inset-top, 0px)) auto 0; width: min(560px, calc(100% - 20px));
-  padding: 6px 8px; border-radius: 999px;
+  padding: 4px 6px; border-radius: 999px; position: relative; z-index: 5;
 }
-.pill { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 999px; font-weight: 900; font-size: 1rem; font-variant-numeric: tabular-nums; transition: transform .4s var(--spring); }
-.pill .e { font-size: 1.2rem; line-height: 1; }
+.pill { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 4px 10px; border-radius: 999px; font-weight: 900; font-size: 1rem; font-variant-numeric: tabular-nums; transition: transform .4s var(--spring); }
+.pill:active { transform: scale(.92); }
+.pill .e { font-size: 1.25rem; line-height: 1; }
 .pill.bump { animation: bump .6s var(--spring); }
 @keyframes bump { 40% { transform: scale(1.35) rotate(-6deg); } }
-.pill.bone { color: var(--ink); } .pill.cookie { color: var(--honey-d); } .pill.heart { color: var(--red-d); } .pill.cat { color: var(--violet-d); }
-.pill.dim { opacity: .45; filter: grayscale(.8); }
+.pill.cookie { color: var(--honey-d); } .pill.heart { color: var(--red-d); } .pill.cat { color: #6e5320; }
+.pill.dim .e { filter: grayscale(.9); opacity: .55; }
 
-main.scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 120px max(16px, env(safe-area-inset-left, 0px)); }
+main.scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; padding: 14px max(16px, env(safe-area-inset-right, 0px)) calc(var(--tabs-h) + 40px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
 .inner { width: min(560px, 100%); margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+.inner.enter { animation: viewIn .38s var(--ease); }
+@keyframes viewIn { from { opacity: 0; transform: translateY(14px); } }
 
 nav.tabs {
   position: fixed; z-index: 20; left: 50%; transform: translateX(-50%);
   bottom: max(10px, env(safe-area-inset-bottom, 0px)); width: min(520px, calc(100% - 20px));
   display: grid; grid-template-columns: repeat(5, 1fr); padding: 6px; border-radius: 30px;
 }
-nav.tabs button { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px; border-radius: 22px; font-size: .68rem; font-weight: 900; color: var(--muted); transition: background .25s, color .25s, transform .35s var(--spring); }
+nav.tabs button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 54px; padding: 6px 2px; border-radius: 22px; font-size: .68rem; font-weight: 900; color: var(--muted); transition: background .25s, color .25s, transform .35s var(--spring); }
 nav.tabs button .e { font-size: 1.45rem; line-height: 1.1; filter: grayscale(.4); transition: transform .4s var(--spring), filter .2s; }
-nav.tabs button[aria-current="page"] { background: #141414; color: #f3e3b0; }
+nav.tabs button[aria-current="page"] { background: #141414; color: var(--gold-t); }
 nav.tabs button[aria-current="page"] .e { transform: scale(1.18) translateY(-2px); filter: none; }
 nav.tabs button:active { transform: scale(.9); }
+nav.tabs .dot { position: absolute; top: 4px; right: calc(50% - 22px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--red); color: #fff; font-size: .66rem; line-height: 18px; box-shadow: 0 0 0 2px #fff; animation: pop .4s var(--spring); }
 
-/* ---------- кнопки как мармелад ---------- */
+/* ---------- кнопки ---------- */
 .btn {
-  --c: #1a1a1c; --d: #000;
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 0 24px; border-radius: 18px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 82%, white), var(--c)); color: #fff; font-weight: 900; font-size: 1.05rem; letter-spacing: .02em; 
-  box-shadow: 0 5px 0 var(--d), inset 0 2px 0 rgba(255,255,255,.45); transition: transform .08s, box-shadow .08s, filter .2s; text-shadow: 0 1px 0 rgba(0,0,0,.12);
+  --c: var(--black); --d: #000;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 0 22px; border-radius: 18px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 82%, white), var(--c)); color: #fff; font-weight: 900; font-size: 1.05rem; letter-spacing: .02em;
+  box-shadow: 0 5px 0 var(--d), inset 0 2px 0 rgba(255,255,255,.35); transition: transform .08s, box-shadow .08s, filter .2s; text-shadow: 0 1px 0 rgba(0,0,0,.12);
 }
-.btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--d), inset 0 2px 0 rgba(255,255,255,.45); }
+.btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--d), inset 0 2px 0 rgba(255,255,255,.35); }
 .btn.wide { width: 100%; }
-.btn.orange { --c: var(--orange); --d: var(--orange-d); }
 .btn.green { --c: var(--green); --d: var(--green-d); }
-.btn.blue { --c: var(--blue); --d: var(--blue-d); }
 .btn.red { --c: var(--red); --d: var(--red-d); }
-.btn.violet { --c: var(--violet); --d: var(--violet-d); }
-.btn.honey { --c: var(--honey); --d: var(--honey-d); background: var(--gold-grad); color: #17130b; text-shadow: none; }
-.btn.ghost { --d: var(--line); background: rgba(255,255,255,.75); color: var(--ink); box-shadow: 0 4px 0 rgba(122,74,31,.16); border: 2px solid rgba(122,74,31,.1); }
-.btn:disabled { --c: var(--lock); --d: var(--lock-d); color: var(--faint); pointer-events: none; text-shadow: none; }
-.btn.sm { min-height: 42px; padding: 0 16px; font-size: .9rem; border-radius: 14px; }
+.btn.honey { --d: var(--honey-d); background: var(--gold-grad); color: #17130b; text-shadow: none; }
+.btn.ghost { background: rgba(255,255,255,.8); color: var(--ink); box-shadow: 0 4px 0 rgba(20,20,20,.1); border: 2px solid var(--line); text-shadow: none; }
+.btn.ghost:active { box-shadow: 0 1px 0 rgba(20,20,20,.1); }
+.btn:disabled { --c: var(--lock); --d: var(--lock-d); background: var(--lock); color: var(--faint); pointer-events: none; text-shadow: none; border: 0; }
+.btn.sm { min-height: 44px; padding: 0 16px; font-size: .9rem; border-radius: 14px; }
+.link { min-height: 44px; padding: 8px 12px; font-weight: 800; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
 
 h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-family: var(--f-display); font-weight: 700; letter-spacing: -.01em; }
+h2 { font-size: 1.25rem; } h3 { font-size: 1.05rem; }
+p { margin: 0; }
 .muted { color: var(--muted); }
 .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .eyebrow { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 800; color: var(--honey-d); }
+.sec-title { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
 
 .buddy { display: block; width: 100%; height: auto; overflow: visible; }
 .buddy-img { object-fit: contain; aspect-ratio: 1; filter: drop-shadow(0 16px 18px rgba(40,30,10,.22)); animation: bdbob 3.4s ease-in-out infinite; -webkit-user-drag: none; }
-.buddy-img.bd-cheer { animation: hop .7s var(--ease) infinite alternate; }
 @keyframes bdbob { 50% { transform: translateY(-4px) rotate(-1.5deg); } }
-.buddy .bd-head { transform-origin: 100px 150px; animation: nod 4s ease-in-out infinite; }
-.buddy .bd-tail { transform-origin: 146px 168px; animation: wag .45s ease-in-out infinite alternate; }
-.buddy .bd-eyes { transform-origin: 100px 86px; animation: blink 5s infinite; }
-.buddy.bd-cheer { animation: hop .7s var(--ease) infinite alternate; }
-@keyframes nod { 50% { transform: rotate(-3deg) translateY(1px); } }
-@keyframes wag { from { transform: rotate(-14deg); } to { transform: rotate(16deg); } }
-@keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(.1); } }
 @keyframes hop { to { transform: translateY(-8px); } }
 
-/* ---------- путь уроков ---------- */
-.unit-head { position: relative; overflow: hidden; padding: 16px 18px; border-radius: 26px; color: #fff; background: linear-gradient(135deg, color-mix(in srgb, var(--u) 88%, white), var(--u)); box-shadow: 0 6px 0 color-mix(in srgb, var(--u) 70%, black), 0 18px 30px -16px var(--u); display: flex; align-items: center; gap: 12px; }
-.unit-head::after { content: ""; position: absolute; inset: 0; background: radial-gradient(70% 90% at 15% 0%, rgba(255,255,255,.45), transparent 55%); pointer-events: none; }
-.unit-head .uemo { font-size: 2.4rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,.2)); }
-.unit-head small { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; opacity: .9; font-weight: 900; }
-.unit-head h2 { font-size: 1.3rem; }
-.unit-head.locked { --u: #cdb69e !important; }
-.path { position: relative; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 58px 0 10px; }
-.node-wrap { position: relative; display: flex; justify-content: center; }
+/* ---------- главная ---------- */
+.hello { display: grid; grid-template-columns: 84px 1fr auto; gap: 12px; align-items: center; padding: 14px; }
+.hello .t { font-weight: 800; font-size: .95rem; }
+.ring { position: relative; width: 62px; height: 62px; flex: none; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 7; stroke-linecap: round; }
+.ring .bgc { stroke: rgba(20,20,20,.08); }
+.ring .fgc { stroke: url(#gGold); transition: stroke-dashoffset 1s var(--ease); }
+.ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: .82rem; font-weight: 900; line-height: 1; text-align: center; }
+.ring small { display: block; font-size: .56rem; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; }
+.train { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.train button { position: relative; display: flex; align-items: center; gap: 10px; padding: 12px; min-height: 64px; border-radius: 22px; text-align: left; font-weight: 800; font-size: .92rem; line-height: 1.2; transition: transform .12s; }
+.train button:active { transform: scale(.96); }
+.train button .e { font-size: 1.9rem; flex: none; }
+.train small { display: block; color: var(--muted); font-weight: 700; font-size: .75rem; }
+.badge { position: absolute; top: -6px; right: -4px; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 12px; background: var(--red); color: #fff; font-size: .78rem; font-weight: 900; display: grid; place-items: center; box-shadow: 0 0 0 3px #fff; }
+
+.unit { display: flex; flex-direction: column; }
+.unit-head { position: relative; overflow: hidden; padding: 16px 16px 14px 18px; border-radius: 26px; color: #fff; background: linear-gradient(135deg, color-mix(in srgb, var(--u) 86%, white), var(--u)); box-shadow: 0 6px 0 color-mix(in srgb, var(--u) 65%, black), 0 18px 30px -16px var(--u); display: grid; grid-template-columns: 1fr 76px; gap: 10px; align-items: center; }
+.unit-head::after { content: ""; position: absolute; inset: 0; background: radial-gradient(70% 90% at 15% 0%, rgba(255,255,255,.35), transparent 55%); pointer-events: none; }
+.unit-head .uemo { font-size: 3.4rem; line-height: 1; text-align: center; }
+.unit-head .uemo .ea { width: 76px; height: 76px; filter: drop-shadow(0 8px 10px rgba(0,0,0,.3)); }
+.unit-head small { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; opacity: .85; font-weight: 900; }
+.unit-head h2 { font-size: 1.2rem; margin: 2px 0 8px; }
+.ubar { height: 10px; border-radius: 99px; background: rgba(255,255,255,.22); overflow: hidden; }
+.ubar i { display: block; height: 100%; border-radius: inherit; background: var(--gold-grad); transition: width .8s var(--ease); }
+.unit-head .uact { display: flex; gap: 8px; margin-top: 10px; position: relative; z-index: 1; }
+.unit-head .uact button { min-height: 36px; padding: 0 12px; border-radius: 12px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28); font-weight: 800; font-size: .8rem; color: #fff; }
+.unit-head.locked { --u: #bdb4a3 !important; }
+.unit-head.locked .uemo .ea { filter: grayscale(1) opacity(.6); }
+.path { position: relative; display: flex; flex-direction: column; align-items: center; gap: 30px; padding: 62px 0 18px; }
+.node-wrap { position: relative; width: 84px; height: 78px; transition: transform .4s var(--ease); }
 .node {
-  --c: var(--u); width: 76px; height: 70px; border-radius: 50%; font-size: 2rem; display: grid; place-items: center; position: relative;
-  background: radial-gradient(80% 70% at 35% 25%, rgba(255,255,255,.6), transparent 55%), var(--c);
-  box-shadow: 0 7px 0 color-mix(in srgb, var(--c) 65%, black), inset 0 -4px 8px rgba(0,0,0,.12); transition: transform .1s;
+  --c: #2a2a2e; --sh: #000; position: absolute; inset: 0; border-radius: 50%; font-size: 2.1rem; display: grid; place-items: center;
+  background: radial-gradient(80% 70% at 35% 25%, rgba(255,255,255,.45), transparent 55%), var(--c);
+  box-shadow: 0 8px 0 var(--sh), inset 0 -5px 10px rgba(0,0,0,.14); transition: transform .1s, box-shadow .1s;
 }
-.node:active { transform: translateY(5px); box-shadow: 0 2px 0 color-mix(in srgb, var(--c) 65%, black); }
-.node.done { --c: #d6b15e; }
-.node.locked { --c: var(--lock); filter: saturate(.6); cursor: default; }
-.node.locked .ic { opacity: .5; }
-.node.current::before { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 5px solid color-mix(in srgb, var(--u) 50%, white); animation: ring 1.6s ease-in-out infinite; }
-@keyframes ring { 50% { transform: scale(1.08); opacity: .55; } }
-.node .crown { position: absolute; right: -4px; bottom: -6px; font-size: 1.1rem; }
-.start-bubble { position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 8px 16px; border-radius: 999px; background: #141414; color: #f3e3b0; font-weight: 800; font-size: .85rem; letter-spacing: .04em; box-shadow: 0 4px 0 rgba(122,74,31,.14); animation: float 1.8s ease-in-out infinite; }
-.start-bubble::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -8px; border: 8px solid transparent; border-top-color: #141414; }
+.node .ic .ea { width: 44px; height: 44px; }
+.node:active { transform: translateY(6px); box-shadow: 0 2px 0 var(--sh); }
+.node.done { --c: #d6b15e; --sh: #9c7731; color: #fff; }
+.node.done svg { width: 38px; height: 38px; }
+.node.locked { --c: var(--lock); --sh: var(--lock-d); }
+.node.locked .ic { opacity: .55; filter: grayscale(1); }
+.node.locked .ic .ea { width: 34px; height: 34px; }
+.node.current { --c: #1a1a1c; --sh: #000; }
+.node.current::before { content: ""; position: absolute; inset: -11px; border-radius: 50%; border: 5px solid rgba(214,177,94,.65); animation: ring 1.6s ease-in-out infinite; }
+@keyframes ring { 50% { transform: scale(1.08); opacity: .45; } }
+.node .crown { position: absolute; right: -6px; bottom: -6px; font-size: 1.15rem; }
+.start-bubble { position: absolute; bottom: calc(100% + 16px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 9px 16px; border-radius: 14px; background: #fff; color: var(--ink); border: 2px solid var(--line); font-weight: 900; font-size: .85rem; letter-spacing: .06em; text-transform: uppercase; animation: float 1.8s ease-in-out infinite; pointer-events: none; z-index: 2; }
+.start-bubble::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -8px; border: 8px solid transparent; border-top-color: #fff; }
 @keyframes float { 50% { transform: translate(-50%, -5px); } }
-.path-buddy { position: absolute; width: 96px; top: -18px; pointer-events: none; }
-.fact-card { padding: 14px 16px; display: flex; gap: 12px; align-items: center; }
-.fact-card .flag { font-size: 2rem; }
+.path-buddy { position: absolute; width: 92px; top: -12px; pointer-events: none; }
+.lpop { width: min(330px, 100%); padding: 16px; border-radius: 22px; background: #141414; color: #fff; position: relative; animation: popIn .32s var(--spring); margin-top: -4px; z-index: 3; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 20px 40px -18px rgba(0,0,0,.6); }
+.lpop::before { content: ""; position: absolute; bottom: 100%; left: calc(50% + var(--ox, 0px) - 10px); border: 10px solid transparent; border-bottom-color: #141414; }
+.lpop h3 { color: var(--gold-t); }
+.lpop p { color: rgba(255,255,255,.72); font-size: .9rem; }
+.lpop .btn { --c: #fff; --d: #c9c2b2; color: #141414; background: #fff; text-shadow: none; }
+.lpop .btn.honey { background: var(--gold-grad); }
+@keyframes popIn { from { transform: scale(.85) translateY(-8px); opacity: 0; } }
+.fact-card { padding: 14px 16px; display: flex; gap: 12px; align-items: center; margin-top: 4px; }
+.fact-card .flag { width: 46px; flex: none; }
+.fact-card .flag .ea { width: 46px; height: 46px; }
+.course-end { padding: 22px 18px; text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.to-cur { position: fixed; z-index: 18; right: max(16px, calc(50% - 270px)); bottom: calc(var(--tabs-h) + 22px + env(safe-area-inset-bottom, 0px)); width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: #141414; color: var(--gold-t); box-shadow: 0 5px 0 #000, 0 14px 24px -10px rgba(0,0,0,.5); animation: popIn .3s var(--spring); }
+.to-cur svg { width: 26px; height: 26px; transition: transform .3s; }
+.to-cur.up svg { transform: rotate(180deg); }
 
 /* ---------- урок ---------- */
 .lesson { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: radial-gradient(120% 70% at 50% -10%, #ffffff 0%, var(--bg) 50%, var(--bg2) 100%); animation: slideup .45s var(--ease); }
+.lesson.out { animation: slidedown .3s var(--ease) forwards; }
 @keyframes slideup { from { transform: translateY(40px); opacity: 0; } }
-.l-top { display: flex; align-items: center; gap: 12px; width: min(620px, calc(100% - 28px)); margin: max(14px, env(safe-area-inset-top, 0px)) auto 0; }
-.l-close { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--faint); font-size: 1.6rem; }
-.bar { flex: 1; height: 18px; border-radius: 999px; background: rgba(122,74,31,.12); overflow: hidden; }
-.bar i { display: block; height: 100%; border-radius: inherit; background: var(--gold-grad); box-shadow: inset 0 3px 0 rgba(255,255,255,.45); transition: width .5s var(--spring); }
-.l-hearts { font-weight: 900; color: var(--red-d); display: flex; align-items: center; gap: 4px; }
-.l-body { flex: 1; min-height: 0; overflow-y: auto; width: min(620px, 100%); margin: 0 auto; padding: 18px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 18px; }
-.l-title { font-size: clamp(1.3rem, 5.5vw, 1.7rem); }
+@keyframes slidedown { to { transform: translateY(40px); opacity: 0; } }
+.l-top { display: flex; align-items: center; gap: 10px; width: min(620px, calc(100% - 24px)); margin: max(12px, env(safe-area-inset-top, 0px)) auto 0; }
+.l-close { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--faint); flex: none; }
+.l-close svg { width: 22px; height: 22px; }
+.bar { flex: 1; height: 18px; border-radius: 999px; background: rgba(20,20,20,.08); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: inherit; background: var(--gold-grad); box-shadow: inset 0 4px 0 rgba(255,255,255,.4); transition: width .5s var(--spring); min-width: 18px; }
+.l-hearts { font-weight: 900; color: var(--red-d); display: flex; align-items: center; gap: 4px; min-width: 44px; justify-content: flex-end; }
+.l-hearts.bump { animation: bump .6s var(--spring); }
+.l-mode { text-align: center; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 900; color: var(--honey-d); margin-top: 6px; }
+.l-body { flex: 1; min-height: 0; overflow-y: auto; width: min(620px, 100%); margin: 0 auto; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 18px; }
+.l-body.in > * { animation: taskIn .38s var(--ease) both; }
+.l-body.in > *:nth-child(2) { animation-delay: .04s; } .l-body.in > *:nth-child(3) { animation-delay: .08s; } .l-body.in > *:nth-child(4) { animation-delay: .12s; }
+@keyframes taskIn { from { transform: translateX(36px); opacity: 0; } }
+.l-title { font-size: clamp(1.25rem, 5.5vw, 1.6rem); }
 .tag-new { align-self: flex-start; padding: 5px 12px; border-radius: 999px; background: var(--gold-grad); color: #17130b; font-size: .75rem; letter-spacing: .1em; font-weight: 900; }
 .say-row { display: flex; align-items: flex-end; gap: 10px; }
 .say-row .mini { width: 92px; flex: none; }
-.bubble { position: relative; flex: 1; padding: 14px 16px; border-radius: 20px; border: 2px solid var(--line); background: #fff; font-size: 1.25rem; font-weight: 800; }
+.bubble { position: relative; flex: 1; padding: 14px 16px; border-radius: 20px; border: 2px solid var(--line); background: #fff; font-size: 1.25rem; font-weight: 800; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .bubble::before { content: ""; position: absolute; left: -11px; bottom: 18px; border: 10px solid transparent; border-right-color: #fff; border-left: 0; filter: drop-shadow(-2px 0 0 var(--line)); }
-.speak { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--blue); color: #fff; box-shadow: 0 4px 0 var(--blue-d); margin-right: 8px; vertical-align: middle; flex: none; }
-.speak:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--blue-d); }
+.bubble .ea.word { width: 54px; height: 54px; }
+.speak { display: inline-grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: var(--black); color: #fff; box-shadow: 0 4px 0 #000; vertical-align: middle; flex: none; transition: transform .08s; }
+.speak:active { transform: translateY(3px); box-shadow: 0 1px 0 #000; }
 .speak svg { width: 24px; height: 24px; }
-.speak.big { width: 96px; height: 96px; border-radius: 28px; }
-.speak.big svg { width: 50px; height: 50px; }
+.speak.big { width: 104px; height: 104px; border-radius: 30px; }
+.speak.big svg { width: 54px; height: 54px; }
+.speak.slow { background: #fff; color: var(--ink); border: 2px solid var(--line); box-shadow: 0 4px 0 var(--line); width: 64px; height: 64px; border-radius: 20px; font-size: 2rem; }
+.speak.playing { animation: pulse .7s ease-in-out infinite alternate; }
+@keyframes pulse { to { transform: scale(1.06); } }
+.listen-row { display: flex; justify-content: center; gap: 14px; align-items: center; }
+.listen-row .mini { width: 92px; }
 
 .choices { display: grid; gap: 10px; }
 .choices.pics { grid-template-columns: 1fr 1fr; }
-.choice { min-height: 60px; padding: 12px 16px; border-radius: 18px; background: #fff; border: 2px solid var(--line); box-shadow: 0 4px 0 var(--line); font-weight: 800; font-size: 1.1rem; text-align: left; transition: transform .1s, border-color .15s, background .15s; animation: pop .45s var(--spring) both; }
-.choices .choice:nth-child(2) { animation-delay: .05s; } .choices .choice:nth-child(3) { animation-delay: .1s; } .choices .choice:nth-child(4) { animation-delay: .15s; }
-@keyframes pop { from { transform: scale(.7); opacity: 0; } }
+.choice { min-height: 60px; padding: 12px 16px; border-radius: 18px; background: #fff; border: 2px solid var(--line); box-shadow: 0 4px 0 var(--line); font-weight: 800; font-size: 1.1rem; text-align: left; transition: transform .1s, border-color .15s, background .15s; display: flex; align-items: center; gap: 12px; }
+.choice .k { flex: none; width: 30px; height: 30px; border-radius: 9px; border: 2px solid var(--line); display: grid; place-items: center; font-size: .8rem; color: var(--faint); }
 .choice:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
-.choice.sel { border-color: #141414; background: #f6f1e4; box-shadow: 0 4px 0 #d6c9a8; color: var(--ink); }
+.choice.sel { border-color: #141414; background: #f6f1e4; box-shadow: 0 4px 0 #d6c9a8; }
+.choice.sel .k { border-color: #141414; color: var(--ink); }
 .choice.ok { border-color: var(--green); background: var(--green-bg); box-shadow: 0 4px 0 #9fe4c3; color: var(--green-d); }
 .choice.bad { border-color: var(--red); background: var(--red-bg); box-shadow: 0 4px 0 #f6b0b7; color: var(--red-d); }
 .choice.gone { opacity: .25; pointer-events: none; transform: scale(.94); }
-.choice.pic { aspect-ratio: 1 / .9; display: grid; place-items: center; font-size: clamp(3rem, 15vw, 4.2rem); text-align: center; padding: 6px; }
-.choice.pic small { display: block; font-size: .9rem; color: var(--muted); }
-.match { grid-template-columns: 1fr 1fr; }
-.match .choice { text-align: center; font-size: 1rem; }
+.choice.pic { aspect-ratio: 1 / .92; display: grid; place-items: center; text-align: center; padding: 6px; font-size: 3.6rem; }
+.match .choice { justify-content: center; text-align: center; font-size: 1rem; }
 
 .intro-card { padding: 26px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.intro-card .pic { font-size: 5.5rem; line-height: 1.1; animation: pop .6s var(--spring); }
-.intro-card .en { font-family: var(--f-display); font-size: 2rem; font-weight: 700; color: var(--ink); }
+.intro-card .pic { width: min(200px, 52vw); font-size: 6rem; line-height: 1.1; animation: popIn .6s var(--spring); }
+.intro-card .pic .ea.big { width: 100%; }
+.intro-card .en { font-family: var(--f-display); font-size: 2.1rem; font-weight: 700; color: var(--ink); }
 .intro-card .ru { font-size: 1.2rem; color: var(--muted); }
+.intro-card .row { justify-content: center; margin-top: 8px; }
 
-.answer-line { min-height: 64px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; padding: 10px 0; border-top: 2px solid var(--line); border-bottom: 2px solid var(--line); }
+.answer-line { min-height: 64px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; padding: 10px 0; border-top: 2px solid var(--line); border-bottom: 2px solid var(--line); background: repeating-linear-gradient(transparent 0 58px, var(--line) 58px 60px); }
 .bank { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.tile { padding: 10px 14px; border-radius: 14px; background: #fff; border: 2px solid var(--line); box-shadow: 0 4px 0 var(--line); font-weight: 800; font-size: 1.05rem; animation: pop .35s var(--spring) both; }
+.tile { min-height: 46px; padding: 10px 14px; border-radius: 14px; background: #fff; border: 2px solid var(--line); box-shadow: 0 4px 0 var(--line); font-weight: 800; font-size: 1.05rem; animation: popIn .3s var(--spring) both; }
 .tile:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
-.tile.ghost { background: rgba(122,74,31,.08); color: transparent; box-shadow: none; border-color: transparent; pointer-events: none; }
+.tile.ghost { background: rgba(20,20,20,.06); color: transparent; box-shadow: none; border-color: transparent; pointer-events: none; animation: none; }
+
+.type-wrap { display: flex; flex-direction: column; gap: 12px; }
+.slots { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: 46px; }
+.slots .gap { width: 14px; }
+.slots .dash { width: 14px; display: grid; place-items: center; font-weight: 900; color: var(--muted); }
+.slots i { width: 32px; height: 42px; border-radius: 10px; background: #fff; border: 2px solid var(--line); display: grid; place-items: center; font-style: normal; font-family: var(--f-display); font-weight: 700; font-size: 1.15rem; text-transform: lowercase; transition: border-color .15s, transform .2s var(--spring); }
+.slots i.f { border-color: #141414; transform: translateY(-2px); }
+.slots.ok i { border-color: var(--green); color: var(--green-d); background: var(--green-bg); }
+.slots.bad i { border-color: var(--red); }
+.type-in { width: 100%; min-height: 60px; padding: 14px 18px; border-radius: 18px; border: 2px solid var(--line); background: #fff; font-size: 1.35rem; font-weight: 800; outline: none; box-shadow: 0 4px 0 var(--line); transition: border-color .15s; }
+.type-in:focus { border-color: #141414; }
+.type-in.ok { border-color: var(--green); background: var(--green-bg); color: var(--green-d); }
+.type-in.bad { border-color: var(--red); background: var(--red-bg); color: var(--red-d); }
+.type-tools { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ru-warn { color: var(--red-d); font-weight: 800; font-size: .9rem; }
 
 .l-foot { flex: none; padding: 14px max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); border-top: 2px solid var(--line); transition: background .25s; }
 .l-foot .in { width: min(620px, 100%); margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
@@ -201,82 +270,170 @@ h1, h2, h3 { margin: 0; line-height: 1.15; text-wrap: balance; font-family: var(
 .l-foot.bad { background: var(--red-bg); border-top-color: transparent; }
 .fb { display: flex; align-items: center; gap: 12px; animation: slideup .3s var(--ease); }
 .fb .ic { width: 52px; height: 52px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 1.7rem; flex: none; }
-.fb b { font-size: 1.3rem; display: block; }
-.l-foot.ok .fb { color: var(--green-d); } .l-foot.bad .fb { color: var(--red-d); } .fb b { font-family: var(--f-display); font-weight: 700; }
+.fb b { font-size: 1.25rem; display: block; font-family: var(--f-display); font-weight: 700; }
+.fb .txt { flex: 1; min-width: 0; }
+.fb .speak { width: 44px; height: 44px; }
+.l-foot.ok .fb { color: var(--green-d); } .l-foot.bad .fb { color: var(--red-d); }
+.l-foot.bad .fb .speak { background: var(--red-d); box-shadow: 0 4px 0 #8a352d; }
+.l-foot.ok .fb .speak { background: var(--green-d); box-shadow: 0 4px 0 #1f6646; }
+.foot-row { display: flex; gap: 10px; }
+.foot-row .btn { flex: 1; }
 .shake { animation: shake .4s; }
 @keyframes shake { 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
+.combo { position: fixed; z-index: 45; left: 50%; top: calc(80px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); padding: 10px 18px; border-radius: 999px; background: #141414; color: var(--gold-t); font-family: var(--f-display); font-weight: 700; display: flex; align-items: center; gap: 8px; animation: comboIn 1.6s var(--spring) forwards; pointer-events: none; white-space: nowrap; }
+@keyframes comboIn { 0% { opacity: 0; transform: translate(-50%, -12px) scale(.6); } 15%, 80% { opacity: 1; transform: translate(-50%, 0) scale(1); } 100% { opacity: 0; transform: translate(-50%, -10px) scale(.9); } }
 
 /* ---------- экраны и карточки ---------- */
 .card { padding: 16px; }
-.quest { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; align-items: center; padding: 14px; }
-.quest .qe { font-size: 2rem; text-align: center; }
-.qbar { height: 14px; border-radius: 999px; background: rgba(122,74,31,.12); overflow: hidden; margin-top: 6px; }
-.qbar i { display: block; height: 100%; border-radius: inherit; background: var(--gold-grad); }
-.quest.claimed { opacity: .6; }
+.head-card { display: grid; grid-template-columns: 86px 1fr; gap: 12px; align-items: center; padding: 14px; }
+.quest { display: grid; grid-template-columns: 48px 1fr auto; gap: 12px; align-items: center; padding: 14px; transition: opacity .3s; }
+.quest .qe { width: 48px; } .quest .qe .ea { width: 44px; height: 44px; }
+.qbar { height: 14px; border-radius: 999px; background: rgba(20,20,20,.08); overflow: hidden; margin-top: 6px; }
+.qbar i { display: block; height: 100%; border-radius: inherit; background: var(--gold-grad); transition: width .8s var(--ease); }
+.quest.claimed { opacity: .55; }
+.quest.ready { box-shadow: 0 0 0 2px var(--honey), 0 18px 40px -22px rgba(40,30,10,.35); }
+.empty { padding: 22px 18px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+.empty .pic { width: 120px; }
 .shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.item { padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.item { padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; position: relative; }
 .item .prev { width: 110px; }
-.item .price { font-weight: 900; color: #a8641c; }
+.item.on { box-shadow: 0 0 0 2.5px var(--honey), 0 18px 40px -22px rgba(40,30,10,.35); }
+.item .tagon { position: absolute; top: 10px; left: 10px; padding: 3px 8px; border-radius: 99px; background: var(--gold-grad); font-size: .66rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.item small { color: var(--muted); font-size: .76rem; font-weight: 700; }
 .plus { position: relative; overflow: hidden; padding: 22px; border-radius: 28px; color: #f6f4ef; background: radial-gradient(120% 90% at 0% 0%, #2b2b31, #0d0d10 70%); box-shadow: inset 0 0 0 1px rgba(214,177,94,.4), 0 24px 50px -24px rgba(0,0,0,.6); }
-.plus::after { content: ""; position: absolute; inset: 0; background: radial-gradient(60% 70% at 20% 0%, rgba(255,255,255,.45), transparent 60%); pointer-events: none; }
+.plus::after { content: ""; position: absolute; inset: 0; background: radial-gradient(60% 70% at 20% 0%, rgba(255,255,255,.25), transparent 60%); pointer-events: none; }
 .plus ul { margin: 10px 0 14px; padding-left: 20px; line-height: 1.7; }
-.chip { display: inline-flex; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.3); font-size: .78rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.chip { display: inline-flex; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.2); font-size: .74rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
 .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.stat { padding: 14px; display: flex; gap: 10px; align-items: center; }
-.stat .e { font-size: 1.8rem; } .stat b { font-size: 1.35rem; display: block; line-height: 1.1; font-variant-numeric: tabular-nums; } .stat small { color: var(--muted); font-size: .8rem; }
+.stat { padding: 14px; display: flex; gap: 10px; align-items: center; text-align: left; border-radius: 22px; }
+.stat .e { font-size: 1.8rem; } .stat b { font-size: 1.35rem; display: block; line-height: 1.1; font-variant-numeric: tabular-nums; } .stat small { color: var(--muted); font-size: .78rem; }
 .ach { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.ach div { padding: 12px 6px; text-align: center; border-radius: 20px; font-size: .74rem; color: var(--muted); }
-.ach div span { display: block; font-size: 2rem; }
-.ach div.no span { filter: grayscale(1); opacity: .35; }
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field input { padding: 13px 14px; border-radius: 14px; border: 2px solid var(--line); background: #fff; font-weight: 700; }
+.ach > div { padding: 12px 6px; text-align: center; border-radius: 20px; font-size: .74rem; color: var(--ink); font-weight: 800; line-height: 1.2; }
+.ach > div span { display: block; font-size: 2.2rem; margin-bottom: 4px; }
+.ach > div small { display: block; color: var(--muted); font-weight: 700; font-size: .66rem; margin-top: 3px; }
+.ach > div.no { color: var(--faint); }
+.ach > div.no span { filter: grayscale(1); opacity: .35; }
+.field { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.field input { min-height: 50px; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--line); background: #fff; font-weight: 700; outline: none; }
+.field input:focus { border-color: #141414; }
 .field small { color: var(--muted); font-weight: 600; }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; font-weight: 800; width: 100%; text-align: left; }
+.toggle .sw { flex: none; width: 52px; height: 30px; border-radius: 99px; background: var(--lock); position: relative; transition: background .2s; }
+.toggle .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.2); transition: transform .25s var(--spring); }
+.toggle[aria-checked="true"] .sw { background: #141414; }
+.toggle[aria-checked="true"] .sw::after { transform: translateX(22px); background: var(--gold-t); }
+.ai-status { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: .9rem; }
+.ai-status i { width: 10px; height: 10px; border-radius: 50%; background: var(--faint); flex: none; }
+.ai-status.on i { background: var(--green); box-shadow: 0 0 0 4px var(--green-bg); }
+.ai-status.err i { background: var(--red); box-shadow: 0 0 0 4px var(--red-bg); }
+.dict { display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; }
+.dict .w { display: grid; grid-template-columns: 44px 1fr 44px; gap: 10px; align-items: center; padding: 6px 8px; border-radius: 16px; background: rgba(255,255,255,.7); border: 1.5px solid var(--line); }
+.dict .w .ea { width: 40px; height: 40px; }
+.dict .w b { display: block; font-size: 1.05rem; } .dict .w small { color: var(--muted); }
+.dict .w .speak { width: 40px; height: 40px; border-radius: 12px; }
+.dict .w .speak svg { width: 20px; height: 20px; }
+.dict .w.no { opacity: .45; }
+.dict h3 { margin-top: 10px; }
 
 /* ---------- чат ---------- */
 .chat { display: flex; flex-direction: column; gap: 10px; }
-.msg { max-width: 86%; padding: 12px 14px; border-radius: 20px; font-weight: 700; white-space: pre-wrap; overflow-wrap: anywhere; animation: pop .35s var(--spring) both; }
+.msg { max-width: 86%; padding: 12px 14px; border-radius: 20px; font-weight: 700; white-space: pre-wrap; overflow-wrap: anywhere; animation: popIn .3s var(--spring) both; user-select: text; -webkit-user-select: text; }
 .msg.me { align-self: flex-end; background: #141414; color: #f6f4ef; border-bottom-right-radius: 6px; }
-.msg.bot { align-self: flex-start; background: #fff; border: 2px solid var(--line); border-bottom-left-radius: 6px; }
-.msg.bot .s { margin-left: 6px; color: var(--blue-d); font-size: .85rem; }
-.typing span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); margin: 0 2px; animation: dot 1s infinite; }
-.typing span:nth-child(2) { animation-delay: .15s; } .typing span:nth-child(3) { animation-delay: .3s; }
+.msg-bot { align-self: flex-start; display: flex; align-items: flex-end; gap: 8px; max-width: 92%; }
+.msg-bot .av { width: 36px; flex: none; }
+.msg-bot .msg { max-width: none; background: #fff; border: 2px solid var(--line); border-bottom-left-radius: 6px; }
+.msg-bot .say { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: #fff; border: 2px solid var(--line); color: var(--ink); box-shadow: 0 3px 0 var(--line); }
+.msg-bot .say svg { width: 20px; height: 20px; }
+.msg-bot .say:active { transform: translateY(2px); box-shadow: none; }
+.msg-bot.err .msg { background: var(--red-bg); border-color: rgba(224,103,92,.4); color: var(--red-d); }
+.msg-bot.err .btn { margin-top: 8px; }
+.typing { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .88rem; }
+.typing .dots { display: inline-flex; gap: 4px; padding: 12px 14px; background: #fff; border: 2px solid var(--line); border-radius: 18px; border-bottom-left-radius: 6px; }
+.typing .dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); animation: dot 1s infinite; }
+.typing .dots span:nth-child(2) { animation-delay: .15s; } .typing .dots span:nth-child(3) { animation-delay: .3s; }
 @keyframes dot { 50% { transform: translateY(-5px); opacity: .5; } }
-.composer { position: fixed; z-index: 19; left: 50%; transform: translateX(-50%); width: min(540px, calc(100% - 20px)); bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 78px); display: flex; gap: 8px; padding: 8px; border-radius: 24px; }
-.composer input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 0 10px; font-weight: 700; outline: none; }
-.quick { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-.quick button { flex: none; padding: 8px 14px; border-radius: 999px; background: #fff; border: 2px solid var(--line); font-weight: 800; font-size: .9rem; }
+.composer { position: fixed; z-index: 19; left: 50%; transform: translateX(-50%); width: min(540px, calc(100% - 20px)); bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + var(--tabs-h) + 6px); display: flex; gap: 8px; padding: 7px; border-radius: 24px; align-items: center; }
+.composer input { flex: 1; min-width: 0; min-height: 44px; border: 0; background: transparent; padding: 0 10px; font-weight: 700; outline: none; }
+.composer .cnt { font-size: .72rem; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+.composer .cnt.over { color: var(--red-d); }
+.composer .btn { width: 48px; padding: 0; min-height: 44px; }
+.composer .btn svg { width: 22px; height: 22px; }
+.quick { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: none; }
+.quick::-webkit-scrollbar { display: none; }
+.quick button { flex: none; min-height: 40px; padding: 8px 14px; border-radius: 999px; background: #fff; border: 2px solid var(--line); font-weight: 800; font-size: .88rem; }
+.quick button:active { transform: scale(.95); }
+.quick button:disabled { opacity: .45; }
 
 /* ---------- окна ---------- */
-.modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: rgba(90,50,20,.25); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: fade .3s; }
+.modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: rgba(40,30,10,.28); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: fade .25s; }
+.modal.out { animation: fade .2s reverse forwards; }
 @keyframes fade { from { opacity: 0; } }
-.modal .panel { width: min(400px, 100%); padding: 24px 20px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; animation: pop .5s var(--spring); max-height: 92vh; overflow-y: auto; }
-.modal .panel .hero { width: 170px; }
-.big-num { font-size: 2.6rem; font-weight: 900; line-height: 1; }
-.results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
-.results div { padding: 10px 4px; border-radius: 16px; border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 12%, white); font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--c); font-weight: 900; }
-.results b { display: block; font-size: 1.3rem; color: var(--ink); letter-spacing: 0; text-transform: none; }
-.bone-burst { font-size: 4rem; animation: boneIn 1s var(--spring); }
-@keyframes boneIn { 0% { transform: scale(0) rotate(-180deg); } 60% { transform: scale(1.3) rotate(10deg); } }
-canvas#fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 80; }
-.toast { position: fixed; z-index: 90; left: 50%; top: calc(70px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); padding: 12px 18px; border-radius: 18px; font-weight: 900; animation: toast 3s var(--ease) both; max-width: calc(100% - 32px); text-align: center; }
+.modal .panel { width: min(400px, 100%); padding: 24px 20px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; animation: popIn .45s var(--spring); max-height: 88vh; overflow-y: auto; background: rgba(255,255,255,.94); }
+.modal .panel .hero { width: 150px; }
+.toast { position: fixed; z-index: 90; left: 50%; top: calc(70px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); padding: 12px 18px; border-radius: 18px; font-weight: 900; animation: toast 3s var(--ease) both; max-width: calc(100% - 32px); text-align: center; pointer-events: none; }
 @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -16px); } 10%, 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
+canvas#fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 80; }
 
-/* ---------- первое знакомство ---------- */
-.onb { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px max(20px, env(safe-area-inset-right, 0px)) 24px max(20px, env(safe-area-inset-left, 0px)); text-align: center; background: radial-gradient(120% 70% at 50% -10%, #ffffff 0%, var(--bg) 50%, var(--bg2) 100%); }
-.onb .hero { width: min(230px, 56vw); }
-.onb h1 { font-size: clamp(1.7rem, 7vw, 2.3rem); }
-.goals { display: grid; gap: 10px; width: min(360px, 100%); }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+/* ---------- экраны праздника ---------- */
+.cele { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; background: radial-gradient(120% 70% at 50% -10%, #ffffff 0%, var(--bg) 50%, var(--bg2) 100%); }
+.cele .c-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: max(24px, env(safe-area-inset-top, 0px)) 20px 16px; text-align: center; width: min(480px, 100%); margin: 0 auto; }
+.cele .c-body > * { animation: celeIn .55s var(--spring) both; }
+.cele .c-body > *:nth-child(2) { animation-delay: .08s; } .cele .c-body > *:nth-child(3) { animation-delay: .16s; } .cele .c-body > *:nth-child(4) { animation-delay: .24s; } .cele .c-body > *:nth-child(5) { animation-delay: .32s; } .cele .c-body > *:nth-child(n+6) { animation-delay: .4s; }
+@keyframes celeIn { from { opacity: 0; transform: translateY(24px) scale(.94); } }
+.cele .c-foot { flex: none; padding: 14px 20px max(18px, env(safe-area-inset-bottom, 0px)); width: min(480px, 100%); margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.cele h1 { font-size: clamp(1.6rem, 7vw, 2.1rem); }
+.cele .hero { width: min(190px, 48vw); }
+.cele .trophy { width: min(170px, 44vw); animation: boneIn 1s var(--spring) both; }
+.results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+.results div { padding: 0 0 10px; border-radius: 18px; border: 2px solid var(--c); background: #fff; font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; color: #fff; font-weight: 900; overflow: hidden; }
+.results div span { display: block; background: var(--c); padding: 6px 2px; }
+.results b { display: block; font-size: 1.3rem; color: var(--ink); letter-spacing: 0; text-transform: none; padding-top: 8px; font-variant-numeric: tabular-nums; }
+.bone-big { position: relative; width: 150px; animation: boneIn 1s var(--spring) both; }
+.bone-big b { position: absolute; left: 0; right: 0; bottom: -10px; font-family: var(--f-display); font-size: 3.2rem; color: var(--ink); text-shadow: 0 3px 0 #fff, 0 0 12px #fff; }
+@keyframes boneIn { 0% { transform: scale(0) rotate(-120deg); } 60% { transform: scale(1.2) rotate(8deg); } }
+.week { display: flex; gap: 6px; justify-content: center; padding: 12px; }
+.week div { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .72rem; font-weight: 800; color: var(--muted); }
+.week i { width: 34px; height: 34px; border-radius: 50%; background: rgba(20,20,20,.07); display: grid; place-items: center; font-style: normal; }
+.week i.on { background: var(--gold-grad); box-shadow: 0 3px 0 var(--honey-d); }
+.week i.on svg { width: 18px; height: 18px; }
+.week .today i { box-shadow: 0 0 0 2px #141414; }
+.week .today i.on { box-shadow: 0 3px 0 var(--honey-d), 0 0 0 2px #141414; }
+.word-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.word-chips span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px 6px 8px; border-radius: 99px; background: #fff; border: 2px solid var(--line); font-weight: 800; font-size: .9rem; }
+.goal-note { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 18px; background: #141414; color: var(--gold-t); font-weight: 800; }
+
+/* ---------- знакомство ---------- */
+.onb { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; background: radial-gradient(120% 70% at 50% -10%, #ffffff 0%, var(--bg) 50%, var(--bg2) 100%); }
+.onb-top { display: flex; align-items: center; gap: 12px; width: min(460px, calc(100% - 24px)); margin: max(12px, env(safe-area-inset-top, 0px)) auto 0; min-height: 44px; }
+.onb-top .bar { height: 14px; }
+.onb-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 16px max(20px, env(safe-area-inset-right, 0px)) 16px max(20px, env(safe-area-inset-left, 0px)); text-align: center; width: min(460px, 100%); margin: 0 auto; }
+.onb-body.in > * { animation: taskIn .42s var(--ease) both; }
+.onb-body.in > *:nth-child(2) { animation-delay: .05s; } .onb-body.in > *:nth-child(3) { animation-delay: .1s; } .onb-body.in > *:nth-child(4) { animation-delay: .15s; }
+.onb-foot { flex: none; padding: 14px 20px max(18px, env(safe-area-inset-bottom, 0px)); width: min(460px, 100%); margin: 0 auto; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.onb .hero { width: min(220px, 54vw); }
+.onb h1 { font-size: clamp(1.6rem, 7vw, 2.2rem); }
+.onb .speech { position: relative; padding: 14px 18px; border-radius: 22px; background: #fff; border: 2px solid var(--line); font-weight: 800; font-size: 1.05rem; max-width: 340px; }
+.onb .speech::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -10px; border: 10px solid transparent; border-top-color: #fff; }
+.goals { display: grid; gap: 10px; width: min(380px, 100%); }
+.goals .choice { justify-content: space-between; }
+.goals .choice .ea { width: 40px; height: 40px; }
+.how { display: grid; gap: 10px; width: min(380px, 100%); text-align: left; }
+.how div { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; padding: 12px; border-radius: 20px; }
+.how .ea { width: 48px; height: 48px; }
+.how small { display: block; color: var(--muted); font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } main.scroll { scroll-behavior: auto; } }
+@media (max-width: 370px) { .say-row .mini, .listen-row .mini { width: 72px; } .hello { grid-template-columns: 70px 1fr auto; } .pill { padding: 4px 7px; } }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3e3b0"/><stop offset=".45" stop-color="#d6b15e"/><stop offset="1" stop-color="#9c7731"/></linearGradient></defs></svg>
 <div class="blobs"><i></i><i></i><i></i></div>
 <div id="app">
   <header class="top glass">
-    <span class="pill bone" id="pBone" title="Косточки — дни подряд"><span class="e"><img class="ea" src="../../shared/art/bone.webp" alt=""></span><span>0</span></span>
-    <span class="pill cookie" id="pCookie" title="Печеньки"><span class="e"><img class="ea" src="../../shared/art/cookie.webp" alt=""></span><span>0</span></span>
-    <span class="pill cat" id="pCat" title="Котики-хранители"><span class="e"><img class="ea" src="../../shared/art/cat.webp" alt=""></span><span>0</span></span>
-    <span class="pill heart" id="pHeart" title="Сердечки"><span class="e"><img class="ea" src="../../shared/art/heart.webp" alt=""></span><span>5</span></span>
+    <button class="pill bone" id="pBone" aria-label="Косточки — дни подряд"><span class="e"><img class="ea" src="../../shared/art/bone.webp" alt=""></span><span>0</span></button>
+    <button class="pill cookie" id="pCookie" aria-label="Печеньки"><span class="e"><img class="ea" src="../../shared/art/cookie.webp" alt=""></span><span>0</span></button>
+    <button class="pill cat" id="pCat" aria-label="Котики-хранители"><span class="e"><img class="ea" src="../../shared/art/cat.webp" alt=""></span><span>0</span></button>
+    <button class="pill heart" id="pHeart" aria-label="Сердечки"><span class="e"><img class="ea" src="../../shared/art/heart.webp" alt=""></span><span>5</span></button>
   </header>
   <main class="scroll" id="view"></main>
   <nav class="tabs glass" aria-label="Разделы">
@@ -293,37 +450,49 @@ canvas#fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events
 "use strict";
 const C = window.BUDDY_COURSE;
 const ART = "../../shared/art/";
+const XMAP = window.EMOJI_ART_X || {}, SMAP = window.EMOJI_ART || {};
 const A = (n, cls = "") => `<img class="ea ${cls}" src="${ART}${n}.webp" alt="" draggable="false">`;
-const E = (e, cls = "") => (window.EMOJI_ART && EMOJI_ART[e]) ? `<img class="ea ${cls}" src="${ART}e/${EMOJI_ART[e]}.webp" alt="" draggable="false">` : e;
+/* эмодзи → 3D-иллюстрация: сначала своя папка art/e, потом общая shared/art/e, иначе сам символ */
+const E = (e, cls = "") => XMAP[e] ? `<img class="ea ${cls}" src="art/e/${XMAP[e]}.webp" alt="" draggable="false">`
+  : SMAP[e] ? `<img class="ea ${cls}" src="${ART}e/${SMAP[e]}.webp" alt="" draggable="false">` : `<span class="emo ${cls}">${e}</span>`;
 const $ = (s, r = document) => r.querySelector(s);
 const view = $("#view");
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pick = (a, n) => shuffle(a).slice(0, n);
+const rnd = (a) => a[(Math.random() * a.length) | 0];
 const plural = (n, one, few, many) => { const a = Math.abs(n) % 100, b = a % 10; if (a > 10 && a < 20) return many; if (b > 1 && b < 5) return few; if (b === 1) return one; return many; };
 const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const daysDiff = (a, b) => Math.round((new Date(b + "T12:00") - new Date(a + "T12:00")) / 864e5);
+const SPK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 8.5a5 5 0 0 1 0 7M19.5 6a8.5 8.5 0 0 1 0 12"/></svg>`;
+const CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+const CROSS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`;
+const ARROW = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>`;
+const SEND = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.5-7.6c.8-.4.8-1.5 0-1.8L3.4 3.4c-.7-.3-1.4.3-1.2 1l1.9 6.1 8.4 1.5-8.4 1.5-1.9 6.1c-.2.7.5 1.3 1.2 1z"/></svg>`;
 
 /* ================= состояние ================= */
 const KEY = "buddy-english-v1";
-const MAX_HEARTS = 5, HEART_MIN = 20, CAT_PRICE = 60, MAX_CATS = 3;
-const CAT_NAMES = ["Мурзик", "Тоффи", "Пушок", "Ириска", "Персик"];
+const MAX_HEARTS = 5, HEART_MIN = 20, CAT_PRICE = 60, MAX_CATS = 3, REFILL_PRICE = 30;
+const CAT_NAMES = ["Мурзик", "Тоффи", "Пушок", "Ириска", "Персик", "Барсик", "Соня"];
 function fresh() {
-  return { v: 1, name: "", goal: 2, xp: 0, cookies: 30, hearts: MAX_HEARTS, heartsAt: Date.now(), streak: 0, bestStreak: 0, lastDay: "", cats: [],
-    outfit: null, owned: [], progress: {}, perfect: 0, lessons: 0, learned: [], chat: [], apiKey: "", proxyUrl: "", sound: true,
-    quests: { day: "", c: {}, claimed: {} }, ach: {} };
+  return { v: 2, onboarded: false, name: "", goal: 2, xp: 0, cookies: 30, hearts: MAX_HEARTS, heartsAt: Date.now(), streak: 0, bestStreak: 0, lastDay: "", days: [], cats: [],
+    outfit: null, owned: [], progress: {}, perfect: 0, lessons: 0, learned: [], chat: [], apiKey: "", proxyUrl: "", sound: true, vibe: true,
+    quests: { day: "", c: {}, claimed: {} }, ach: {}, mistakes: {}, fixed: 0, typed: 0, daily: { day: "", n: 0 } };
 }
 let S;
 try { S = Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY) || "null") || {}); } catch (e) { S = fresh(); }
+/* миграция старых сохранений */
+if (!S.onboarded && (S.lessons || S.name)) S.onboarded = true;
+if (!S.mistakes || typeof S.mistakes !== "object") S.mistakes = {};
+if (!Array.isArray(S.days)) S.days = S.lastDay ? [S.lastDay] : [];
+S.chat = (S.chat || []).filter((m) => m && m.t && !m.err);
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* хранилище недоступно */ } }
 
-/* сердечки восстанавливаются со временем */
 function refillHearts() {
   if (S.hearts >= MAX_HEARTS) { S.heartsAt = Date.now(); return; }
   const n = Math.floor((Date.now() - S.heartsAt) / (HEART_MIN * 60000));
-  if (n > 0) { S.hearts = Math.min(MAX_HEARTS, S.hearts + n); S.heartsAt += n * HEART_MIN * 60000; if (S.hearts >= MAX_HEARTS) S.heartsAt = Date.now(); }
+  if (n > 0) { S.hearts = Math.min(MAX_HEARTS, S.hearts + n); S.heartsAt += n * HEART_MIN * 60000; if (S.hearts >= MAX_HEARTS) S.heartsAt = Date.now(); save(); }
 }
-/* косточки (серия) и котики-хранители */
 function checkStreak() {
   const today = dayKey();
   if (!S.lastDay || S.lastDay === today) return null;
@@ -332,7 +501,7 @@ function checkStreak() {
   const missed = gap - 1;
   if (S.streak > 0 && S.cats.length >= missed) {
     const used = S.cats.splice(0, missed);
-    S.lastDay = dayKey(new Date(Date.now() - 864e5)); // будто занимался вчера
+    S.lastDay = dayKey(new Date(Date.now() - 864e5));
     save();
     return { saved: true, used };
   }
@@ -345,40 +514,64 @@ function questsToday() {
   return S.quests;
 }
 function bumpQuest(k, n = 1) { const q = questsToday(); q.c[k] = (q.c[k] || 0) + n; save(); }
+function dailyN() { if (S.daily.day !== dayKey()) S.daily = { day: dayKey(), n: 0 }; return S.daily.n; }
+const aiReady = () => !!(S.apiKey || S.proxyUrl);
 
-/* ================= звук и речь ================= */
+/* ================= звук, вибрация, речь ================= */
 let ac = null;
-function tone(f, t, d, type = "sine", v = .16) {
+function tone(f, t, d, type = "sine", v = .16, slide = 0) {
   if (!S.sound) return;
   try {
     ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume();
-    const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f;
+    const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.setValueAtTime(f, ac.currentTime + t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(f * slide, ac.currentTime + t + d);
     g.gain.setValueAtTime(.0001, ac.currentTime + t); g.gain.exponentialRampToValueAtTime(v, ac.currentTime + t + .015); g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + t + d);
     o.connect(g).connect(ac.destination); o.start(ac.currentTime + t); o.stop(ac.currentTime + t + d + .05);
   } catch (e) { /* без звука */ }
 }
 const sfx = {
-  tap: () => tone(700, 0, .06, "triangle", .08),
-  ok: () => { tone(784, 0, .12, "triangle"); tone(1175, .09, .22, "triangle"); },
-  bad: () => { tone(220, 0, .18, "square", .06); tone(180, .1, .22, "square", .05); },
-  win: () => [523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, i * .09, .3, "triangle", .14)),
-  coin: () => { tone(1320, 0, .07, "square", .05); tone(1760, .06, .14, "square", .05); },
-  woof: () => { tone(330, 0, .09, "sawtooth", .07); tone(260, .05, .12, "sawtooth", .06); }
+  tap: () => tone(700, 0, .06, "triangle", .07),
+  key: () => tone(1200, 0, .03, "triangle", .03),
+  ok: () => { tone(784, 0, .12, "triangle"); tone(1175, .09, .24, "triangle"); },
+  bad: () => { tone(260, 0, .16, "square", .05, .8); tone(190, .1, .24, "square", .045, .85); },
+  win: () => [523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, i * .09, .3, "triangle", .13)),
+  coin: () => { tone(1320, 0, .07, "square", .045); tone(1760, .06, .14, "square", .045); },
+  woof: () => { tone(330, 0, .09, "sawtooth", .06, .7); tone(260, .07, .12, "sawtooth", .05, .7); },
+  combo: () => [880, 1108, 1318].forEach((f, i) => tone(f, i * .06, .14, "triangle", .1)),
+  unlock: () => { tone(392, 0, .14, "triangle", .12); tone(587, .12, .14, "triangle", .12); tone(784, .24, .3, "triangle", .14); },
+  whoosh: () => tone(500, 0, .18, "sine", .05, 2.2)
 };
-function speak(text) {
-  const clean = String(text).replace(/\([^)]*\)/g, "").replace(/[А-Яа-яЁё]+/g, "").trim();
+function tgApp() { try { const t = window.Telegram && Telegram.WebApp; return t && t.initData !== undefined ? t : null; } catch (e) { return null; } }
+function vibe(kind = "tap") {
+  if (!S.vibe) return;
+  try {
+    const tg = tgApp(), h = tg && tg.HapticFeedback;
+    if (h && tg.platform && tg.platform !== "unknown") {
+      if (kind === "ok") h.notificationOccurred("success"); else if (kind === "bad") h.notificationOccurred("error"); else if (kind === "win") h.notificationOccurred("success"); else h.impactOccurred("light");
+      return;
+    }
+    const p = { tap: 8, ok: 15, bad: [30, 40, 30], win: [20, 50, 20, 50, 60] }[kind] || 10;
+    navigator.vibrate && navigator.vibrate(p);
+  } catch (e) { /* нет вибрации */ }
+}
+const canSpeak = () => !!((window.KaplyaNative && KaplyaNative.speak) || "speechSynthesis" in window);
+let voices = [];
+function loadVoices() { try { voices = speechSynthesis.getVoices() || []; } catch (e) { voices = []; } }
+function speak(text, slow, btn) {
+  const clean = String(text).replace(/\([^)]*\)/g, "").replace(/[А-Яа-яЁё«»]+/g, "").replace(/[*_#`]/g, "").replace(/\s+/g, " ").trim();
   if (!clean) return;
   try {
     if (window.KaplyaNative && KaplyaNative.speak) { KaplyaNative.speak(clean); return; }
     if (!("speechSynthesis" in window)) return;
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(clean); u.lang = "en-GB"; u.rate = .85; u.pitch = 1.15;
-    const v = speechSynthesis.getVoices().find((x) => /^en[-_]GB/i.test(x.lang)) || speechSynthesis.getVoices().find((x) => /^en/i.test(x.lang));
+    const u = new SpeechSynthesisUtterance(clean); u.lang = "en-GB"; u.rate = slow ? .55 : .85; u.pitch = 1.1;
+    if (!voices.length) loadVoices();
+    const v = voices.find((x) => /^en[-_]GB/i.test(x.lang)) || voices.find((x) => /^en/i.test(x.lang));
     if (v) u.voice = v;
+    if (btn) { btn.classList.add("playing"); u.onend = u.onerror = () => btn.classList.remove("playing"); setTimeout(() => btn.classList.remove("playing"), 4000); }
     speechSynthesis.speak(u);
   } catch (e) { /* без озвучки */ }
 }
-const SPK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 8.5a5 5 0 0 1 0 7M19.5 6a8.5 8.5 0 0 1 0 12"/></svg>`;
 
 /* ================= эффекты ================= */
 const fx = $("#fx"), fxc = fx.getContext("2d"); let parts = [], fxOn = false;
@@ -386,24 +579,53 @@ function fxSize() { const d = Math.min(2, devicePixelRatio || 1); fx.width = inn
 fxSize(); addEventListener("resize", fxSize);
 function confetti(n = 120, x = innerWidth / 2, y = innerHeight * .35) {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const cols = ["#ffb547", "#ff8a3d", "#3ccf91", "#4fb3ff", "#ff5d7a", "#b27cff"];
+  const cols = ["#f3e3b0", "#d6b15e", "#9c7731", "#141414", "#ffffff", "#e6c97f", "#3fae7c"];
   for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = 4 + Math.random() * 8; parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 6, r: 4 + Math.random() * 5, c: cols[i % cols.length], rot: Math.random() * 6, vr: (Math.random() - .5) * .4, life: 1 }); }
   if (!fxOn) { fxOn = true; requestAnimationFrame(fxTick); }
 }
 function fxTick() {
   fxc.clearRect(0, 0, innerWidth, innerHeight);
   parts = parts.filter((p) => p.life > 0 && p.y < innerHeight + 40);
+  if (document.hidden) parts = [];
   for (const p of parts) { p.vy += .25; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= .008; fxc.globalAlpha = Math.min(1, p.life * 2); fxc.fillStyle = p.c; fxc.save(); fxc.translate(p.x, p.y); fxc.rotate(p.rot); fxc.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); fxc.restore(); }
   fxc.globalAlpha = 1;
   if (parts.length) requestAnimationFrame(fxTick); else { fxOn = false; fxc.clearRect(0, 0, innerWidth, innerHeight); }
 }
-function toast(t) { const d = document.createElement("div"); d.className = "toast glass"; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 3100); }
-function bump(id) { const el = $(id); el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
-function modal(html, onMount) {
+function toast(t) { document.querySelectorAll(".toast").forEach((x) => x.remove()); const d = document.createElement("div"); d.className = "toast glass"; d.innerHTML = t; document.body.appendChild(d); setTimeout(() => d.remove(), 3100); }
+function bump(sel) { const el = $(sel); if (!el) return; el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
+function countUp(el, to, ms = 900, suffix = "") {
+  if (!el) return; const t0 = performance.now();
+  const step = (t) => { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(to * e) + suffix; if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+/* ================= «Назад» (Android и Telegram) ================= */
+const backStack = [];
+let histArmed = false;
+function needBack() { return backStack.length > 0 || current_tab !== "learn"; }
+/* одна «ловушка» в истории: history.back() не вызываем, чтобы не было гонок */
+function syncBack() {
+  const need = needBack();
+  try { if (need && !histArmed) { history.pushState({ buddy: 1 }, ""); histArmed = true; } } catch (e) { /* без истории */ }
+  try { const tg = tgApp(); if (tg && tg.BackButton) need ? tg.BackButton.show() : tg.BackButton.hide(); } catch (e) { /* нет */ }
+}
+function doBack() {
+  if (backStack.length) backStack[backStack.length - 1]();
+  else if (current_tab !== "learn") go("learn");
+  else toast("Нажми «Назад» ещё раз, чтобы выйти");
+  syncBack();
+}
+function onBack(fn) { backStack.push(fn); syncBack(); return () => { const i = backStack.lastIndexOf(fn); if (i >= 0) backStack.splice(i, 1); syncBack(); }; }
+addEventListener("popstate", () => { histArmed = false; doBack(); });
+
+function modal(html, onMount, opt = {}) {
   const m = document.createElement("div"); m.className = "modal";
-  m.innerHTML = `<div class="panel glass" role="dialog" aria-modal="true">${html}</div>`;
+  m.innerHTML = `<div class="panel" role="dialog" aria-modal="true">${html}</div>`;
   document.body.appendChild(m);
-  const close = () => m.remove();
+  let off = null, closed = false;
+  const close = () => { if (closed) return; closed = true; off && off(); m.classList.add("out"); setTimeout(() => m.remove(), 200); };
+  off = onBack(() => { opt.onBack ? opt.onBack(close) : close(); });
+  if (opt.dismiss !== false) m.addEventListener("click", (e) => { if (e.target === m) opt.onBack ? opt.onBack(close) : close(); });
   onMount && onMount(m, close);
   return close;
 }
@@ -416,184 +638,338 @@ function paintTop() {
   $("#pCookie span:last-child").textContent = S.cookies;
   $("#pCat span:last-child").textContent = S.cats.length;
   $("#pHeart span:last-child").textContent = S.hearts;
+  const q = questsToday(), ready = QUESTS.filter((x) => questVisible(x) && !q.claimed[x.k] && (q.c[x.k] || 0) >= x.n).length;
+  const qb = $('nav.tabs [data-tab="quests"]'); let dot = qb.querySelector(".dot");
+  if (ready && !dot) { dot = document.createElement("span"); dot.className = "dot"; qb.appendChild(dot); }
+  if (dot) { if (ready) dot.textContent = ready; else dot.remove(); }
 }
 
+/* ================= ошибки ================= */
+function mistakeKey(T, en) { return (T.p ? "p" : "w") + "|" + T.u + "|" + en; }
+function addMistake(T, en) {
+  if (!T.u) return;
+  en = en || (T.p ? T.p[0] : T.w[0]);
+  const k = mistakeKey(T, en);
+  const m = S.mistakes[k] || { n: 0 }; m.n = Math.min(3, m.n + 1); m.t = Date.now(); S.mistakes[k] = m;
+  const keys = Object.keys(S.mistakes); if (keys.length > 60) { keys.sort((a, b) => S.mistakes[a].t - S.mistakes[b].t).slice(0, keys.length - 60).forEach((x) => delete S.mistakes[x]); }
+}
+function resolveMistake(T) {
+  const k = mistakeKey(T, T.p ? T.p[0] : T.w[0]); const m = S.mistakes[k]; if (!m) return;
+  m.n--; if (m.n <= 0) { delete S.mistakes[k]; S.fixed++; }
+}
+function mistakeItems() {
+  return Object.entries(S.mistakes).map(([k, m]) => {
+    const [kind, uid, en] = [k.slice(0, 1), k.split("|")[1], k.split("|").slice(2).join("|")];
+    const u = C.find((x) => x.id === uid); if (!u) return null;
+    const item = kind === "w" ? u.words.find((w) => w[0] === en) : u.phrases.find((p) => p[0] === en);
+    return item ? { kind, u, item, n: m.n, t: m.t } : null;
+  }).filter(Boolean);
+}
+const mistakeCount = () => mistakeItems().length;
+
 /* ================= путь уроков ================= */
-const LESSONS = [{ n: "Новые слова", ic: "⭐" }, { n: "Ещё слова", ic: "📚" }, { n: "Фразы", ic: "💬" }, { n: "Всё вместе", ic: "🎧" }, { n: "Проверка", ic: "🏆" }];
+const LESSONS = [
+  { n: "Новые слова", d: "Знакомимся с первыми 4 словами", ic: "⭐" },
+  { n: "Ещё слова", d: "Ещё 4 новых слова", ic: "📚" },
+  { n: "Фразы", d: "Собираем первые предложения", ic: "💬" },
+  { n: "Всё вместе", d: "Слова, фразы, слушаем и пишем", ic: "🎧" },
+  { n: "Проверка", d: "Покажи, что всё запомнил", ic: "🏆" }
+];
 const unitDone = (u) => (S.progress[u.id] || 0) >= LESSONS.length;
 const unitOpen = (i) => i === 0 || unitDone(C[i - 1]);
-function current() { for (let i = 0; i < C.length; i++) if (unitOpen(i) && !unitDone(C[i])) return [i, S.progress[C[i].id] || 0]; return [C.length - 1, LESSONS.length]; }
-const OFFS = [0, 56, 76, 46, -10];
+function current() { for (let i = 0; i < C.length; i++) if (unitOpen(i) && !unitDone(C[i])) return [i, S.progress[C[i].id] || 0]; return [-1, -1]; }
+const OFFS = [0, 50, 76, 50, 0];
+let scrollCur = true, curObs = null;
 
-function renderLearn() {
+function renderLearn(anim) {
   const [cu, cl] = current();
-  let h = `<div class="inner">`;
-  h += `<div class="glass card row" style="flex-wrap:nowrap"><div style="width:84px;flex:none">${buddyArt({ mood: S.lastDay === dayKey() ? "cheer" : "happy", outfit: S.outfit })}</div>
-    <div><div class="eyebrow">${S.lastDay === dayKey() ? "Сегодня ты молодец" : "Привет" + (S.name ? ", " + esc(S.name) : "") + "!"}</div>
-    <div style="font-weight:800">${S.lastDay === dayKey() ? `Серия: ${S.streak} ${plural(S.streak, "косточка", "косточки", "косточек")} ${A("bone")} Возвращайся завтра!` : S.streak ? `Пройди урок, чтобы получить ${S.streak + 1}-ю косточку ${A("bone")}` : `Пройди первый урок и получи косточку ${A("bone")}`}</div></div></div>`;
+  const today = S.lastDay === dayKey(), dn = dailyN(), goal = S.goal || 2, pct = Math.min(1, dn / goal);
+  const mc = mistakeCount();
+  let h = `<div class="inner${anim ? " enter" : ""}">`;
+  h += `<div class="glass hello"><div>${buddyArt({ mood: today ? "cheer" : "happy", outfit: S.outfit })}</div>
+    <div><div class="eyebrow">${today ? "Сегодня ты молодец" : "Привет" + (S.name ? ", " + esc(S.name) : "") + "!"}</div>
+    <div class="t">${today ? `Серия: ${S.streak} ${plural(S.streak, "день", "дня", "дней")} ${A("bone")} ${dn >= goal ? "Цель дня выполнена!" : "Ещё урок — и цель дня выполнена!"}` : S.streak ? `Пройди урок и получи ${S.streak + 1}-ю косточку ${A("bone")}` : `Пройди первый урок и получи косточку ${A("bone")}`}</div></div>
+    <div class="ring" title="Цель дня"><svg viewBox="0 0 62 62"><circle class="bgc" cx="31" cy="31" r="26"/><circle class="fgc" cx="31" cy="31" r="26" stroke-dasharray="163.4" stroke-dashoffset="${163.4 * (1 - pct)}"/></svg><b><span>${Math.min(dn, goal)}/${goal}<small>цель</small></span></b></div></div>`;
+  h += `<div class="train"><button class="glass" id="practice"><span class="e">${E("🔁")}</span><span>Повторение<small>+1 ${A("heart")} и печеньки</small></span></button>
+    <button class="glass" id="review"><span class="e">${E("🧠")}</span><span>Мои ошибки<small>${mc ? `${mc} ${plural(mc, "слово", "слова", "слов")} на повтор` : "Пока ошибок нет"}</small></span>${mc ? `<span class="badge">${mc}</span>` : ""}</button></div>`;
   C.forEach((u, i) => {
-    const open = unitOpen(i), done = S.progress[u.id] || 0;
-    h += `<section style="--u:${u.color}">
-      <div class="unit-head ${open ? "" : "locked"}"><span class="uemo">${open ? E(u.emoji) : A("lock")}</span><div><small>Раздел ${i + 1}</small><h2>${u.title}</h2></div></div>
+    const open = unitOpen(i), done = Math.min(LESSONS.length, S.progress[u.id] || 0), dir = i % 2 ? -1 : 1;
+    h += `<section class="unit" style="--u:${u.color}" id="unit-${u.id}">
+      <div class="unit-head ${open ? "" : "locked"}"><div><small>Раздел ${i + 1} · ${done}/${LESSONS.length}</small><h2>${u.title}</h2>
+        <div class="ubar"><i style="width:${done / LESSONS.length * 100}%"></i></div>
+        <div class="uact">${open ? `<button data-dict="${i}">${E("📖")} Словарик</button>` : `<span style="font-size:.8rem;opacity:.9;font-weight:800">${A("lock")} Откроется после раздела ${i}</span>`}</div></div>
+        <span class="uemo">${E(u.emoji)}</span></div>
       <div class="path">`;
-    LESSONS.forEach((L, k) => {
+    LESSONS.forEach((Ls, k) => {
       const isDone = k < done, isCur = open && i === cu && k === cl, locked = !open || k > done;
-      h += `<div class="node-wrap" style="transform:translateX(${OFFS[k]}px)">
+      const off = OFFS[k] * dir;
+      h += `<div class="node-wrap" style="transform:translateX(${off}px)">
         ${isCur ? `<div class="start-bubble">${k === 0 && i === 0 && !S.lessons ? "Начать" : "Дальше"}</div>` : ""}
-        <button class="node ${isDone ? "done" : ""} ${isCur ? "current" : ""} ${locked && !isDone ? "locked" : ""}" data-u="${i}" data-l="${k}" aria-label="${u.title}: ${L.n}${locked && !isDone ? " (закрыто)" : ""}">
-          <span class="ic">${locked && !isDone ? A("lock") : isDone ? (k === 4 ? A("trophy") : "✓") : E(L.ic)}</span>${isDone ? `<span class="crown">${A("crown")}</span>` : ""}</button>
-        ${isCur ? `<div class="path-buddy" style="${OFFS[k] > 20 ? "right:110px" : "left:110px"}">${buddyArt({ mood: "happy", outfit: S.outfit })}</div>` : ""}
+        <button class="node ${isDone ? "done" : ""} ${isCur ? "current" : ""} ${locked && !isDone ? "locked" : ""}" data-u="${i}" data-l="${k}" data-off="${off}" aria-label="${esc(u.title)}: ${Ls.n}${locked && !isDone ? " (закрыто)" : isDone ? " (пройдено)" : ""}">
+          <span class="ic">${locked && !isDone ? A("lock") : isDone ? (k === 4 ? A("trophy") : CHECK) : E(Ls.ic)}</span>${isDone && k === 4 ? `<span class="crown">${A("crown")}</span>` : ""}</button>
+        ${isCur ? `<div class="path-buddy" style="${off >= 0 ? "right:calc(100% + 14px)" : "left:calc(100% + 14px)"}">${buddyArt({ mood: "happy", outfit: S.outfit })}</div>` : ""}
       </div>`;
     });
     h += `</div>`;
-    if (unitDone(u)) h += `<div class="glass fact-card"><span class="flag">${A(i % 2 ? "flag-us" : "flag-gb")}</span><div><div class="eyebrow">Бадди рассказывает</div>${u.fact}</div></div>`;
+    if (unitDone(u)) h += `<div class="glass fact-card"><span class="flag">${A(u.flag === "us" ? "flag-us" : "flag-gb")}</span><div><div class="eyebrow">Бадди рассказывает</div>${u.fact}</div></div>`;
     h += `</section>`;
   });
-  h += `<button class="btn honey wide" id="practice">${A("notebook")} Повторение (+1 ${A("heart")}, +10 ${A("cookie")})</button></div>`;
+  if (cu < 0) h += `<div class="glass course-end"><div style="width:130px">${A("trophy", "fill")}</div><h2>Весь курс пройден!</h2><p class="muted">Ты прошёл все ${C.length} разделов. Повторяй слова, исправляй ошибки и болтай с Бадди — так английский не забудется.</p></div>`;
+  h += `</div><button class="to-cur" id="toCur" hidden aria-label="К текущему уроку">${ARROW}</button>`;
   view.innerHTML = h;
-  view.querySelectorAll(".node").forEach((b) => b.addEventListener("click", () => {
-    const i = +b.dataset.u, k = +b.dataset.l, done = S.progress[C[i].id] || 0;
-    if (!unitOpen(i) || k > done) { sfx.bad(); toast("Сначала пройди предыдущие уроки 🐾"); return; }
-    sfx.tap(); startLesson(i, k);
-  }));
-  $("#practice").onclick = () => startLesson(-1, 0);
-  const cur = view.querySelector(".node.current"); cur && setTimeout(() => cur.scrollIntoView({ block: "center", behavior: "smooth" }), 80);
+
+  view.querySelectorAll(".node").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); nodeTap(b); }));
+  view.querySelectorAll("[data-dict]").forEach((b) => b.onclick = (e) => { e.stopPropagation(); sfx.tap(); showDict(+b.dataset.dict); });
+  $("#practice").onclick = () => { sfx.tap(); startLesson(-1, 0); };
+  $("#review").onclick = () => { sfx.tap(); if (!mistakeCount()) return emptyReview(); startLesson(-2, 0); };
+  view.onclick = (e) => { if (!e.target.closest(".lpop")) closePop(); };
+
+  const cur = view.querySelector(".node.current"), tc = $("#toCur");
+  if (curObs) curObs.disconnect();
+  if (cur && "IntersectionObserver" in window) {
+    curObs = new IntersectionObserver(([en]) => { tc.hidden = en.isIntersecting; tc.classList.toggle("up", en.boundingClientRect.top < 0); }, { root: view, threshold: .1 });
+    curObs.observe(cur);
+    tc.onclick = () => { sfx.whoosh(); cur.scrollIntoView({ block: "center", behavior: "smooth" }); };
+  }
+  if (cur && scrollCur) { scrollCur = false; setTimeout(() => cur.scrollIntoView({ block: "center", behavior: S.lessons ? "smooth" : "auto" }), anim ? 260 : 60); }
+}
+function closePop() { const p = view.querySelector(".lpop"); if (p) p.remove(); }
+function nodeTap(b) {
+  const i = +b.dataset.u, k = +b.dataset.l, u = C[i], done = S.progress[u.id] || 0;
+  const wrap = b.parentElement, had = wrap.nextElementSibling && wrap.nextElementSibling.classList.contains("lpop");
+  closePop();
+  if (had) return;
+  if (!unitOpen(i) || k > done) { sfx.bad(); vibe("bad"); b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); toast(!unitOpen(i) ? `Сначала пройди раздел ${i}` : "Сначала пройди предыдущие уроки"); return; }
+  sfx.tap(); vibe();
+  const L_ = LESSONS[k], isDone = k < done;
+  const pop = document.createElement("div"); pop.className = "lpop"; pop.style.setProperty("--ox", b.dataset.off + "px");
+  pop.innerHTML = `<div><div class="eyebrow" style="color:var(--honey)">Урок ${k + 1} из ${LESSONS.length}</div><h3>${L_.n}</h3></div><p>${L_.d}${isDone ? " · уже пройден, можно повторить" : ""}</p>
+    <button class="btn wide ${isDone ? "" : "honey"}">${isDone ? "Повторить +5 XP" : `Начать +${k === 4 ? 20 : 10} XP`}</button>`;
+  wrap.after(pop);
+  pop.querySelector("button").onclick = () => { sfx.tap(); startLesson(i, k); };
+  setTimeout(() => pop.scrollIntoView({ block: "nearest", behavior: "smooth" }), 30);
+}
+function emptyReview() {
+  modal(`<div class="hero">${buddyArt({ mood: "cheer", outfit: S.outfit })}</div><h2>Ошибок пока нет!</h2>
+    <p class="muted">Если где-то ошибёшься, слово попадёт сюда. Потом его можно будет потренировать отдельно.</p>
+    <button class="btn wide" data-a="ok">Понятно</button>`, (m, close) => { m.querySelector("[data-a]").onclick = close; });
+}
+function showDict(ui) {
+  const u = C[ui];
+  modal(`<div style="width:84px">${E(u.emoji, "fill")}</div><h2>${u.title}</h2><p class="muted">Нажми на слово, чтобы послушать</p>
+    <div class="dict">${u.words.map((w) => `<button class="w ${S.learned.includes(w[0]) ? "" : "no"}" data-say="${esc(w[0])}">${E(w[2])}<span><b>${esc(w[0])}</b><small>${esc(w[1])}</small></span><span class="speak">${SPK}</span></button>`).join("")}
+    <h3>Фразы</h3>${u.phrases.map((p) => `<button class="w" data-say="${esc(p[0])}" style="grid-template-columns:1fr 44px"><span><b style="font-size:.95rem">${esc(p[0])}</b><small>${esc(p[1])}</small></span><span class="speak">${SPK}</span></button>`).join("")}</div>
+    <button class="btn wide" data-a="ok">Закрыть</button>`, (m, close) => {
+    m.querySelectorAll("[data-say]").forEach((b) => b.onclick = () => speak(b.dataset.say, false, b.querySelector(".speak")));
+    m.querySelector('[data-a="ok"]').onclick = close;
+  });
 }
 
 /* ================= генерация урока ================= */
-function wordTasks(u, words, all) {
-  const T = [];
-  words.forEach((w, i) => {
-    const kind = ["pic", "en2ru", "ru2en", "listen"][i % 4];
-    T.push({ t: kind, w, pool: all });
-  });
-  return T;
-}
+const wt = (t, w, u) => ({ t, w, pool: u.words, u: u.id });
+const pt = (t, p, u) => ({ t, p, all: u.phrases, u: u.id });
+const MIX = ["pic", "en2ru", "type", "listen", "ru2en", "type"];
 function makeLesson(ui, k) {
-  if (ui < 0) { // повторение по пройденным разделам
+  if (ui === -1) { // повторение пройденного
     const units = C.filter((u, i) => unitOpen(i) && (S.progress[u.id] || 0) > 0);
     const src = units.length ? units : [C[0]];
     const T = [];
-    for (let i = 0; i < 8; i++) { const u = src[(Math.random() * src.length) | 0], w = u.words[(Math.random() * 8) | 0]; T.push({ t: ["pic", "en2ru", "ru2en", "listen"][i % 4], w, pool: u.words }); }
-    const u = src[(Math.random() * src.length) | 0]; T.push({ t: "match", pairs: pick(u.words, 4) }, { t: "build", p: pick(u.phrases, 1)[0], all: u.phrases });
+    for (let i = 0; i < 8; i++) { const u = rnd(src), w = rnd(u.words.slice(0, units.length ? 8 : 4)); T.push(wt(MIX[i % MIX.length], w, u)); }
+    const u = rnd(src); T.push({ t: "match", pairs: pick(u.words, 4), u: u.id }, pt("build", rnd(u.phrases), u));
     return shuffle(T);
+  }
+  if (ui === -2) { // работа над ошибками
+    const items = mistakeItems().sort((a, b) => b.n - a.n || b.t - a.t).slice(0, 8);
+    const T = [];
+    const forms = ["type", "pic", "ru2en", "listen"];
+    items.forEach((it, i) => {
+      if (it.kind === "w") T.push(wt(forms[i % forms.length], it.item, it.u));
+      else T.push(pt(i % 2 ? "lbuild" : "build", it.item, it.u));
+    });
+    if (T.length < 5) items.forEach((it, i) => { if (it.kind === "w") T.push(wt(forms[(i + 1) % forms.length], it.item, it.u)); else T.push({ t: "pchoose", p: it.item, all: it.u.phrases, u: it.u.id }); });
+    return T;
   }
   const u = C[ui], W = u.words, P = u.phrases;
   if (k === 0 || k === 1) {
-    const ws = W.slice(k * 4, k * 4 + 4), pool = W;
+    const ws = W.slice(k * 4, k * 4 + 4);
     return [
-      { t: "intro", w: ws[0] }, { t: "intro", w: ws[1] }, { t: "pic", w: ws[0], pool }, { t: "pic", w: ws[1], pool },
-      { t: "intro", w: ws[2] }, { t: "intro", w: ws[3] }, { t: "en2ru", w: ws[2], pool }, { t: "listen", w: ws[3], pool },
-      { t: "ru2en", w: ws[0], pool }, { t: "match", pairs: ws }, { t: "pic", w: ws[2], pool }, { t: "ru2en", w: ws[3], pool }
+      { t: "intro", w: ws[0] }, { t: "intro", w: ws[1] }, wt("pic", ws[0], u), wt("pic", ws[1], u),
+      { t: "intro", w: ws[2] }, { t: "intro", w: ws[3] }, wt("en2ru", ws[2], u), wt("listen", ws[3], u),
+      wt("ru2en", ws[0], u), { t: "match", pairs: ws, u: u.id }, wt("pic", ws[2], u), wt("type", ws[1], u), wt("ru2en", ws[3], u)
     ];
   }
   if (k === 2) {
     const ps = shuffle(P);
     return [
-      { t: "pchoose", p: ps[0], all: P }, { t: "build", p: ps[0], all: P }, { t: "build", p: ps[1], all: P }, { t: "pchoose", p: ps[2], all: P },
-      { t: "lbuild", p: ps[1], all: P }, { t: "build", p: ps[2], all: P }, { t: "build", p: ps[3], all: P }, { t: "lbuild", p: ps[4 % ps.length], all: P },
-      { t: "match", pairs: pick(W, 4) }
+      pt("pchoose", ps[0], u), pt("build", ps[0], u), pt("build", ps[1], u), pt("pchoose", ps[2], u),
+      pt("lbuild", ps[1], u), pt("build", ps[2], u), pt("build", ps[3], u), pt("lbuild", ps[4], u),
+      { t: "match", pairs: pick(W, 4), u: u.id }
     ];
   }
-  const n = k === 3 ? 10 : 12;
-  const T = shuffle([...wordTasks(u, pick(W, 6), W), { t: "match", pairs: pick(W, 4) }, ...pick(P, 3).map((p, i) => ({ t: i % 2 ? "lbuild" : "build", p, all: P })), { t: "pchoose", p: pick(P, 1)[0], all: P }, { t: "pic", w: pick(W, 1)[0], pool: W }]);
-  return T.slice(0, n);
+  const ws = pick(W, k === 3 ? 5 : 6);
+  const T = [
+    ...ws.map((w, i) => wt(MIX[i % MIX.length], w, u)),
+    { t: "match", pairs: pick(W, 4), u: u.id },
+    ...pick(P, k === 3 ? 2 : 3).map((p, i) => pt(i % 2 ? "lbuild" : "build", p, u)),
+    pt("pchoose", rnd(P), u), wt("type", rnd(W.filter((w) => !ws.includes(w))), u)
+  ];
+  return shuffle(T);
 }
 
 /* ================= урок ================= */
 let L = null;
+const modeName = (ui) => ui === -1 ? "Повторение" : ui === -2 ? "Работа над ошибками" : "";
 function startLesson(ui, k) {
   refillHearts();
   if (S.hearts <= 0 && ui >= 0) return noHearts(false);
-  L = { ui, k, tasks: makeLesson(ui, k), i: 0, total: 0, right: 0, wrong: 0, t0: Date.now(), state: "ask", answer: null, redo: [] };
+  closePop();
+  let tasks = makeLesson(ui, k);
+  if (!canSpeak()) tasks = tasks.map((T) => T.t === "listen" ? { ...T, t: "en2ru" } : T.t === "lbuild" ? { ...T, t: "build" } : T);
+  L = { ui, k, tasks, i: 0, total: 0, right: 0, wrong: 0, t0: Date.now(), state: "ask", answer: null, combo: 0, maxCombo: 0, fixedNow: 0, typed: 0 };
   L.total = L.tasks.filter((t) => t.t !== "intro").length;
   const el = document.createElement("div"); el.className = "lesson"; el.id = "lesson";
-  el.innerHTML = `<div class="l-top"><button class="l-close" id="lx" aria-label="Закрыть урок">✕</button><div class="bar"><i id="lbar" style="width:0"></i></div><div class="l-hearts">${A("heart")} <span id="lh">${S.hearts}</span></div></div>
+  el.innerHTML = `<div class="l-top"><button class="l-close" id="lx" aria-label="Закрыть урок">${CROSS}</button><div class="bar"><i id="lbar" style="width:0"></i></div><div class="l-hearts" id="lhw">${A("heart")} <span id="lh">${ui >= 0 ? S.hearts : "∞"}</span></div></div>
+    ${ui < 0 ? `<div class="l-mode">${modeName(ui)}</div>` : ""}
     <div class="l-body" id="lb"></div><div class="l-foot" id="lf"><div class="in"></div></div>`;
   document.body.appendChild(el);
-  $("#lx").onclick = () => modal(`<div class="hero">${buddyArt({ mood: "oops", outfit: S.outfit })}</div><h2>Уже уходишь?</h2><p class="muted">Если выйти сейчас, прогресс урока не сохранится.</p>
-    <button class="btn wide" data-a="stay">Остаться</button><button class="btn ghost wide" data-a="quit">Выйти</button>`, (m, close) => {
-      m.querySelector('[data-a="stay"]').onclick = close;
-      m.querySelector('[data-a="quit"]').onclick = () => { close(); endLesson(); };
-    });
+  L.offBack = onBack(askQuit);
+  $("#lx").onclick = askQuit;
   showTask();
 }
-function endLesson() { const el = $("#lesson"); el && el.remove(); L = null; paintTop(); render(); }
-function setBar() { const done = L.right; $("#lbar").style.width = Math.min(100, done / L.total * 100) + "%"; }
-
+let quitOpen = false;
+function askQuit() {
+  if (!L || quitOpen) return;
+  quitOpen = true;
+  modal(`<div class="hero">${buddyArt({ mood: "oops", outfit: S.outfit })}</div><h2>Уже уходишь?</h2><p class="muted">Осталось совсем чуть-чуть! Если выйти сейчас, прогресс урока не сохранится.</p>
+    <button class="btn wide" data-a="stay">Остаться</button><button class="btn ghost wide" data-a="quit">Выйти</button>`, (m, close) => {
+      const c2 = () => { quitOpen = false; close(); };
+      m.querySelector('[data-a="stay"]').onclick = () => { sfx.tap(); c2(); };
+      m.querySelector('[data-a="quit"]').onclick = () => { c2(); endLesson(); };
+    }, { onBack: (close) => { quitOpen = false; close(); } });
+}
+function endLesson(silent) {
+  const el = $("#lesson");
+  if (L && L.offBack) L.offBack();
+  L = null;
+  try { speechSynthesis.cancel(); } catch (e) { /* нет */ }
+  if (el) { el.classList.add("out"); setTimeout(() => el.remove(), 280); }
+  if (!silent) { paintTop(); render(); }
+}
+function setBar() { $("#lbar").style.width = Math.min(100, L.right / L.total * 100) + "%"; }
 function foot(html, cls = "") { const f = $("#lf"); f.className = "l-foot " + cls; f.querySelector(".in").innerHTML = html; return f; }
-function checkBtn(enabled) { foot(`<button class="btn wide" id="chk" ${enabled ? "" : "disabled"}>Проверить</button>`); if (enabled) $("#chk").onclick = check; }
+function checkBtn(enabled) {
+  let b = $("#chk");
+  if (!b) { foot(`<button class="btn wide" id="chk">Проверить</button>`); b = $("#chk"); b.onclick = check; }
+  b.disabled = !enabled;
+}
 
 function showTask() {
   const T = L.tasks[L.i]; L.state = "ask"; L.answer = null; setBar();
-  const b = $("#lb"); b.scrollTop = 0;
+  const b = $("#lb"); b.scrollTop = 0; b.classList.remove("in"); void b.offsetWidth; b.classList.add("in");
+  foot("");
   const mini = (mood = "happy") => `<div class="mini">${buddyArt({ mood, outfit: S.outfit })}</div>`;
+  const noAudio = `<button class="link" id="noa">Сейчас не могу слушать</button>`;
+  const bindNoAudio = () => { const n = $("#noa"); if (n) n.onclick = () => { sfx.tap(); L.tasks.forEach((x, j) => { if (j >= L.i) { if (x.t === "listen") x.t = "en2ru"; if (x.t === "lbuild") x.t = "build"; } }); showTask(); }; };
   switch (T.t) {
     case "intro":
-      b.innerHTML = `<span class="tag-new">НОВОЕ СЛОВО</span><div class="glass intro-card"><div class="pic">${E(T.w[2], "big")}</div><div class="en">${esc(T.w[0])}</div><div class="ru">${esc(T.w[1])}</div><button class="speak" id="sp" aria-label="Послушать">${SPK}</button></div>`;
-      $("#sp").onclick = () => speak(T.w[0]); speak(T.w[0]);
-      foot(`<button class="btn wide blue" id="nx">Запомнил!</button>`); $("#nx").onclick = next; return;
+      b.innerHTML = `<span class="tag-new">НОВОЕ СЛОВО</span><div class="glass intro-card"><div class="pic">${E(T.w[2], "big")}</div><div class="en">${esc(T.w[0])}</div><div class="ru">${esc(T.w[1])}</div>
+        <div class="row"><button class="speak" id="sp" aria-label="Послушать">${SPK}</button><button class="speak slow" id="sps" aria-label="Послушать медленно">${E("🐢")}</button></div></div>`;
+      $("#sp").onclick = (e) => speak(T.w[0], false, e.currentTarget); $("#sps").onclick = (e) => speak(T.w[0], true, e.currentTarget); speak(T.w[0], false, $("#sp"));
+      foot(`<button class="btn wide" id="nx">Запомнил!</button>`); $("#nx").onclick = next; return;
     case "pic": {
       const opts = shuffle([T.w, ...pick(T.pool.filter((x) => x !== T.w && x[2] !== T.w[2]), 3)]);
-      b.innerHTML = `<h1 class="l-title">Где <span style="color:var(--blue-d)">«${esc(T.w[0])}»</span>?</h1>
-        <div class="choices pics">${opts.map((o) => `<button class="choice pic" data-v="${esc(o[0])}">${E(o[2], "big")}</button>`).join("")}</div>`;
+      b.innerHTML = `<h1 class="l-title">Где <span style="color:var(--honey-d)">«${esc(T.w[0])}»</span>?</h1>
+        <div class="choices pics">${opts.map((o) => `<button class="choice pic" data-v="${esc(o[0])}" aria-label="${esc(o[1])}">${E(o[2], "big")}</button>`).join("")}</div>`;
       speak(T.w[0]); bindChoices(T.w[0]); return;
     }
     case "en2ru": case "ru2en": case "listen": {
       const en = T.t !== "ru2en";
       const opts = shuffle([T.w, ...pick(T.pool.filter((x) => x !== T.w), 3)]);
       const title = T.t === "listen" ? "Что сказал Бадди?" : en ? "Как это по-русски?" : "Как это по-английски?";
-      const said = T.t === "listen" ? `<button class="speak big" id="sp" aria-label="Послушать ещё раз">${SPK}</button>` : `${en ? `<button class="speak" id="sp" aria-label="Послушать">${SPK}</button>` : ""}${esc(en ? T.w[0] : T.w[1])}`;
-      b.innerHTML = `<h1 class="l-title">${title}</h1>${T.t === "listen" ? `<div style="display:flex;justify-content:center;gap:16px;align-items:center">${mini()}${said}</div>` : `<div class="say-row">${mini()}<div class="bubble">${said}</div></div>`}
-        <div class="choices">${opts.map((o) => `<button class="choice" data-v="${esc(o[0])}">${esc(T.t === "en2ru" ? o[1] : o[0])}</button>`).join("")}</div>`;
-      const sp = $("#sp"); if (sp) sp.onclick = () => speak(T.w[0]);
-      if (en) speak(T.w[0]);
-      bindChoices(T.w[0], T.t !== "en2ru"); return;
+      b.innerHTML = `<h1 class="l-title">${title}</h1>${T.t === "listen"
+        ? `<div class="listen-row">${mini()}<button class="speak big" id="sp" aria-label="Послушать ещё раз">${SPK}</button><button class="speak slow" id="sps" aria-label="Медленно">${E("🐢")}</button></div>`
+        : `<div class="say-row">${mini()}<div class="bubble">${en ? `<button class="speak" id="sp" aria-label="Послушать">${SPK}</button>${esc(T.w[0])}` : `${E(T.w[2], "word")}${esc(T.w[1])}`}</div></div>`}
+        <div class="choices">${opts.map((o, i) => `<button class="choice" data-v="${esc(o[0])}"><span class="k">${i + 1}</span>${esc(T.t === "en2ru" ? o[1] : o[0])}</button>`).join("")}</div>${T.t === "listen" ? noAudio : ""}`;
+      const sp = $("#sp"); if (sp) sp.onclick = () => speak(T.w[0], false, sp);
+      const sps = $("#sps"); if (sps) sps.onclick = () => speak(T.w[0], true, sps);
+      if (en) speak(T.w[0], false, sp);
+      bindNoAudio(); bindChoices(T.w[0], T.t !== "en2ru"); return;
     }
     case "pchoose": {
       const opts = shuffle([T.p, ...pick(T.all.filter((x) => x !== T.p), 2)]);
       b.innerHTML = `<h1 class="l-title">Выбери перевод</h1><div class="say-row">${mini()}<div class="bubble"><button class="speak" id="sp" aria-label="Послушать">${SPK}</button>${esc(T.p[0])}</div></div>
-        <div class="choices">${opts.map((o) => `<button class="choice" data-v="${esc(o[0])}">${esc(o[1])}</button>`).join("")}</div>`;
-      $("#sp").onclick = () => speak(T.p[0]); speak(T.p[0]);
+        <div class="choices">${opts.map((o, i) => `<button class="choice" data-v="${esc(o[0])}"><span class="k">${i + 1}</span>${esc(o[1])}</button>`).join("")}</div>`;
+      $("#sp").onclick = () => speak(T.p[0], false, $("#sp")); speak(T.p[0]);
       bindChoices(T.p[0]); return;
     }
     case "build": case "lbuild": {
-      const words = T.p[0].replace(/[?,.!]/g, "").split(" ");
-      const extra = pick([...new Set(T.all.flatMap((p) => p[0].replace(/[?,.!]/g, "").split(" ")))].filter((w) => !words.includes(w)), 3);
+      const toks = (s) => s.replace(/[?,.!]/g, "").split(" ").filter(Boolean);
+      const words = toks(T.p[0]), low = words.map((w) => w.toLowerCase());
+      const extra = pick([...new Set(T.all.flatMap((p) => toks(p[0])))].filter((w) => !low.includes(w.toLowerCase())), Math.min(3, Math.max(2, 7 - words.length)));
       const bank = shuffle([...words, ...extra]).map((w, i) => ({ w, i }));
-      L.built = [];
       b.innerHTML = `<h1 class="l-title">${T.t === "lbuild" ? "Собери то, что услышал" : "Переведи фразу"}</h1>
-        ${T.t === "lbuild" ? `<div style="display:flex;justify-content:center;gap:16px;align-items:center">${mini()}<button class="speak big" id="sp" aria-label="Послушать">${SPK}</button></div>` : `<div class="say-row">${mini()}<div class="bubble">${esc(T.p[1])}</div></div>`}
-        <div class="answer-line" id="al"></div><div class="bank" id="bk">${bank.map((x) => `<button class="tile" data-i="${x.i}">${esc(x.w)}</button>`).join("")}</div>`;
-      if (T.t === "lbuild") { $("#sp").onclick = () => speak(T.p[0]); speak(T.p[0]); }
+        ${T.t === "lbuild" ? `<div class="listen-row">${mini()}<button class="speak big" id="sp" aria-label="Послушать">${SPK}</button><button class="speak slow" id="sps" aria-label="Медленно">${E("🐢")}</button></div>` : `<div class="say-row">${mini()}<div class="bubble">${esc(T.p[1])}</div></div>`}
+        <div class="answer-line" id="al"></div><div class="bank" id="bk">${bank.map((x) => `<button class="tile" data-i="${x.i}">${esc(x.w)}</button>`).join("")}</div>${T.t === "lbuild" ? noAudio : ""}`;
+      if (T.t === "lbuild") { $("#sp").onclick = () => speak(T.p[0], false, $("#sp")); $("#sps").onclick = () => speak(T.p[0], true, $("#sps")); speak(T.p[0], false, $("#sp")); }
+      bindNoAudio();
       const al = $("#al"), bk = $("#bk");
+      const upd = () => { L.answer = [...al.children].map((x) => x.textContent).join(" "); checkBtn(!!al.children.length); };
       bk.querySelectorAll(".tile").forEach((t) => t.addEventListener("click", () => {
         if (L.state !== "ask" || t.classList.contains("ghost")) return;
-        sfx.tap(); speak(t.textContent);
+        sfx.tap(); vibe(); if (T.t === "build") speak(t.textContent);
         t.classList.add("ghost");
-        const a = document.createElement("button"); a.className = "tile"; a.textContent = t.textContent; a.dataset.i = t.dataset.i;
-        a.onclick = () => { if (L.state !== "ask") return; a.remove(); t.classList.remove("ghost"); L.answer = [...al.children].map((x) => x.textContent).join(" "); checkBtn(!!al.children.length); };
-        al.appendChild(a); L.answer = [...al.children].map((x) => x.textContent).join(" "); checkBtn(true);
+        const a = document.createElement("button"); a.className = "tile"; a.textContent = t.textContent;
+        a.onclick = () => { if (L.state !== "ask") return; sfx.tap(); a.remove(); t.classList.remove("ghost"); upd(); };
+        al.appendChild(a); upd();
       }));
       checkBtn(false); return;
     }
+    case "type": {
+      const target = T.w[0];
+      b.innerHTML = `<h1 class="l-title">Напиши по-английски</h1><div class="say-row">${mini("think")}<div class="bubble">${E(T.w[2], "word")}${esc(T.w[1])}</div></div>
+        <div class="type-wrap"><div class="slots" id="slots"></div>
+        <input class="type-in" id="ti" type="text" lang="en" inputmode="latin" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="done" maxlength="30" placeholder="Пиши здесь…" aria-label="Ответ по-английски">
+        <div class="type-tools"><span class="ru-warn" id="ruw" hidden>Включи английскую раскладку (EN)</span><span></span><button class="btn ghost sm" id="hint">${E("💡")} Подсказка</button></div></div>`;
+      const ti = $("#ti"), slots = $("#slots");
+      const letters = target.replace(/[^A-Za-z]/g, "").length; let hints = 0;
+      const paint = () => {
+        const typed = ti.value.replace(/[^A-Za-z]/g, ""); let li = 0;
+        slots.innerHTML = [...target].map((ch) => { if (ch === " ") return `<span class="gap"></span>`; if (!/[A-Za-z]/.test(ch)) return `<span class="dash">${esc(ch)}</span>`; const c = typed[li++] || ""; return `<i class="${c ? "f" : ""}">${esc(c.toLowerCase())}</i>`; }).join("");
+        $("#ruw").hidden = !/[А-Яа-яЁё]/.test(ti.value);
+        L.answer = ti.value; checkBtn(!!ti.value.trim());
+      };
+      ti.addEventListener("input", () => { sfx.key(); paint(); });
+      ti.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); if (L.state === "ask" && ti.value.trim()) check(); else if (L.state === "done") { const n = $("#nx"); n && n.click(); } } });
+      $("#hint").onclick = () => {
+        if (L.state !== "ask") return;
+        if (hints >= Math.max(1, letters - 1)) { toast("Дальше попробуй сам!"); return; }
+        hints++; L.hinted = true; let n = 0, cut = 0;
+        for (let j = 0; j < target.length; j++) { if (/[A-Za-z]/.test(target[j])) n++; if (n === hints) { cut = j + 1; break; } }
+        ti.value = target.slice(0, cut).toLowerCase(); sfx.tap(); paint(); ti.focus();
+      };
+      L.hinted = false; paint(); setTimeout(() => { try { ti.focus({ preventScroll: true }); } catch (e) { /* нет */ } }, 380);
+      return;
+    }
     case "match": {
       const left = shuffle(T.pairs), right = shuffle(T.pairs);
-      b.innerHTML = `<h1 class="l-title">Найди пары</h1><div class="choices match">${left.map((p, i) => `<button class="choice" data-side="en" data-v="${esc(p[0])}" style="grid-column:1;grid-row:${i + 1}">${esc(p[0])}</button>`).join("")}${right.map((p, i) => `<button class="choice" data-side="ru" data-v="${esc(p[0])}" style="grid-column:2;grid-row:${i + 1}">${esc(p[1])}</button>`).join("")}</div>`;
+      b.innerHTML = `<h1 class="l-title">Найди пары</h1><div class="choices match" style="grid-template-columns:1fr 1fr">${left.map((p, i) => `<button class="choice" data-side="en" data-v="${esc(p[0])}" style="grid-column:1;grid-row:${i + 1}">${esc(p[0])}</button>`).join("")}${right.map((p, i) => `<button class="choice" data-side="ru" data-v="${esc(p[0])}" style="grid-column:2;grid-row:${i + 1}">${esc(p[1])}</button>`).join("")}</div>`;
       let sel = null, left_ = T.pairs.length, mistakes = 0;
       b.querySelectorAll(".choice").forEach((c) => c.addEventListener("click", () => {
-        if (c.classList.contains("gone")) return;
+        if (c.classList.contains("gone") || L.state !== "ask") return;
         if (c.dataset.side === "en") speak(c.dataset.v);
-        if (!sel || sel.dataset.side === c.dataset.side) { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); sfx.tap(); return; }
+        if (!sel || sel.dataset.side === c.dataset.side) { sel && sel.classList.remove("sel"); sel = c; c.classList.add("sel"); sfx.tap(); vibe(); return; }
         if (sel.dataset.v === c.dataset.v) {
           [sel, c].forEach((x) => { x.classList.remove("sel"); x.classList.add("ok"); setTimeout(() => x.classList.add("gone"), 350); });
-          sfx.ok(); left_--; sel = null;
-          if (!left_) { L.state = "done"; L.right++; setBar(); bumpQuest("answers"); setTimeout(() => feedback(true, mistakes ? "Все пары найдены!" : "Идеально!"), 300); }
+          sfx.ok(); vibe(); left_--; sel = null;
+          if (!left_) { L.state = "done"; L.right++; setBar(); bumpQuest("answers"); comboUp(); setTimeout(() => feedback(true, mistakes ? "Все пары найдены!" : "Идеально!"), 300); }
         } else {
-          mistakes++; sfx.bad(); [sel, c].forEach((x) => { x.classList.add("bad", "shake"); setTimeout(() => x.classList.remove("bad", "shake", "sel"), 450); }); sel = null;
+          mistakes++; sfx.bad(); vibe("bad");
+          const enEl = sel.dataset.side === "en" ? sel : c; addMistake(T, enEl.dataset.v); save();
+          [sel, c].forEach((x) => { x.classList.add("bad", "shake"); setTimeout(() => x.classList.remove("bad", "shake", "sel"), 450); }); sel = null;
+          L.combo = 0;
         }
       }));
-      foot(`<div class="muted" style="text-align:center">Нажми на слово, потом на его перевод</div>`); return;
+      foot(`<div class="muted" style="text-align:center;min-height:54px;display:grid;place-items:center">Нажми на слово, потом на его перевод</div>`); return;
     }
   }
 }
@@ -602,128 +978,222 @@ function bindChoices(correct, sayOnTap) {
   b.querySelectorAll(".choice").forEach((c) => c.addEventListener("click", () => {
     if (L.state !== "ask") return;
     b.querySelectorAll(".choice").forEach((x) => x.classList.remove("sel"));
-    c.classList.add("sel"); L.answer = c.dataset.v; sfx.tap();
+    c.classList.add("sel"); L.answer = c.dataset.v; sfx.tap(); vibe();
     if (sayOnTap) speak(c.dataset.v);
     checkBtn(true);
   }));
   L.correct = correct;
   checkBtn(false);
 }
-const norm = (s) => String(s).toLowerCase().replace(/[?,.!]/g, "").replace(/\s+/g, " ").trim();
+/* мягкое сравнение: регистр, пробелы, дефисы, знаки и апострофы не важны */
+const norm = (s) => String(s).toLowerCase().replace(/[’‘`]/g, "'").replace(/[?,.!]/g, "").replace(/\s+/g, " ").trim();
+const letters = (s) => String(s).toLowerCase().replace(/[^a-z]/g, "");
+function lev(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1), i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1] ? d[i - 2][j - 2] + 1 : 99);
+  return d[a.length][b.length];
+}
 function check() {
-  if (L.state !== "ask") return;
+  if (!L || L.state !== "ask" || L.answer == null) return;
   const T = L.tasks[L.i];
   const target = T.p ? T.p[0] : T.w[0];
-  const ok = norm(L.answer) === norm(target);
+  let ok, note = "";
+  if (T.t === "type") {
+    if (/[А-Яа-яЁё]/.test(L.answer)) { toast("Пиши английскими буквами — переключи клавиатуру на EN"); vibe("bad"); const ti = $("#ti"); ti.classList.remove("shake"); void ti.offsetWidth; ti.classList.add("shake"); return; }
+    const a = letters(L.answer), t = letters(target);
+    ok = a === t;
+    if (!ok && t.length >= 4 && lev(a, t) === 1) { ok = true; note = `Почти! Пишется так: ${target}`; }
+    const ti = $("#ti"); ti.disabled = true; ti.classList.add(ok ? "ok" : "bad"); $("#slots").classList.add(ok ? "ok" : "bad");
+    $("#hint").disabled = true;
+    if (ok && !L.hinted) { L.typed++; S.typed++; bumpQuest("typed"); }
+  } else ok = norm(L.answer) === norm(target);
   L.state = "done";
   const b = $("#lb");
   b.querySelectorAll(".choice").forEach((c) => { if (c.dataset.v === target) c.classList.add("ok"); else if (c.classList.contains("sel")) c.classList.add("bad", "shake"); c.classList.remove("sel"); });
-  if (ok) { L.right++; bumpQuest("answers"); setBar(); }
-  else {
-    L.wrong++;
-    if (L.ui >= 0) { S.hearts = Math.max(0, S.hearts - 1); if (S.hearts < MAX_HEARTS && S.hearts === MAX_HEARTS - 1) S.heartsAt = Date.now(); save(); $("#lh").textContent = S.hearts; }
-    L.tasks.push(T); // повторим в конце, как в настоящем курсе
+  if (ok) {
+    L.right++; bumpQuest("answers"); setBar(); comboUp();
+    if (L.ui === -2) { const before = S.fixed; resolveMistake(T); L.fixedNow += S.fixed - before; }
+  } else {
+    L.wrong++; L.combo = 0;
+    addMistake(T);
+    if (L.ui >= 0) { if (S.hearts === MAX_HEARTS) S.heartsAt = Date.now(); S.hearts = Math.max(0, S.hearts - 1); $("#lh").textContent = S.hearts; bump("#lhw"); }
+    L.tasks.push(T);
   }
-  feedback(ok, ok ? "" : T.p ? T.p[0] : `${T.w[0]} — ${T.w[1]}`);
+  save();
+  feedback(ok, ok ? note : T.p ? T.p[0] : `${T.w[0]} — ${T.w[1]}`, target);
 }
-const PRAISE = ["Отлично!", "Супер!", "Молодец!", "Так держать!", "Woof! Верно!", "Excellent!"];
-function feedback(ok, extra) {
-  ok ? sfx.ok() : sfx.bad();
-  try { navigator.vibrate && navigator.vibrate(ok ? 12 : [30, 40, 30]); } catch (e) { /* нет вибрации */ }
-  foot(`<div class="fb"><span class="ic">${A(ok ? "bone" : "thinking")}</span><div><b>${ok ? PRAISE[(Math.random() * PRAISE.length) | 0] : "Правильно так:"}</b>${extra ? `<span>${esc(extra)}</span>` : ""}</div></div>
+function comboUp() {
+  L.combo++; L.maxCombo = Math.max(L.maxCombo, L.combo);
+  if ([3, 5, 8, 12].includes(L.combo)) {
+    setTimeout(() => { sfx.combo(); const d = document.createElement("div"); d.className = "combo"; d.innerHTML = `${E("🔥")} ${L ? L.combo : ""} подряд!`; document.body.appendChild(d); setTimeout(() => d.remove(), 1700); }, 350);
+  }
+}
+const PRAISE = ["Отлично!", "Супер!", "Молодец!", "Так держать!", "Woof! Верно!", "Excellent!", "Great job!", "Well done!"];
+function feedback(ok, extra, sayText) {
+  ok ? sfx.ok() : sfx.bad(); vibe(ok ? "ok" : "bad");
+  foot(`<div class="fb"><span class="ic">${A(ok ? "bone" : "thinking")}</span><div class="txt"><b>${ok ? rnd(PRAISE) : "Правильно так:"}</b>${extra ? `<span>${esc(extra)}</span>` : ""}</div>${sayText && /[a-z]/i.test(sayText) ? `<button class="speak" id="fbs" aria-label="Послушать">${SPK}</button>` : ""}</div>
     <button class="btn wide ${ok ? "green" : "red"}" id="nx">Дальше</button>`, ok ? "ok" : "bad");
+  const fbs = $("#fbs"); if (fbs) fbs.onclick = () => speak(sayText, false, fbs);
   $("#nx").onclick = () => { if (!ok && L.ui >= 0 && S.hearts <= 0) return noHearts(true); next(); };
+  setTimeout(() => { const n = $("#nx"); n && n.focus({ preventScroll: true }); }, 60);
 }
-function next() { sfx.tap(); L.i++; if (L.i >= L.tasks.length) finishLesson(); else showTask(); }
+function next() { if (!L) return; sfx.tap(); L.i++; if (L.i >= L.tasks.length) finishLesson(); else showTask(); }
 
 function noHearts(inLesson) {
   modal(`<div class="hero">${buddyArt({ mood: "sleep", outfit: S.outfit })}</div><h2>Сердечки закончились</h2>
-    <p class="muted">Бадди немного устал. Новое сердечко появится через ${HEART_MIN} минут, или сделай доп. задание.</p>
-    <button class="btn honey wide" data-a="practice">🔁 Повторение (+1 ❤️)</button>
-    <button class="btn wide" data-a="buy" ${S.cookies < 30 ? "disabled" : ""}>Восстановить за 30 🍪</button>
+    <p class="muted">Бадди немного устал. Новое сердечко появится через ${HEART_MIN} минут. А пока можно сделать повторение — оно без сердечек и даже дарит одно!</p>
+    <button class="btn honey wide" data-a="practice">${E("🔁")} Повторение (+1 ${A("heart")})</button>
+    <button class="btn wide" data-a="buy" ${S.cookies < REFILL_PRICE ? "disabled" : ""}>${S.cookies < REFILL_PRICE ? `Нужно ${REFILL_PRICE} ${A("cookie")}` : `Восстановить за ${REFILL_PRICE} ${A("cookie")}`}</button>
     <button class="btn ghost wide" data-a="close">Позже</button>`, (m, close) => {
-    m.querySelector('[data-a="practice"]').onclick = () => { close(); endLesson(); startLesson(-1, 0); };
-    m.querySelector('[data-a="buy"]').onclick = () => { S.cookies -= 30; S.hearts = MAX_HEARTS; save(); close(); paintTop(); bump("#pHeart"); sfx.coin(); const lh = $("#lh"); if (lh) lh.textContent = S.hearts; if (inLesson && L) next(); };
+    m.querySelector('[data-a="practice"]').onclick = () => { close(); if (L) endLesson(true); startLesson(-1, 0); };
+    m.querySelector('[data-a="buy"]').onclick = () => { S.cookies -= REFILL_PRICE; S.hearts = MAX_HEARTS; save(); close(); paintTop(); bump("#pHeart"); sfx.coin(); const lh = $("#lh"); if (lh) lh.textContent = S.hearts; if (inLesson && L) next(); };
     m.querySelector('[data-a="close"]').onclick = () => { close(); if (inLesson) endLesson(); };
-  });
+  }, { onBack: (close) => { close(); if (inLesson) endLesson(); } });
 }
 
 function finishLesson() {
-  const practice = L.ui < 0, perfect = L.wrong === 0, secs = Math.round((Date.now() - L.t0) / 1000);
-  const xp = practice ? 8 : 10 + (perfect ? 5 : 0) + (L.k === 4 ? 10 : 0);
-  let cookies = practice ? 10 : 5 + (perfect ? 5 : 0);
+  const mode = L.ui === -1 ? "practice" : L.ui === -2 ? "review" : "unit";
+  const perfect = L.wrong === 0, secs = Math.round((Date.now() - L.t0) / 1000);
+  const ui = L.ui, k = L.k, u = ui >= 0 ? C[ui] : null;
+  const firstTime = u && (S.progress[u.id] || 0) === k;
+  const xp = mode === "unit" ? (firstTime ? 10 + (k === 4 ? 10 : 0) : 5) + (perfect ? 5 : 0) : 8 + L.fixedNow * 2;
+  const cookies = mode === "unit" ? 5 + (perfect ? 5 : 0) + (firstTime && k === 4 ? 20 : 0) : 10;
+  const acc = Math.round(L.total / Math.max(1, L.total + L.wrong) * 100);
   S.xp += xp; S.cookies += cookies; S.lessons++;
-  if (perfect && !practice) S.perfect++;
-  if (practice) { S.hearts = Math.min(MAX_HEARTS, S.hearts + 1); bumpQuest("practice"); }
-  else {
-    const u = C[L.ui]; if ((S.progress[u.id] || 0) === L.k) S.progress[u.id] = L.k + 1;
-    if (L.k <= 1) u.words.slice(L.k * 4, L.k * 4 + 4).forEach((w) => { if (!S.learned.includes(w[0])) S.learned.push(w[0]); });
+  if (perfect && mode === "unit") S.perfect++;
+  if (mode !== "unit") { S.hearts = Math.min(MAX_HEARTS, S.hearts + 1); bumpQuest("practice"); }
+  let unitFinished = false;
+  if (u) {
+    if (firstTime) { S.progress[u.id] = k + 1; unitFinished = k === 4; }
+    if (k <= 1) u.words.slice(k * 4, k * 4 + 4).forEach((w) => { if (!S.learned.includes(w[0])) S.learned.push(w[0]); });
   }
   bumpQuest("lessons"); bumpQuest("xp", xp); if (perfect) bumpQuest("perfect");
+  const goal = S.goal || 2, before = dailyN(); S.daily.n = before + 1;
+  const goalNow = before < goal && S.daily.n >= goal; if (goalNow) { S.cookies += 10; bumpQuest("goal"); }
   const today = dayKey(), newDay = S.lastDay !== today;
-  if (newDay) { S.streak++; S.lastDay = today; S.bestStreak = Math.max(S.bestStreak, S.streak); }
+  if (newDay) { S.streak++; S.lastDay = today; S.bestStreak = Math.max(S.bestStreak, S.streak); S.days = [...S.days.filter((d) => d !== today), today].slice(-21); }
   save();
-  const unitFinished = !practice && L.k === 4;
-  const ui = L.ui;
-  $("#lesson").remove(); L = null;
-  sfx.win(); confetti();
-  modal(`<div class="hero">${buddyArt({ mood: "cheer", outfit: S.outfit })}</div>
-    <h2>${unitFinished ? "Раздел пройден!" : perfect ? "Без единой ошибки!" : practice ? "Повторение — мать учения!" : "Урок пройден!"}</h2>
-    <div class="results"><div style="--c:var(--honey-d)">Опыт<b>+${xp} XP</b></div><div style="--c:#a8641c">Печеньки<b>+${cookies} 🍪</b></div><div style="--c:var(--green-d)">Время<b>${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}</b></div></div>
-    ${newDay ? `<div class="bone-burst">${A("bone")}</div><b style="color:var(--orange-d);font-size:1.2rem">Серия: ${S.streak} ${plural(S.streak, "день", "дня", "дней")} подряд!</b>` : ""}
-    ${practice ? `<p class="muted">+1 ${A("heart")} за повторение</p>` : ""}
-    ${unitFinished ? `<div class="glass fact-card" style="text-align:left"><span class="flag">${A(ui % 2 ? "flag-us" : "flag-gb")}</span><div><div class="eyebrow">Бадди рассказывает</div>${C[ui].fact}</div></div>` : ""}
-    <button class="btn wide" data-a="ok">Продолжить</button>`, (m, close) => { m.querySelector('[data-a="ok"]').onclick = () => { close(); render(); paintTop(); bump("#pCookie"); if (newDay) bump("#pBone"); checkAch(); }; });
+  const typed = L.typed, fixedNow = L.fixedNow, maxCombo = L.maxCombo;
+  endLesson(true);
+  sfx.win(); vibe("win"); setTimeout(() => confetti(), 200);
+
+  const screens = [];
+  screens.push({
+    html: `<div class="hero">${buddyArt({ mood: "cheer", outfit: S.outfit })}</div>
+      <h1>${mode === "review" ? "Ошибки исправлены!" : mode === "practice" ? "Повторение — мать учения!" : perfect ? "Без единой ошибки!" : "Урок пройден!"}</h1>
+      <div class="results"><div style="--c:#141414"><span>Опыт</span><b data-cu="${xp}" data-sf=" XP">0</b></div><div style="--c:var(--honey-d)"><span>Точность</span><b data-cu="${acc}" data-sf="%">0</b></div><div style="--c:var(--green-d)"><span>Время</span><b>${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}</b></div></div>
+      <div class="row" style="justify-content:center;font-weight:900;font-size:1.1rem">+<span data-cu="${cookies + (goalNow ? 10 : 0)}">0</span> ${A("cookie")}${mode !== "unit" ? `&nbsp;&nbsp;+1 ${A("heart")}` : ""}</div>
+      ${goalNow ? `<div class="goal-note">${E("🎯")} Цель дня выполнена! +10 ${A("cookie")}</div>` : ""}
+      ${fixedNow ? `<p class="muted">Исправлено ${fixedNow} ${plural(fixedNow, "слово", "слова", "слов")} — так держать!</p>` : maxCombo >= 5 ? `<p class="muted">Рекорд урока: ${maxCombo} ответов подряд ${E("🔥")}</p>` : typed ? `<p class="muted">Написано слов без подсказки: ${typed} ${E("✍️")}</p>` : ""}`,
+    onShow: (el) => el.querySelectorAll("[data-cu]").forEach((x) => countUp(x, +x.dataset.cu, 900, x.dataset.sf || ""))
+  });
+  if (newDay) {
+    const wd = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"], now = new Date(), dow = (now.getDay() + 6) % 7;
+    const week = wd.map((n, j) => { const d = new Date(now); d.setDate(now.getDate() - dow + j); const kk = dayKey(d); return `<div class="${kk === today ? "today" : ""}"><i class="${S.days.includes(kk) ? "on" : ""}">${S.days.includes(kk) ? CHECK : ""}</i>${n}</div>`; }).join("");
+    screens.push({
+      html: `<div class="bone-big">${A("bone", "fill")}<b data-cu="${S.streak}">0</b></div>
+        <h1>${S.streak === 1 ? "Первая косточка!" : `${S.streak} ${plural(S.streak, "день", "дня", "дней")} подряд!`}</h1>
+        <p class="muted">${S.streak === 1 ? "Занимайся каждый день, и серия будет расти. Бадди будет ждать тебя завтра!" : "Серия растёт! Приходи завтра за новой косточкой."}</p>
+        <div class="glass week">${week}</div>
+        ${!S.cats.length && S.streak >= 2 ? `<p class="muted" style="font-size:.9rem">${A("cat")} Совет: возьми котика-хранителя в магазине — он сбережёт серию, если пропустишь день.</p>` : ""}`,
+      onShow: (el) => { sfx.coin(); const b = el.querySelector("[data-cu]"); countUp(b, S.streak, 700); }
+    });
+  }
+  if (unitFinished) {
+    const nextU = C[ui + 1];
+    screens.push({
+      html: `<div class="trophy">${A("trophy", "fill")}</div><div class="eyebrow">Раздел ${ui + 1} пройден</div><h1>${u.title}</h1>
+        <div class="word-chips">${u.words.map((w) => `<span>${E(w[2])}${esc(w[0])}</span>`).join("")}</div>
+        <div class="glass fact-card" style="text-align:left"><span class="flag">${A(u.flag === "us" ? "flag-us" : "flag-gb")}</span><div><div class="eyebrow">${u.flag === "us" ? "Факт об Америке" : "Факт о Британии"}</div>${u.fact}</div></div>
+        ${nextU ? `<div class="goal-note">${A("lock")} → ${E(nextU.emoji)} Открыт раздел «${nextU.title}»</div>` : `<div class="goal-note">${A("crown")} Ты прошёл весь курс!</div>`}
+        <p class="muted">+20 ${A("cookie")} за раздел</p>`,
+      onShow: () => { sfx.unlock(); setTimeout(() => confetti(160), 200); }
+    });
+  }
+  celebrate(screens, () => { scrollCur = true; go("learn"); paintTop(); bump("#pCookie"); if (newDay) bump("#pBone"); checkAch(); });
+}
+function celebrate(screens, done) {
+  const o = document.createElement("div"); o.className = "cele";
+  document.body.appendChild(o);
+  let i = 0, off = null;
+  const show = () => {
+    const s = screens[i];
+    o.innerHTML = `<div class="c-body">${s.html}</div><div class="c-foot"><button class="btn wide ${i === screens.length - 1 ? "honey" : ""}" id="cnx">${i === screens.length - 1 ? "Продолжить" : "Дальше"}</button></div>`;
+    s.onShow && s.onShow(o);
+    o.querySelector("#cnx").onclick = step;
+    setTimeout(() => { const b = o.querySelector("#cnx"); b && b.focus({ preventScroll: true }); }, 60);
+  };
+  const step = () => { sfx.tap(); i++; if (i < screens.length) show(); else { off && off(); o.remove(); done && done(); } };
+  off = onBack(step);
+  show();
 }
 
 /* ================= задания дня ================= */
 const QUESTS = [
   { k: "lessons", n: 1, e: "books", t: "Пройди 1 урок", r: 10 },
+  { k: "goal", n: 1, e: "target", t: "Выполни цель дня", r: 15 },
   { k: "xp", n: 40, e: "lightning", t: "Набери 40 XP", r: 15 },
-  { k: "perfect", n: 1, e: "target", t: "Урок без ошибок", r: 20 },
+  { k: "perfect", n: 1, e: "star", t: "Урок без ошибок", r: 20 },
   { k: "answers", n: 25, e: "check", t: "Дай 25 верных ответов", r: 15 },
-  { k: "practice", n: 1, e: "notebook", t: "Сделай повторение", r: 10 },
-  { k: "chat", n: 3, e: "speech", t: "Напиши Бадди 3 сообщения", r: 10 }
+  { k: "typed", n: 5, e: "pen", t: "Напиши 5 слов без подсказки", r: 15 },
+  { k: "practice", n: 1, e: "notebook", t: "Сделай повторение или работу над ошибками", r: 10 },
+  { k: "chat", n: 3, e: "speech", t: "Напиши Бадди 3 сообщения", r: 10, ai: true }
 ];
-function renderQuests() {
-  const q = questsToday();
-  view.innerHTML = `<div class="inner">
-    <div class="glass card row" style="flex-wrap:nowrap"><div style="width:90px;flex:none">${buddyArt({ mood: "think", outfit: S.outfit })}</div><div><h2>Задания дня</h2><p class="muted" style="margin:4px 0 0">Выполняй и копи печеньки 🍪. За печеньки можно взять котика-хранителя: он спасёт серию, если пропустишь день.</p></div></div>
-    ${QUESTS.map((x) => { const have = Math.min(x.n, q.c[x.k] || 0), done = have >= x.n, claimed = q.claimed[x.k];
-      return `<div class="glass quest ${claimed ? "claimed" : ""}"><span class="qe">${A(x.e, "big")}</span><div><b>${x.t}</b><div class="qbar"><i style="width:${have / x.n * 100}%"></i></div><small class="muted">${have} / ${x.n}</small></div>
-      ${claimed ? `<span style="width:34px">${A("check", "big")}</span>` : `<button class="btn sm ${done ? "honey" : ""}" data-q="${x.k}" ${done ? "" : "disabled"}>+${x.r} ${A("cookie")}</button>`}</div>`; }).join("")}
-    <button class="btn honey wide" id="practice">${A("notebook")} Доп. задание: повторение</button></div>`;
+const questVisible = (x) => !x.ai || aiReady();
+function renderQuests(anim) {
+  const q = questsToday(), list = QUESTS.filter(questVisible);
+  const left = list.filter((x) => !q.claimed[x.k]).length;
+  const mid = new Date(); mid.setHours(24, 0, 0, 0); const mins = Math.max(1, Math.round((mid - Date.now()) / 60000));
+  const order = list.slice().sort((a, b) => { const st = (x) => q.claimed[x.k] ? 2 : (q.c[x.k] || 0) >= x.n ? 0 : 1; return st(a) - st(b); });
+  view.innerHTML = `<div class="inner${anim ? " enter" : ""}">
+    <div class="glass head-card"><div>${buddyArt({ mood: "think", outfit: S.outfit })}</div><div><h2>Задания дня</h2><p class="muted" style="margin-top:4px;font-size:.9rem">Выполняй и копи печеньки ${A("cookie")}. Новые задания через ${Math.floor(mins / 60)} ч ${mins % 60} мин.</p></div></div>
+    ${left ? "" : `<div class="glass empty"><div class="pic">${A("trophy", "fill")}</div><h2>Все задания выполнены!</h2><p class="muted">Ты забрал все награды за сегодня. Завтра Бадди приготовит новые.</p></div>`}
+    ${order.map((x) => { const have = Math.min(x.n, q.c[x.k] || 0), done = have >= x.n, claimed = q.claimed[x.k];
+      return `<div class="glass quest ${claimed ? "claimed" : done ? "ready" : ""}"><span class="qe">${A(x.e)}</span><div><b>${x.t}</b><div class="qbar"><i style="width:${have / x.n * 100}%"></i></div><small class="muted">${have} / ${x.n}</small></div>
+      ${claimed ? `<span style="width:40px">${A("check", "fill")}</span>` : `<button class="btn sm ${done ? "honey" : ""}" data-q="${x.k}" ${done ? "" : "disabled"}>+${x.r} ${A("cookie")}</button>`}</div>`; }).join("")}
+    <button class="btn honey wide" id="practice">${E("🔁")} Доп. задание: повторение</button></div>`;
   view.querySelectorAll("[data-q]").forEach((b) => b.addEventListener("click", () => {
-    const x = QUESTS.find((y) => y.k === b.dataset.q); q.claimed[x.k] = true; S.cookies += x.r; save();
-    sfx.coin(); const r = b.getBoundingClientRect(); confetti(40, r.left + r.width / 2, r.top); paintTop(); bump("#pCookie"); renderQuests();
+    const x = QUESTS.find((y) => y.k === b.dataset.q); if (q.claimed[x.k]) return; q.claimed[x.k] = true; S.cookies += x.r; save();
+    sfx.coin(); vibe("ok"); const r = b.getBoundingClientRect(); confetti(40, r.left + r.width / 2, r.top); paintTop(); bump("#pCookie"); renderQuests(); checkAch();
   }));
-  $("#practice").onclick = () => startLesson(-1, 0);
+  $("#practice").onclick = () => { sfx.tap(); startLesson(-1, 0); };
 }
 
 /* ================= магазин ================= */
 const OUTFITS = [
-  { id: "tophat", n: "Лондонский цилиндр", p: 120 }, { id: "cap", n: "Кепка из Нью-Йорка", p: 100 },
-  { id: "scarf", n: "Тёплый шарфик", p: 80 }, { id: "bow", n: "Бантик", p: 60 }, { id: "crown", n: "Королевская корона", p: 250 }
+  { id: "bow", n: "Бантик", d: "Для самых милых", p: 60 }, { id: "scarf", n: "Тёплый шарфик", d: "Для лондонской погоды", p: 80 },
+  { id: "cap", n: "Кепка из Нью-Йорка", d: "Как у бейсболистов", p: 100 }, { id: "tophat", n: "Лондонский цилиндр", d: "Очень по-английски", p: 120 },
+  { id: "crown", n: "Королевская корона", d: "Для чемпионов", p: 250 }
 ];
-function renderShop() {
-  view.innerHTML = `<div class="inner">
-    <div class="glass card" style="display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center">
-      <div style="text-align:center">${A("cat-full", "big")}</div>
-      <div><h2>Котик-хранитель</h2><p class="muted" style="margin:4px 0 8px">Если пропустишь день, котик посторожит твои косточки 🦴, и серия не пропадёт. Можно держать до ${MAX_CATS} котиков.</p>
-      <div class="row"><b style="color:var(--violet-d)">У тебя: ${S.cats.length} / ${MAX_CATS}</b><button class="btn violet sm" id="buyCat" ${S.cats.length >= MAX_CATS || S.cookies < CAT_PRICE ? "disabled" : ""}>Взять за ${CAT_PRICE} 🍪</button></div>
-      ${S.cats.length ? `<small class="muted">${S.cats.map((c) => A("cat") + " " + c).join(" · ")}</small>` : ""}</div></div>
-    <h2 style="margin-top:6px">Наряды для Бадди</h2>
+function priceBtn(p, attrs, cls = "honey") { const need = p - S.cookies; return need > 0 ? `<button class="btn sm" disabled>Ещё ${need} ${A("cookie")}</button>` : `<button class="btn sm ${cls}" ${attrs}>${p} ${A("cookie")}</button>`; }
+function renderShop(anim) {
+  refillHearts();
+  view.innerHTML = `<div class="inner${anim ? " enter" : ""}">
+    <div class="glass card row" style="justify-content:space-between"><div><div class="eyebrow">Твои печеньки</div><b style="font-size:1.6rem">${A("cookie")} ${S.cookies}</b></div><small class="muted" style="max-width:52%">Печеньки дают за уроки и задания дня. За деньги здесь ничего не продаётся.</small></div>
+    <div class="glass card" style="display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center">
+      <div>${A("cat-full", "fill")}</div>
+      <div><h3>Котик-хранитель</h3><p class="muted" style="margin:4px 0 8px;font-size:.9rem">Пропустил день? Котик посторожит косточки, и серия не пропадёт. До ${MAX_CATS} котиков.</p>
+      <div class="row"><b style="color:#6e5320">${S.cats.length} / ${MAX_CATS}</b>${S.cats.length >= MAX_CATS ? `<span class="muted" style="font-size:.85rem">Все места заняты</span>` : priceBtn(CAT_PRICE, 'id="buyCat"', "")}</div>
+      ${S.cats.length ? `<small class="muted">${S.cats.map((c) => A("cat") + " " + esc(c)).join(" · ")}</small>` : ""}</div></div>
+    <div class="glass card" style="display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center">
+      <div style="padding:10px">${A("heart", "fill")}</div>
+      <div><h3>Полные сердечки</h3><p class="muted" style="margin:4px 0 8px;font-size:.9rem">Сейчас ${S.hearts} из ${MAX_HEARTS}. Сердечки и сами восстанавливаются — по одному за ${HEART_MIN} минут.</p>
+      ${S.hearts >= MAX_HEARTS ? `<span class="muted" style="font-weight:800">Сердечек полно!</span>` : priceBtn(REFILL_PRICE, 'id="buyHearts"')}</div></div>
+    <div class="sec-title"><h2>Наряды для Бадди</h2><small class="muted">${S.owned.length}/${OUTFITS.length}</small></div>
     <div class="shop-grid">${OUTFITS.map((o) => { const own = S.owned.includes(o.id), on = S.outfit === o.id;
-      return `<div class="glass item"><div class="prev">${buddyArt({ mood: "happy", outfit: o.id })}</div><b>${o.n}</b>
-        ${own ? `<button class="btn sm ${on ? "ghost" : "blue"}" data-wear="${o.id}">${on ? "Снять" : "Надеть"}</button>` : `<button class="btn sm honey" data-buy="${o.id}" ${S.cookies < o.p ? "disabled" : ""}>${o.p} ${A("cookie")}</button>`}</div>`; }).join("")}</div>
-    <div class="plus"><span class="chip">Скоро</span><h2 style="margin-top:8px;font-size:1.5rem">Бадди Плюс</h2>
-      <ul><li>Бесконечные сердечки ❤️</li><li>Двойные печеньки 🍪</li><li>1 котик-хранитель каждую неделю 🐱</li><li>Без ограничений в чате с Бадди 💬</li></ul>
-      <p style="margin:0;opacity:.9">Это пока концепт: оплаты в приложении нет. Покупки в магазине делаются только за печеньки, которые ты заработал.</p></div>
+      return `<div class="glass item ${on ? "on" : ""}">${on ? `<span class="tagon">Надето</span>` : ""}<div class="prev">${buddyArt({ mood: "happy", outfit: o.id })}</div><b>${o.n}</b><small>${o.d}</small>
+        ${own ? `<button class="btn sm ${on ? "ghost" : ""}" data-wear="${o.id}">${on ? "Снять" : "Надеть"}</button>` : priceBtn(o.p, `data-buy="${o.id}"`)}</div>`; }).join("")}</div>
+    <div class="plus"><span class="chip">Скоро</span><h2 style="margin-top:8px;font-size:1.4rem;color:#f3e3b0">Бадди Плюс</h2>
+      <ul><li>Бесконечные сердечки</li><li>Двойные печеньки</li><li>Котик-хранитель каждую неделю</li></ul>
+      <p style="margin:0;opacity:.85;font-size:.9rem">Это пока идея: оплаты в приложении нет и не будет без взрослых. Всё в магазине — только за заработанные печеньки.</p></div>
   </div>`;
   const bc = $("#buyCat");
-  bc && (bc.onclick = () => { S.cookies -= CAT_PRICE; S.cats.push(CAT_NAMES[(Math.random() * CAT_NAMES.length) | 0]); save(); sfx.coin(); confetti(50); paintTop(); bump("#pCat"); toast(`Котик ${S.cats[S.cats.length - 1]} теперь охраняет твои косточки!`); renderShop(); });
-  view.querySelectorAll("[data-buy]").forEach((b) => b.onclick = () => { const o = OUTFITS.find((x) => x.id === b.dataset.buy); S.cookies -= o.p; S.owned.push(o.id); S.outfit = o.id; save(); sfx.win(); confetti(60); paintTop(); renderShop(); checkAch(); });
-  view.querySelectorAll("[data-wear]").forEach((b) => b.onclick = () => { S.outfit = S.outfit === b.dataset.wear ? null : b.dataset.wear; save(); sfx.woof(); renderShop(); });
+  bc && (bc.onclick = () => { if (S.cookies < CAT_PRICE || S.cats.length >= MAX_CATS) return; S.cookies -= CAT_PRICE; const free = CAT_NAMES.filter((n) => !S.cats.includes(n)); S.cats.push(rnd(free.length ? free : CAT_NAMES)); save(); sfx.coin(); vibe("ok"); confetti(50); paintTop(); bump("#pCat"); toast(`${A("cat")} Котик ${esc(S.cats[S.cats.length - 1])} теперь охраняет твои косточки!`); renderShop(); checkAch(); });
+  const bh = $("#buyHearts");
+  bh && (bh.onclick = () => { if (S.cookies < REFILL_PRICE) return; S.cookies -= REFILL_PRICE; S.hearts = MAX_HEARTS; save(); sfx.coin(); vibe("ok"); paintTop(); bump("#pHeart"); toast(`${A("heart")} Сердечки восстановлены!`); renderShop(); });
+  view.querySelectorAll("[data-buy]").forEach((b) => b.onclick = () => { const o = OUTFITS.find((x) => x.id === b.dataset.buy); if (S.cookies < o.p) return; S.cookies -= o.p; S.owned.push(o.id); S.outfit = o.id; save(); sfx.win(); vibe("win"); confetti(60); paintTop(); renderShop(); toast(`Бадди в обновке: ${o.n}!`); checkAch(); });
+  view.querySelectorAll("[data-wear]").forEach((b) => b.onclick = () => { S.outfit = S.outfit === b.dataset.wear ? null : b.dataset.wear; save(); sfx.woof(); vibe(); renderShop(); });
 }
 
 /* ================= профиль ================= */
@@ -734,44 +1204,83 @@ const ACH = [
   { k: "perf", e: "target", n: "Без ошибок", test: () => S.perfect >= 1 },
   { k: "xp100", e: "lightning", n: "100 XP", test: () => S.xp >= 100 },
   { k: "words30", e: "books", n: "30 слов", test: () => S.learned.length >= 30 },
+  { k: "typer", e: "pen", n: "Писатель", d: "20 слов без подсказки", test: () => S.typed >= 20 },
+  { k: "fix", e: "brain", n: "Работа над ошибками", d: "Исправь 10 слов", test: () => S.fixed >= 10 },
   { k: "style", e: "tophat", n: "Модник", test: () => S.owned.length >= 1 },
   { k: "cat", e: "cat", n: "Друг котиков", test: () => S.cats.length >= 1 },
-  { k: "all", e: "crown", n: "Весь курс", test: () => C.every(unitDone) }
+  { k: "half", e: "globe", n: "Полкурса", d: `${Math.ceil(C.length / 2)} разделов`, test: () => C.filter(unitDone).length >= Math.ceil(C.length / 2) },
+  { k: "all", e: "crown", n: "Весь курс", d: `${C.length} разделов`, test: () => C.every(unitDone) }
 ];
 function checkAch() {
-  ACH.forEach((a) => { if (!S.ach[a.k] && a.test()) { S.ach[a.k] = Date.now(); save(); setTimeout(() => { toast(`Награда: ${a.e} ${a.n}!`); sfx.win(); }, 600); } });
+  let d = 600;
+  ACH.forEach((a) => { if (!S.ach[a.k] && a.test()) { S.ach[a.k] = Date.now(); save(); setTimeout(() => { toast(`${A(a.e)} Новая награда: ${a.n}!`); sfx.win(); vibe("win"); }, d); d += 1800; } });
 }
-let confirmReset = false;
-function renderMe() {
-  view.innerHTML = `<div class="inner">
-    <div class="glass card" style="text-align:center"><div style="width:180px;margin:0 auto">${buddyArt({ mood: "happy", outfit: S.outfit })}</div>
-      <h2>${esc(S.name || "Ученик")} и Бадди</h2><p class="muted" style="margin:4px 0 0">Учимся вместе с ${S.lessons ? S.lessons + " " + plural(S.lessons, "урока", "уроков", "уроков") : "сегодняшнего дня"}</p></div>
+function toggleHTML(id, on, label) { return `<button class="toggle" id="${id}" role="switch" aria-checked="${on}"><span>${label}</span><span class="sw"></span></button>`; }
+function renderMe(anim) {
+  const doneUnits = C.filter(unitDone).length;
+  view.innerHTML = `<div class="inner${anim ? " enter" : ""}">
+    <div class="glass card" style="text-align:center"><div style="width:170px;margin:0 auto">${buddyArt({ mood: "happy", outfit: S.outfit })}</div>
+      <h2>${esc(S.name || "Ученик")} и Бадди</h2><p class="muted" style="margin-top:4px">${S.lessons ? `Пройдено ${S.lessons} ${plural(S.lessons, "урок", "урока", "уроков")} · разделов ${doneUnits} из ${C.length}` : "Вы только познакомились — впереди много интересного!"}</p></div>
     <div class="stats">
-      <div class="glass stat"><span class="e">🦴</span><div><b>${S.streak}</b><small>серия, дней</small></div></div>
-      <div class="glass stat"><span class="e">🏆</span><div><b>${S.bestStreak}</b><small>лучшая серия</small></div></div>
-      <div class="glass stat"><span class="e">⚡</span><div><b>${S.xp}</b><small>опыт XP</small></div></div>
-      <div class="glass stat"><span class="e">📚</span><div><b>${S.learned.length}</b><small>слов выучено</small></div></div>
+      <div class="glass stat"><span class="e">${A("bone")}</span><div><b>${S.streak}</b><small>серия, дней</small></div></div>
+      <div class="glass stat"><span class="e">${A("trophy")}</span><div><b>${S.bestStreak}</b><small>лучшая серия</small></div></div>
+      <div class="glass stat"><span class="e">${A("lightning")}</span><div><b>${S.xp}</b><small>опыт XP</small></div></div>
+      <button class="glass stat" id="dictAll"><span class="e">${A("books")}</span><div><b>${S.learned.length}</b><small>слов · словарь ›</small></div></button>
     </div>
-    <h2>Награды</h2>
-    <div class="ach">${ACH.map((a) => `<div class="glass ${S.ach[a.k] ? "" : "no"}"><span>${A(a.e)}</span>${a.n}</div>`).join("")}</div>
+    <div class="sec-title"><h2>Награды</h2><small class="muted">${ACH.filter((a) => S.ach[a.k]).length}/${ACH.length}</small></div>
+    <div class="ach">${ACH.map((a) => `<div class="glass ${S.ach[a.k] ? "" : "no"}"><span>${A(a.e)}</span>${a.n}${a.d ? `<small>${a.d}</small>` : ""}</div>`).join("")}</div>
     <h2>Настройки</h2>
-    <div class="glass card" style="display:flex;flex-direction:column;gap:14px">
-      <label class="field"><span>Как тебя зовут?</span><input id="nm" maxlength="20" value="${esc(S.name)}" placeholder="Имя"></label>
-      <button class="btn ghost" id="snd">${S.sound ? "🔊 Звук включён" : "🔇 Звук выключен"}</button>
+    <div class="glass card" style="display:flex;flex-direction:column;gap:10px">
+      <label class="field"><span>Как тебя зовут?</span><input id="nm" maxlength="20" value="${esc(S.name)}" placeholder="Имя" autocomplete="off"></label>
+      <div class="field"><span>Цель дня</span><div class="row">${[1, 2, 3].map((g) => `<button class="btn sm ${S.goal === g ? "" : "ghost"}" data-goal="${g}">${g} ${plural(g, "урок", "урока", "уроков")}</button>`).join("")}</div></div>
+      ${toggleHTML("snd", S.sound, "Звуки")}
+      ${toggleHTML("vib", S.vibe, "Вибрация")}
     </div>
-    <div class="glass card" style="display:flex;flex-direction:column;gap:12px">
+    <div class="glass card" style="display:flex;flex-direction:column;gap:12px" id="aiCard">
       <div class="eyebrow">Для учителя или родителя</div><h3>ИИ-собеседник</h3>
-      <p class="muted" style="margin:0">Чат с Бадди работает через OpenRouter на бесплатных моделях. Ключ хранится только на этом устройстве.</p>
+      <div class="ai-status ${aiReady() ? "on" : ""}" id="aiSt"><i></i><span>${aiReady() ? (S.proxyUrl ? "Подключён свой сервер" : "Ключ сохранён") : "Не подключён — чат с Бадди молчит"}</span></div>
+      <p class="muted" style="font-size:.9rem">Чат работает через OpenRouter на бесплатных моделях. Ключ хранится только на этом устройстве. Бадди отвечает просто и по-доброму и не спрашивает личные данные.</p>
       <label class="field"><span>Ключ OpenRouter</span><input id="key" type="password" autocomplete="off" value="${esc(S.apiKey)}" placeholder="sk-or-v1-…"><small>Бесплатно: openrouter.ai → Keys → Create key</small></label>
-      <label class="field"><span>Свой сервер (необязательно)</span><input id="proxy" autocomplete="off" value="${esc(S.proxyUrl)}" placeholder="https://… — тогда ключ не нужен"></label>
-      <button class="btn blue" id="saveAi">Сохранить</button>
+      <label class="field"><span>Свой сервер (необязательно)</span><input id="proxy" type="url" autocomplete="off" value="${esc(S.proxyUrl)}" placeholder="https://… — тогда ключ не нужен"><small>Получает { messages } и возвращает { reply }</small></label>
+      <div class="row"><button class="btn" id="saveAi" style="flex:1">Сохранить</button><button class="btn ghost" id="testAi">Проверить</button></div>
     </div>
-    <button class="btn ${confirmReset ? "red" : "ghost"} wide" id="reset">${confirmReset ? "Точно стереть весь прогресс?" : "Начать курс заново"}</button>
+    <button class="btn ghost wide" id="reset">Начать курс заново</button>
+    <p class="muted" style="text-align:center;font-size:.75rem">3D-иллюстрации: Microsoft Fluent Emoji (лицензия MIT)</p>
   </div>`;
-  $("#nm").onchange = (e) => { S.name = e.target.value.trim(); save(); };
-  $("#snd").onclick = () => { S.sound = !S.sound; save(); renderMe(); sfx.tap(); };
-  $("#saveAi").onclick = () => { S.apiKey = $("#key").value.trim(); S.proxyUrl = $("#proxy").value.trim(); save(); sfx.ok(); toast("Готово! Теперь можно болтать с Бадди 💬"); };
-  $("#reset").onclick = () => { if (!confirmReset) { confirmReset = true; renderMe(); return; } confirmReset = false; const keep = { apiKey: S.apiKey, proxyUrl: S.proxyUrl }; S = Object.assign(fresh(), keep); save(); paintTop(); go("learn"); onboarding(); };
+  $("#nm").onchange = (e) => { S.name = e.target.value.trim(); save(); toast("Имя сохранено"); };
+  view.querySelectorAll("[data-goal]").forEach((b) => b.onclick = () => { S.goal = +b.dataset.goal; save(); sfx.tap(); vibe(); renderMe(); });
+  $("#snd").onclick = () => { S.sound = !S.sound; save(); sfx.tap(); renderMe(); };
+  $("#vib").onclick = () => { S.vibe = !S.vibe; save(); vibe(); sfx.tap(); renderMe(); };
+  $("#dictAll").onclick = () => { sfx.tap(); showAllWords(); };
+  const readAi = () => { S.apiKey = $("#key").value.trim(); S.proxyUrl = $("#proxy").value.trim(); };
+  $("#saveAi").onclick = () => {
+    readAi();
+    if (S.proxyUrl && !/^https?:\/\//i.test(S.proxyUrl)) { toast("Адрес сервера должен начинаться с https://"); return; }
+    if (S.apiKey && !/^sk-/.test(S.apiKey)) toast("Ключ обычно начинается с sk-or-… Проверь, что он скопирован целиком");
+    else toast(aiReady() ? "Готово! Теперь можно болтать с Бадди" : "Ключ удалён");
+    save(); sfx.ok(); renderMe(); paintTop();
+  };
+  $("#testAi").onclick = async () => {
+    readAi(); const st = $("#aiSt");
+    if (!aiReady()) { st.className = "ai-status err"; st.lastChild.textContent = "Сначала вставь ключ или адрес сервера"; return; }
+    st.className = "ai-status"; st.lastChild.textContent = "Проверяю…";
+    try { const r = await askBuddy([{ r: "me", t: "Say hello in 3 words." }]); st.className = "ai-status on"; st.lastChild.textContent = "Работает! Бадди ответил: " + String(r).slice(0, 60); save(); }
+    catch (e) { st.className = "ai-status err"; st.lastChild.textContent = errText(e); }
+  };
+  $("#reset").onclick = () => modal(`<div class="hero">${buddyArt({ mood: "oops", outfit: S.outfit })}</div><h2>Начать заново?</h2><p class="muted">Сотрутся косточки, печеньки, наряды и пройденные уроки. Ключ ИИ останется.</p>
+    <button class="btn red wide" data-a="yes">Да, стереть прогресс</button><button class="btn ghost wide" data-a="no">Отмена</button>`, (m, close) => {
+      m.querySelector('[data-a="no"]').onclick = close;
+      m.querySelector('[data-a="yes"]').onclick = () => { close(); const keep = { apiKey: S.apiKey, proxyUrl: S.proxyUrl, sound: S.sound, vibe: S.vibe }; S = Object.assign(fresh(), keep); save(); scrollCur = true; paintTop(); go("learn"); onboarding(); };
+    });
+}
+function showAllWords() {
+  const units = C.filter((u, i) => unitOpen(i));
+  modal(`<div style="width:90px">${A("books", "fill")}</div><h2>Мой словарь</h2><p class="muted">${S.learned.length ? `Выучено ${S.learned.length} ${plural(S.learned.length, "слово", "слова", "слов")}. Нажми, чтобы послушать.` : "Здесь появятся слова из пройденных уроков."}</p>
+    <div class="dict">${units.map((u) => { const ws = u.words.filter((w) => S.learned.includes(w[0])); return ws.length ? `<h3>${E(u.emoji)} ${u.title}</h3>` + ws.map((w) => `<button class="w" data-say="${esc(w[0])}">${E(w[2])}<span><b>${esc(w[0])}</b><small>${esc(w[1])}</small></span><span class="speak">${SPK}</span></button>`).join("") : ""; }).join("")}</div>
+    <button class="btn wide" data-a="ok">Закрыть</button>`, (m, close) => {
+    m.querySelectorAll("[data-say]").forEach((b) => b.onclick = () => speak(b.dataset.say, false, b.querySelector(".speak")));
+    m.querySelector('[data-a="ok"]').onclick = close;
+  });
 }
 
 /* ================= ИИ-чат через OpenRouter ================= */
@@ -782,8 +1291,10 @@ Rules:
 - Gently correct mistakes: show the correct sentence once, then praise.
 - Always end with one easy question to keep the chat going.
 - You love tea, London, New York, bones and naps. You are playful and warm, sometimes say "Woof!".
+- Do not use markdown, lists or emoji codes. Plain short text only.
 - Keep everything child-safe. Never ask for personal data (address, phone, school, photos). If a topic is not for children, kindly change the subject to learning English.`;
 const OR = "https://openrouter.ai/api/v1";
+const CHAT_MAX = 200;
 const FALLBACK_MODELS = ["openrouter/free", "meta-llama/llama-3.3-70b-instruct:free", "google/gemma-3-27b-it:free", "mistralai/mistral-small-3.2-24b-instruct:free", "qwen/qwen3-235b-a22b:free", "deepseek/deepseek-chat-v3-0324:free"];
 async function freeModels() {
   try {
@@ -791,7 +1302,8 @@ async function freeModels() {
     if (c && Date.now() - c.t < 864e5 && c.list.length) return c.list;
   } catch (e) { /* нет кэша */ }
   try {
-    const r = await fetch(OR + "/models"); const j = await r.json();
+    const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 8000);
+    const r = await fetch(OR + "/models", { signal: ctl.signal }); clearTimeout(to); const j = await r.json();
     const free = (j.data || []).filter((m) => (m.id.endsWith(":free") || (m.pricing && +m.pricing.prompt === 0 && +m.pricing.completion === 0)) && (m.context_length || 0) >= 8000 && !/vision|vl|image|audio|embed|guard/i.test(m.id))
       .sort((a, b) => score(b) - score(a)).map((m) => m.id);
     const list = [...new Set([...free.filter((id) => id === "openrouter/free"), ...free, ...FALLBACK_MODELS])].slice(0, 8);
@@ -800,105 +1312,170 @@ async function freeModels() {
   } catch (e) { return FALLBACK_MODELS; }
   function score(m) { const id = m.id; return (/llama|gemma|mistral|qwen|deepseek/i.test(id) ? 50 : 0) + (/instruct|chat|it/i.test(id) ? 10 : 0) + Math.min(30, (m.context_length || 0) / 4000); }
 }
+const cleanReply = (t) => String(t || "").replace(/<think>[\s\S]*?<\/think>/g, "").replace(/\*\*|__|`|^#+\s*/gm, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, 900);
 async function askBuddy(history) {
-  const msgs = [{ role: "system", content: SYSTEM }, ...history.slice(-12).map((m) => ({ role: m.r === "me" ? "user" : "assistant", content: m.t }))];
+  if (navigator.onLine === false) throw Object.assign(new Error("offline"), { code: "offline" });
+  const msgs = [{ role: "system", content: SYSTEM }, ...history.slice(-12).map((m) => ({ role: m.r === "me" ? "user" : "assistant", content: String(m.t).slice(0, 500) }))];
   if (S.proxyUrl) {
-    const r = await fetch(S.proxyUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: msgs }) });
-    if (!r.ok) throw new Error("server " + r.status);
-    const j = await r.json(); return j.reply || (j.choices && j.choices[0].message.content);
+    const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 30000);
+    let r;
+    try { r = await fetch(S.proxyUrl, { method: "POST", signal: ctl.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: msgs }) }); }
+    catch (e) { throw Object.assign(new Error("net"), { code: "net" }); } finally { clearTimeout(to); }
+    if (!r.ok) throw Object.assign(new Error("server " + r.status), { code: "server" });
+    const j = await r.json(); const t = cleanReply(j.reply || (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content));
+    if (!t) throw Object.assign(new Error("empty"), { code: "busy" });
+    return t;
   }
   const models = await freeModels();
   let lastErr = null;
   for (const model of models.slice(0, 5)) {
     try {
       const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 25000);
-      const r = await fetch(OR + "/chat/completions", { method: "POST", signal: ctl.signal,
-        headers: { "Authorization": "Bearer " + S.apiKey, "Content-Type": "application/json", "X-Title": "Buddy English" },
-        body: JSON.stringify({ model, messages: msgs, max_tokens: 220, temperature: .7 }) });
-      clearTimeout(to);
-      if (r.status === 401) throw Object.assign(new Error("key"), { fatal: true });
-      if (!r.ok) { lastErr = new Error("http " + r.status); continue; }
-      const j = await r.json(); const t = j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
-      if (t && t.trim()) return t.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-    } catch (e) { if (e.fatal) throw e; lastErr = e; }
+      let r;
+      try {
+        r = await fetch(OR + "/chat/completions", { method: "POST", signal: ctl.signal,
+          headers: { "Authorization": "Bearer " + S.apiKey, "Content-Type": "application/json", "X-Title": "Buddy English" },
+          body: JSON.stringify({ model, messages: msgs, max_tokens: 220, temperature: .7 }) });
+      } finally { clearTimeout(to); }
+      if (r.status === 401 || r.status === 403) throw Object.assign(new Error("key"), { fatal: true, code: "key" });
+      if (r.status === 402) throw Object.assign(new Error("credits"), { fatal: true, code: "credits" });
+      if (!r.ok) { lastErr = Object.assign(new Error("http " + r.status), { code: r.status === 429 ? "busy" : "server" }); continue; }
+      const j = await r.json(); const t = cleanReply(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content);
+      if (t) return t;
+    } catch (e) { if (e.fatal) throw e; lastErr = Object.assign(e, { code: e.code || (e.name === "AbortError" ? "slow" : "net") }); }
   }
-  throw lastErr || new Error("no model");
+  throw lastErr || Object.assign(new Error("no model"), { code: "busy" });
 }
-const QUICK = ["Hello, Buddy!", "Tell me about London", "What do you like?", "Let's play a word game", "Как сказать «я люблю пиццу»?", "Tell me a joke"];
-let sending = false;
-function renderChat() {
-  if (!S.chat.length) S.chat = [{ r: "bot", t: `Woof! Hi${S.name ? ", " + S.name : ""}! I am Buddy 🐶 Let's talk in English! How are you today? (Как у тебя дела сегодня?)` }];
-  const ready = S.apiKey || S.proxyUrl;
-  view.innerHTML = `<div class="inner" style="padding-bottom:80px">
-    <div class="glass card row" style="flex-wrap:nowrap"><div style="width:76px;flex:none">${buddyArt({ mood: "happy", outfit: S.outfit })}</div><div><h2>Болтаем с Бадди</h2><small class="muted">Пиши по-английски или спрашивай по-русски. Нажми 🔊, чтобы послушать.</small></div></div>
-    ${ready ? "" : `<div class="glass card"><b>Бадди пока не умеет говорить 🙊</b><p class="muted" style="margin:6px 0 10px">Попроси учителя или родителя вставить бесплатный ключ OpenRouter во вкладке «Я» → «ИИ-собеседник».</p><button class="btn blue sm" id="toMe">Открыть настройки</button></div>`}
-    <div class="chat" id="chat">${S.chat.map(msgHTML).join("")}</div>
-    <div class="quick" id="quick">${QUICK.map((q) => `<button>${esc(q)}</button>`).join("")}</div>
+function errText(e) {
+  return ({ key: "Ключ OpenRouter не подходит. Попроси взрослого проверить его во вкладке «Я».", credits: "На ключе закончился лимит. Попроси взрослого проверить его на openrouter.ai.",
+    offline: "Нет интернета. Подключись к Wi-Fi и попробуй ещё раз.", net: "Не получилось связаться с сервером. Проверь интернет и попробуй ещё раз.",
+    slow: "Бадди думал слишком долго. Попробуй ещё раз.", busy: "Бесплатные модели сейчас заняты. Попробуй через минутку.", server: "Сервер ответил ошибкой. Попробуй чуть позже." })[e && e.code] || "Бадди задумался и не смог ответить. Попробуй ещё раз.";
+}
+const QUICK = ["Hello, Buddy!", "How are you?", "Tell me about London", "What do you like?", "Let's play a word game", "Как сказать «я люблю пиццу»?", "Tell me a joke"];
+let sending = false, chatErr = null;
+function msgHTML(m, i) {
+  if (m.r === "me") return `<div class="msg me">${esc(m.t)}</div>`;
+  return `<div class="msg-bot"><div class="av">${A("dog", "fill")}</div><div class="msg">${esc(m.t)}</div><button class="say" data-say="${i}" aria-label="Послушать">${SPK}</button></div>`;
+}
+function renderChat(anim) {
+  const ready = aiReady();
+  const hist = S.chat.length ? S.chat : [{ r: "bot", t: `Woof! Hi${S.name ? ", " + S.name : ""}! I am Buddy. Let's talk in English! How are you today? (Как у тебя дела сегодня?)` }];
+  view.innerHTML = `<div class="inner${anim ? " enter" : ""}" style="padding-bottom:70px">
+    <div class="glass head-card" style="grid-template-columns:72px 1fr auto"><div>${buddyArt({ mood: sending ? "think" : "happy", outfit: S.outfit })}</div><div><h2>Болтаем с Бадди</h2><small class="muted">Пиши по-английски или спрашивай по-русски</small></div>
+      ${S.chat.length > 1 ? `<button class="btn ghost sm" id="clr" aria-label="Очистить чат" style="padding:0 12px">${CROSS.replace('stroke-width="2.8"', 'stroke-width="2.4" width="18" height="18"')}</button>` : ""}</div>
+    ${ready ? "" : `<div class="glass empty"><div class="pic">${buddyArt({ mood: "sleep", outfit: S.outfit })}</div><h2>Бадди пока молчит</h2><p class="muted">Чтобы Бадди мог отвечать, взрослому нужно один раз вставить бесплатный ключ OpenRouter во вкладке «Я» → «ИИ-собеседник».</p><button class="btn" id="toMe">Открыть настройки</button></div>`}
+    <div class="chat" id="chat">${ready ? hist.map(msgHTML).join("") : ""}
+      ${sending ? `<div class="typing" id="typing"><div class="av" style="width:36px">${A("dog", "fill")}</div><div class="dots"><span></span><span></span><span></span></div>Бадди печатает…</div>` : ""}
+      ${chatErr && !sending ? `<div class="msg-bot err"><div class="av">${buddyArt({ mood: "oops" })}</div><div class="msg">${esc(chatErr.text)}<br><button class="btn sm red" id="retry">Повторить</button></div></div>` : ""}</div>
+    ${ready ? `<div class="quick" id="quick">${QUICK.map((q) => `<button ${sending ? "disabled" : ""}>${esc(q)}</button>`).join("")}</div>` : ""}
   </div>
-  <form class="composer glass" id="cf"><input id="ci" maxlength="300" placeholder="${ready ? "Напиши Бадди…" : "Нужен ключ ИИ"}" ${ready ? "" : "disabled"} autocomplete="off"><button class="btn sm" ${ready ? "" : "disabled"} aria-label="Отправить">➤</button></form>`;
-  const tm = $("#toMe"); tm && (tm.onclick = () => go("me"));
-  bindSpeak();
-  view.scrollTop = view.scrollHeight;
-  $("#cf").onsubmit = (e) => { e.preventDefault(); send($("#ci").value); };
-  view.querySelectorAll("#quick button").forEach((b) => b.onclick = () => ready ? send(b.textContent) : go("me"));
+  <form class="composer glass" id="cf"><input id="ci" maxlength="${CHAT_MAX}" placeholder="${ready ? (sending ? "Бадди отвечает…" : "Напиши Бадди…") : "Нужен ключ ИИ"}" ${ready ? "" : "disabled"} autocomplete="off" enterkeyhint="send" lang="en"><span class="cnt" id="cnt"></span><button class="btn sm" id="cs" disabled aria-label="Отправить">${SEND}</button></form>`;
+  const tm = $("#toMe"); tm && (tm.onclick = () => { sfx.tap(); go("me"); setTimeout(() => { const k = $("#aiCard"); k && k.scrollIntoView({ block: "center" }); }, 200); });
+  const clr = $("#clr"); clr && (clr.onclick = () => modal(`<h2>Очистить чат?</h2><p class="muted">Вся переписка с Бадди удалится.</p><button class="btn wide" data-a="y">Очистить</button><button class="btn ghost wide" data-a="n">Отмена</button>`, (m, close) => { m.querySelector('[data-a="n"]').onclick = close; m.querySelector('[data-a="y"]').onclick = () => { close(); S.chat = []; chatErr = null; save(); renderChat(); }; }));
+  view.querySelectorAll("[data-say]").forEach((b) => b.onclick = () => { const m = hist[+b.dataset.say]; m && speak(m.t, false, b); });
+  const ci = $("#ci"), cs = $("#cs"), cnt = $("#cnt");
+  const upd = () => { const n = ci.value.length; cs.disabled = !ready || sending || !ci.value.trim(); cnt.textContent = n > CHAT_MAX - 50 ? `${n}/${CHAT_MAX}` : ""; cnt.classList.toggle("over", n >= CHAT_MAX); };
+  ci.oninput = upd; upd();
+  $("#cf").onsubmit = (e) => { e.preventDefault(); send(ci.value); };
+  const rt = $("#retry"); rt && (rt.onclick = () => { sfx.tap(); const t = chatErr.retry; chatErr = null; send(t, true); });
+  view.querySelectorAll("#quick button").forEach((b) => b.onclick = () => send(b.textContent));
+  requestAnimationFrame(() => { view.style.scrollBehavior = "auto"; view.scrollTop = view.scrollHeight; view.style.scrollBehavior = ""; });
 }
-function msgHTML(m) { return `<div class="msg ${m.r}">${esc(m.t)}${m.r === "bot" ? `<button class="s" data-say="${esc(m.t)}" aria-label="Послушать">🔊</button>` : ""}</div>`; }
-function bindSpeak() { view.querySelectorAll("[data-say]").forEach((b) => b.onclick = () => speak(b.dataset.say)); }
-async function send(text) {
-  text = String(text || "").trim(); if (!text || sending) return;
-  sending = true; S.chat.push({ r: "me", t: text }); save(); bumpQuest("chat");
-  const chat = $("#chat"); chat.insertAdjacentHTML("beforeend", msgHTML({ r: "me", t: text }) + `<div class="msg bot typing" id="typing"><span></span><span></span><span></span></div>`);
-  $("#ci").value = ""; view.scrollTop = view.scrollHeight;
+async function send(text, retry) {
+  text = String(text || "").trim().slice(0, CHAT_MAX); if (!text || sending || !aiReady()) return;
+  sending = true; chatErr = null; sfx.tap();
+  if (!S.chat.length) S.chat.push({ r: "bot", t: `Woof! Hi${S.name ? ", " + S.name : ""}! I am Buddy. Let's talk in English! How are you today? (Как у тебя дела сегодня?)` });
+  if (!retry) { S.chat.push({ r: "me", t: text }); bumpQuest("chat"); }
+  save();
+  if (current_tab === "chat") renderChat();
   try {
     const reply = await askBuddy(S.chat);
     S.chat.push({ r: "bot", t: reply }); if (S.chat.length > 60) S.chat = S.chat.slice(-60); save();
-    sfx.woof();
+    sfx.woof(); vibe();
   } catch (e) {
-    S.chat.push({ r: "bot", t: e.fatal ? "Ой! Ключ OpenRouter не подходит. Попроси взрослого проверить его во вкладке «Я». 🐾" : "Woof… Бадди задумался и не смог ответить. Бесплатные модели иногда заняты — попробуй ещё раз через минутку. 🐾" });
-    save();
+    chatErr = { text: errText(e), retry: text }; sfx.bad();
   }
   sending = false;
-  if (current_tab === "chat") renderChat();
+  if (current_tab === "chat") renderChat(); else if (!chatErr) toast(`${A("dog")} Бадди ответил в чате!`);
+  paintTop();
 }
 
 /* ================= навигация ================= */
 let current_tab = "learn";
 window.addEventListener("buddy-art-ready", () => { if (!L) render(); });
 function go(tab) {
+  const changed = tab !== current_tab;
   current_tab = tab;
   document.querySelectorAll("nav.tabs button").forEach((b) => { if (b.dataset.tab === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
-  render(); view.scrollTop = 0;
+  if (tab !== "learn" || changed) { view.style.scrollBehavior = "auto"; view.scrollTop = 0; view.style.scrollBehavior = ""; }
+  if (tab === "learn" && changed) scrollCur = true;
+  render(true);
+  syncBack();
 }
-function render() { ({ learn: renderLearn, chat: renderChat, quests: renderQuests, shop: renderShop, me: renderMe })[current_tab](); paintTop(); }
-document.querySelectorAll("nav.tabs button").forEach((b) => b.addEventListener("click", () => { sfx.tap(); go(b.dataset.tab); }));
-$("#pCat").onclick = () => go("shop");
-$("#pHeart").onclick = () => { refillHearts(); if (S.hearts < MAX_HEARTS) { const m = HEART_MIN - Math.floor((Date.now() - S.heartsAt) / 60000) % HEART_MIN; toast(`Следующее ❤️ через ${m} мин. Или сделай повторение!`); } else toast("Сердечек полно! ❤️"); };
-$("#pBone").onclick = () => toast(S.lastDay === dayKey() ? `Сегодняшняя косточка уже твоя! Серия: ${S.streak} 🦴` : "Пройди урок сегодня, чтобы получить косточку 🦴");
+function render(anim) { ({ learn: renderLearn, chat: renderChat, quests: renderQuests, shop: renderShop, me: renderMe })[current_tab](anim); paintTop(); }
+document.querySelectorAll("nav.tabs button").forEach((b) => b.addEventListener("click", () => { sfx.tap(); vibe(); if (b.dataset.tab === current_tab && current_tab === "learn") { scrollCur = true; renderLearn(); return; } go(b.dataset.tab); }));
+$("#pCat").onclick = () => { sfx.tap(); toast(S.cats.length ? `${A("cat")} ${S.cats.map(esc).join(", ")} ${S.cats.length > 1 ? "охраняют" : "охраняет"} твою серию` : `${A("cat")} Котики-хранители берегут серию. Возьми котика в магазине!`); };
+$("#pCookie").onclick = () => { sfx.tap(); toast(`${A("cookie")} ${S.cookies} ${plural(S.cookies, "печенька", "печеньки", "печенек")} — трать в магазине`); };
+$("#pHeart").onclick = () => { sfx.tap(); refillHearts(); if (S.hearts < MAX_HEARTS) { const m = HEART_MIN - Math.floor((Date.now() - S.heartsAt) / 60000) % HEART_MIN; toast(`${A("heart")} Следующее сердечко через ${m} мин. Или сделай повторение!`); } else toast(`${A("heart")} Сердечек полно!`); };
+$("#pBone").onclick = () => { sfx.tap(); toast(S.lastDay === dayKey() ? `${A("bone")} Сегодняшняя косточка уже твоя! Серия: ${S.streak}` : `${A("bone")} Пройди урок сегодня, чтобы получить косточку`); };
+document.addEventListener("keydown", (e) => {
+  if (!L || L.state === "ask" && L.tasks[L.i].t === "type") return;
+  if (e.key === "Enter") { const n = $("#nx") || $("#chk"); if (n && !n.disabled) { e.preventDefault(); n.click(); } }
+  else if (/^[1-4]$/.test(e.key) && L.state === "ask") { const c = $("#lb").querySelectorAll(".choices:not(.match) .choice")[+e.key - 1]; c && c.click(); }
+});
 
 /* ================= знакомство ================= */
 function onboarding() {
   const o = document.createElement("div"); o.className = "onb";
-  o.innerHTML = `<div class="hero">${buddyArt({ mood: "cheer" })}</div><h1>Hi! I'm Buddy!</h1>
-    <p class="muted" style="max-width:340px;margin:0">Я щенок из Лондона. Давай вместе учить английский — по чуть-чуть каждый день!</p>
-    <label class="field" style="width:min(360px,100%);text-align:left"><span>Как тебя зовут?</span><input id="on" maxlength="20" placeholder="Твоё имя"></label>
-    <div class="goals">${[[1, "🐾 Спокойно", "1 урок в день"], [2, "🐶 Нормально", "2 урока в день"], [3, "🚀 Серьёзно", "3 урока в день"]].map(([g, n, d]) => `<button class="choice ${g === 2 ? "sel" : ""}" data-g="${g}"><b>${n}</b> <span class="muted">· ${d}</span></button>`).join("")}</div>
-    <button class="btn wide orange" style="max-width:360px" id="ogo">Поехали!</button>`;
-  document.body.appendChild(o); sfx.woof();
-  let goal = 2;
-  o.querySelectorAll("[data-g]").forEach((b) => b.onclick = () => { o.querySelectorAll("[data-g]").forEach((x) => x.classList.remove("sel")); b.classList.add("sel"); goal = +b.dataset.g; sfx.tap(); });
-  $("#ogo").onclick = () => { S.name = $("#on").value.trim(); S.goal = goal; save(); o.remove(); confetti(80); render(); };
+  document.body.appendChild(o);
+  let step = 0, goal = S.goal || 2, name = S.name || "";
+  const N = 4;
+  const steps = [
+    () => ({ body: `<div class="speech">Woof! Hi! I'm Buddy!</div><div class="hero">${buddyArt({ mood: "wave" })}</div><h1>Привет! Я Бадди</h1><p class="muted" style="max-width:330px">Щенок из Лондона. Давай учить английский вместе — по 5 минут в день, играючи!</p>`,
+      foot: `<button class="btn wide honey" data-n>Давай!</button>` }),
+    () => ({ body: `<div class="hero" style="width:150px">${buddyArt({ mood: "think" })}</div><h1>Как тебя зовут?</h1><label class="field" style="width:min(340px,100%)"><input id="on" maxlength="20" placeholder="Твоё имя" value="${esc(name)}" autocomplete="off" style="text-align:center;font-size:1.2rem"></label><p class="muted" style="font-size:.85rem">Имя нужно только Бадди, оно остаётся на телефоне.</p>`,
+      foot: `<button class="btn wide" data-n>Дальше</button><button class="link" data-skip>Пропустить</button>` }),
+    () => ({ body: `<div class="hero" style="width:140px">${buddyArt({ mood: "happy" })}</div><h1>${name ? esc(name) + ", с" : "С"}колько заниматься?</h1>
+      <div class="goals">${[[1, "Спокойно", "1 урок в день", "🐢"], [2, "Нормально", "2 урока в день", "🐶"], [3, "Серьёзно", "3 урока в день", "🔥"]].map(([g, n, d, e]) => `<button class="choice ${g === goal ? "sel" : ""}" data-g="${g}"><span><b>${n}</b><br><span class="muted" style="font-size:.9rem">${d}</span></span>${E(e)}</button>`).join("")}</div>`,
+      foot: `<button class="btn wide" data-n>Дальше</button>` }),
+    () => ({ body: `<h1>Как всё устроено</h1><div class="how">
+      <div class="glass">${A("bone")}<span><b>Косточки</b><small>Занимайся каждый день — серия растёт</small></span></div>
+      <div class="glass">${A("heart")}<span><b>Сердечки</b><small>Ошибся — минус сердечко. Они восстанавливаются</small></span></div>
+      <div class="glass">${A("cat")}<span><b>Котики-хранители</b><small>Берегут серию, если пропустишь день</small></span></div>
+      <div class="glass">${A("cookie")}<span><b>Печеньки</b><small>Награда за уроки — трать в магазине на наряды</small></span></div></div>`,
+      foot: `<button class="btn wide honey" data-n>Начать первый урок!</button><button class="link" data-look>Сначала осмотрюсь</button>` })
+  ];
+  let off = onBack(() => { if (step > 0) { step--; paint(); } });
+  const finish = (lesson) => { off && off(); off = null; S.name = name; S.goal = goal; S.onboarded = true; save(); o.style.transition = "opacity .3s"; o.style.opacity = "0"; setTimeout(() => o.remove(), 300); scrollCur = true; render(true); if (lesson) setTimeout(() => startLesson(0, 0), 150); else confetti(80); };
+  const paint = () => {
+    const s = steps[step]();
+    o.innerHTML = `<div class="onb-top">${step ? `<button class="l-close" id="ob" aria-label="Назад"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>` : `<span style="width:44px"></span>`}<div class="bar"><i style="width:${(step + 1) / N * 100}%"></i></div><span style="width:44px"></span></div>
+      <div class="onb-body in">${s.body}</div><div class="onb-foot">${s.foot}</div>`;
+    const ob = $("#ob", o); ob && (ob.onclick = () => { sfx.tap(); step--; paint(); });
+    const inp = $("#on", o);
+    if (inp) { inp.oninput = () => { name = inp.value.trim(); }; inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); nx(); } }; setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (e) { /* нет */ } }, 400); }
+    o.querySelectorAll("[data-g]").forEach((b) => b.onclick = () => { o.querySelectorAll("[data-g]").forEach((x) => x.classList.remove("sel")); b.classList.add("sel"); goal = +b.dataset.g; sfx.tap(); vibe(); });
+    const nx = () => { sfx.tap(); vibe(); if (inp) name = inp.value.trim(); if (step === 0) sfx.woof(); if (step < N - 1) { step++; paint(); } else finish(true); };
+    $("[data-n]", o).onclick = nx;
+    const sk = $("[data-skip]", o); sk && (sk.onclick = () => { name = ""; sfx.tap(); step++; paint(); });
+    const lk = $("[data-look]", o); lk && (lk.onclick = () => { sfx.tap(); finish(false); });
+  };
+  paint();
 }
 
 /* ================= старт ================= */
-try { const tg = window.Telegram && Telegram.WebApp; if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor("#f7f5f0"); tg.setBackgroundColor && tg.setBackgroundColor("#f7f5f0"); } } catch (e) { /* не в Telegram */ }
-addEventListener("load", () => { try { const tg = window.Telegram && Telegram.WebApp; if (tg) { tg.ready(); tg.expand(); } } catch (e) { /* нет */ } });
-if ("speechSynthesis" in window) speechSynthesis.getVoices();
+function tgInit() { try { const tg = tgApp(); if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor && tg.setHeaderColor("#f7f5f0"); tg.setBackgroundColor && tg.setBackgroundColor("#f7f5f0"); tg.BackButton && tg.BackButton.onClick(doBack); syncBack(); } } catch (e) { /* не в Telegram */ } }
+tgInit();
+addEventListener("load", tgInit);
+if ("speechSynthesis" in window) { loadVoices(); try { speechSynthesis.onvoiceschanged = loadVoices; } catch (e) { /* нет */ } }
 const st = checkStreak();
 render();
-if (!S.lessons && !S.name) onboarding();
-else if (st && st.saved) setTimeout(() => { modal(`<div style="width:120px">${A("cat-full", "big")}</div><h2>Котик спас твою серию!</h2><p class="muted">${st.used.join(" и ")} ${st.used.length > 1 ? "сторожили" : "сторожил"} твои косточки, пока тебя не было. Серия: ${S.streak} ${A("bone")}</p><button class="btn wide violet" data-a="ok">Спасибо, котик!</button>`, (m, c) => m.querySelector("[data-a]").onclick = c); paintTop(); }, 400);
-else if (st && !st.saved) setTimeout(() => { modal(`<div class="hero">${buddyArt({ mood: "oops" })}</div><h2>Серия прервалась</h2><p class="muted">Было ${st.lost} ${plural(st.lost, "день", "дня", "дней")} подряд. Ничего страшного — начнём новую! Совет: купи котика-хранителя в магазине ${A("cat")}</p><button class="btn wide" data-a="ok">Начать новую серию</button>`, (m, c) => m.querySelector("[data-a]").onclick = c); }, 400);
-setInterval(paintTop, 60000);
+if (!S.onboarded) onboarding();
+else if (st && st.saved) setTimeout(() => { modal(`<div style="width:120px">${A("cat-full", "fill")}</div><h2>Котик спас твою серию!</h2><p class="muted">${st.used.map(esc).join(" и ")} ${st.used.length > 1 ? "сторожили" : "сторожил"} твои косточки, пока тебя не было. Серия: ${S.streak} ${A("bone")}</p><button class="btn wide" data-a="ok">Спасибо, котик!</button>`, (m, c) => m.querySelector("[data-a]").onclick = c); paintTop(); }, 400);
+else if (st && !st.saved) setTimeout(() => { modal(`<div class="hero">${buddyArt({ mood: "oops" })}</div><h2>Серия прервалась</h2><p class="muted">Было ${st.lost} ${plural(st.lost, "день", "дня", "дней")} подряд. Ничего страшного — начнём новую! Совет: возьми котика-хранителя в магазине ${A("cat")}</p><button class="btn wide" data-a="ok">Начать новую серию</button>`, (m, c) => m.querySelector("[data-a]").onclick = c); }, 400);
+setInterval(() => { if (!document.hidden) paintTop(); }, 60000);
+window.__buddyTest = { lesson: () => L, state: () => S }; // для автотестов
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { const s2 = checkStreak(); paintTop(); if (s2 && !L) render(); } else { try { speechSynthesis.cancel(); } catch (e) { /* нет */ } } });
 })();
 </script>
 </body>
