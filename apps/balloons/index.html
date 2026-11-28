@@ -4,176 +4,581 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Шарики-примеры</title>
-<meta name="theme-color" content="#060a1c">
+<meta name="theme-color" content="#08080a">
 <link rel="stylesheet" href="../../shared/k.css">
 <script src="../../shared/k.js"></script>
+<script src="tasks.js"></script>
 <style>
   #c { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; touch-action: none; }
-  .game-page .k-top, .game-page .hud, .q { position: relative; z-index: 2; }
-  .q { margin: 12px auto 0; padding: 12px 26px; border-radius: 18px; font-family: var(--f-display); font-weight: 700;  font-size: clamp(1.8rem, 9vw, 2.8rem); text-align: center; font-variant-numeric: tabular-nums; width: fit-content; max-width: calc(100% - 32px); }
+  .game-page .k-top { z-index: 50; }
+  .hud, .q { position: relative; z-index: 2; transition: opacity .3s; }
+  .on-map .hud { opacity: 0; }
+  .hud { align-items: stretch; flex-wrap: nowrap; padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); }
+  .hud .stat { min-width: 0; padding: 7px 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .hud .stat.lvl { flex: 1; max-width: 170px; gap: 3px; }
+  .hud .stat.lvl .progress { width: 100%; height: 6px; }
+  .hud .stat.lvl b { font-size: 1rem; }
+  .hearts { display: flex; gap: 3px; justify-content: center; height: 24px; align-items: center; }
+  .hearts svg { width: 20px; height: 20px; transition: transform .35s var(--spring), opacity .35s; }
+  .hearts svg.off { opacity: .18; transform: scale(.7); }
+  .hearts.hit { animation: k-shake .4s; }
+
+  .q { margin: 12px auto 0; padding: 12px 24px; border-radius: 20px; font-family: var(--f-display); font-weight: 700; font-size: 2.5rem; line-height: 1.15;
+       text-align: center; font-variant-numeric: tabular-nums; width: fit-content; max-width: calc(100% - 24px); white-space: nowrap; transition: opacity .3s; }
+  .q.m { font-size: 1.95rem; } .q.s { font-size: 1.5rem; } .q.xs { font-size: 1.22rem; }
+  .q .qm { background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; animation: qm 1.6s ease-in-out infinite; }
+  @keyframes qm { 50% { transform: scale(1.15); } }
   .q.new { animation: k-pop .45s var(--spring); }
-  .hearts { display: flex; gap: 4px; justify-content: center; }
-  .hearts svg { width: 22px; height: 22px; transition: transform .3s var(--spring), opacity .3s; }
-  .hearts svg.off { opacity: .2; transform: scale(.7); }
-  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-  .modes button { padding: 14px 10px; border-radius: 16px; border: 1px solid var(--stroke-c); background: rgba(255,255,255,.05); font-weight: 900; display: flex; flex-direction: column; gap: 2px; align-items: center; transition: transform .3s var(--spring); }
-  .modes button b { font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; color: var(--cyan);  }
-  .modes button small { color: var(--muted); font-size: .78rem; }
-  .modes button:active { transform: scale(.94); }
-  .modes button:hover { background: rgba(214,177,94,.14); box-shadow: 0 0 14px rgba(214,177,94,.35); }
+  .q.idle { opacity: 0; }
+
+  .k-top .pause { flex: none; }
+  .k-top .pause svg { width: 18px; height: 18px; }
+
+  /* объяснение после ошибки */
+  .ex { position: fixed; z-index: 45; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+        width: min(430px, calc(100% - 24px)); padding: 18px 18px 16px; border-radius: 26px; display: flex; flex-direction: column; gap: 10px;
+        animation: exin .5s var(--spring); }
+  @keyframes exin { from { opacity: 0; transform: translate(-50%, 40px) scale(.96); } }
+  .ex .ex-h { display: flex; align-items: center; gap: 12px; }
+  .ex .ex-h img { width: 44px; height: 44px; flex: none; filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
+  .ex .ex-h div { display: flex; flex-direction: column; line-height: 1.2; }
+  .ex .ex-h small { color: var(--muted); font-weight: 700; font-size: .82rem; }
+  .ex .ex-h b { font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; }
+  .ex .ex-h b span { color: var(--gold-hi); }
+  .ex ol { list-style: none; margin: 0; padding: 12px 14px; border-radius: 16px; background: rgba(0,0,0,.35); border: 1px solid var(--stroke-lo); display: flex; flex-direction: column; gap: 4px; }
+  .ex li { font-size: 1rem; font-weight: 700; color: var(--text); line-height: 1.35; opacity: 0; animation: exli .4s var(--ease) forwards; }
+  .ex li.note { color: var(--muted); font-size: .9rem; font-weight: 600; }
+  .ex li em { font-style: normal; color: var(--gold-hi); font-family: var(--f-display); font-weight: 500; font-size: .95rem; white-space: nowrap; }
+  @keyframes exli { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+  .ex .btn { width: 100%; }
+
+  /* карта режимов */
+  .map { position: fixed; inset: 0; z-index: 40; overflow-y: auto; overflow-x: hidden; touch-action: pan-y; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+         background: linear-gradient(180deg, rgba(8,8,10,.86), rgba(8,8,10,.62) 40%, rgba(8,8,10,.86));
+         padding: calc(76px + env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px));
+         animation: k-fade .35s ease; }
+  .map-in { width: 100%; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .hero { display: flex; align-items: center; gap: 14px; padding: 6px 4px 8px; }
+  .hero .bb { position: relative; width: 86px; height: 86px; flex: none; }
+  .hero .bb img { position: absolute; width: 62px; height: 62px; filter: drop-shadow(0 10px 14px rgba(0,0,0,.6)); animation: bob 3.2s ease-in-out infinite; }
+  .hero .bb img:nth-child(1) { left: 0; top: 14px; filter: sepia(1) saturate(1.2) brightness(1.4) drop-shadow(0 10px 14px rgba(0,0,0,.6)); animation-delay: -1s; }
+  .hero .bb img:nth-child(2) { left: 26px; top: 0; filter: sepia(1) saturate(2.6) brightness(1.08) hue-rotate(-6deg) drop-shadow(0 10px 14px rgba(0,0,0,.6)); }
+  @keyframes bob { 50% { transform: translateY(-6px) rotate(3deg); } }
+  .hero h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 1.45rem; line-height: 1.1; }
+  .hero p { margin: 4px 0 8px; color: var(--muted); font-size: .9rem; line-height: 1.35; }
+  .hero .chip { color: var(--gold-hi); border-color: var(--stroke-c); padding: 5px 12px; }
+  .hero .chip svg { width: 16px; height: 16px; }
+
+  .mcard { padding: 14px; border-radius: 24px; display: flex; flex-direction: column; gap: 12px; animation: k-pop .5s var(--spring) both; }
+  .mhead { display: flex; align-items: center; gap: 12px; }
+  .msym { width: 50px; height: 50px; border-radius: 16px; flex: none; display: grid; place-items: center; font-family: var(--f-display); font-weight: 700;
+          background: linear-gradient(160deg, rgba(214,177,94,.22), rgba(214,177,94,.05)); border: 1px solid var(--stroke-c); color: var(--gold-hi); font-size: 1.45rem; }
+  .msym.sm { font-size: .82rem; } .msym.md { font-size: 1.05rem; }
+  .mt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+  .mt b { font-weight: 800; font-size: 1.02rem; }
+  .mt small { color: var(--muted); font-size: .8rem; font-weight: 600; }
+  .mcount { flex: none; display: flex; align-items: center; gap: 4px; font-family: var(--f-display); font-weight: 500; font-size: .85rem; color: var(--gold-hi); }
+  .mcount svg { width: 16px; height: 16px; }
+  .mcard .progress { height: 5px; margin-top: -4px; }
+  .levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .lv { position: relative; min-height: 70px; padding: 8px 4px 7px; border-radius: 16px; border: 1px solid var(--stroke); background: rgba(255,255,255,.045);
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; transition: transform .3s var(--spring), background .2s; }
+  .lv:active { transform: scale(.94); }
+  .lv .ln { font-family: var(--f-display); font-weight: 700; font-size: .95rem; line-height: 1; }
+  .lv .ls { display: flex; gap: 1px; }
+  .lv .ls svg { width: 15px; height: 15px; }
+  .lv small { font-size: .66rem; color: var(--muted); font-weight: 700; line-height: 1.15; text-align: center; }
+  .lv.done { border-color: var(--stroke-c); background: linear-gradient(170deg, rgba(214,177,94,.14), rgba(214,177,94,.03)); }
+  .lv.locked { opacity: .5; }
+  .lv.locked img { width: 22px; height: 22px; }
+  .lv.next { border-color: rgba(243,227,176,.7); animation: glow 1.8s ease-in-out infinite; }
+  .lv.next::after { content: "Играть"; position: absolute; top: -9px; left: 50%; transform: translateX(-50%); padding: 1px 9px; border-radius: 999px;
+                    background: var(--gold-grad); color: #17130b; font-size: .62rem; font-weight: 800; letter-spacing: .04em; }
+  @keyframes glow { 50% { box-shadow: 0 0 0 4px rgba(214,177,94,.18), 0 0 22px rgba(214,177,94,.35); } }
+
+  .res-art { width: 84px; height: 84px; margin: -6px auto -4px; filter: drop-shadow(0 10px 16px rgba(0,0,0,.55)); animation: bob 3s ease-in-out infinite; }
+  .res-line { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .res-line .chip { color: var(--text); }
+  .overlay .panel .btn { flex: 1 1 auto; }
 </style>
 </head>
 <body class="game-page">
-<canvas id="c"></canvas>
+<canvas id="c" aria-label="Игровое поле с шариками"></canvas>
 <div class="hud">
   <div class="stat glass"><b id="score" class="num">0</b><small>очки</small></div>
-  <div class="stat glass"><b id="streak" class="num">0</b><small>подряд</small></div>
-  <div class="stat glass"><div class="hearts" id="hearts" style="height:26px;align-items:center"></div><small>жизни</small></div>
+  <div class="stat glass lvl"><b id="lvlTxt" class="num">0 / 10</b><div class="progress"><i id="lvlBar" style="width:0%"></i></div><small id="lvlName">уровень 1</small></div>
+  <div class="stat glass"><div class="hearts" id="hearts"></div><small>жизни</small></div>
 </div>
-<div class="q glass" id="q">? </div>
+<div class="q glass idle" id="q" aria-live="polite">&nbsp;</div>
+<div class="map" id="map" hidden></div>
+<div class="ex glass" id="ex" hidden></div>
 <script>
 (() => {
-  K.top({ title: "Шарики-примеры" });
-  const cv = document.getElementById("c"), g = cv.getContext("2d");
-  const $q = document.getElementById("q"), $score = document.getElementById("score"), $streak = document.getElementById("streak"), $hearts = document.getElementById("hearts");
-  const COLS = ["#d6b15e", "#f1ede4", "#2b2b31", "#e6c97f", "#c9a37a", "#b8b4ad"];
-  let W, H, dpr, balloons = [], mode = "mix", task, score, streak, lives, playing = false, rise, last = 0, t = 0, solved;
+  "use strict";
+  const GOAL = 10, LIVES = 3;
+  const MODES = [
+    { id: "mul", sym: "×", name: "Таблица умножения", ex: "7 × 8", slow: 1, lv: ["×2 – ×5", "Вся таблица", "Трудные и «?»"] },
+    { id: "div", sym: ":", name: "Деление", ex: "56 : 7", slow: 1, lv: ["На 2 – 5", "Вся таблица", "560 : 7, 84 : 4"] },
+    { id: "addsub", sym: "±", name: "Сложение и вычитание до 1000", ex: "347 + 285", slow: .8, lv: ["Без перехода", "С переходом", "Через разряды"] },
+    { id: "mul2", sym: "48×7", name: "Двузначное на однозначное", ex: "48 × 7", slow: .8, lv: ["До 29 × 5", "До 49 × 9", "До 99 × 9"] },
+    { id: "order", sym: "( )", name: "Порядок действий", ex: "(8 − 3) × 4", slow: .66, lv: ["Без скобок", "Со скобками", "Три действия"] },
+    { id: "rem", sym: "ост", name: "Деление с остатком", ex: "23 : 5 = 4 ост. 3", slow: .8, lv: ["На 2 – 5", "На 3 – 9", "До 100"] },
+    { id: "units", sym: "кг", name: "Единицы измерения", ex: "1 м = 100 см", slow: .85, lv: ["1 м = ? см", "5 кг = ? г", "2 м 35 см"] },
+    { id: "big", sym: "10 000", name: "Многозначные числа", ex: "Сложение и вычитание до 10 000", slow: .74, lv: ["Круглые", "С переходом", "Через нули"] },
+    { id: "mix", sym: "★", name: "Всё вперемешку", ex: "Примеры из всех режимов", slow: .85, lv: ["Лёгкий", "Средний", "Трудный"] }
+  ];
+  const MODE = Object.fromEntries(MODES.map((m) => [m.id, m]));
+  const SLOW = Object.fromEntries(MODES.map((m) => [m.id, m.slow]));
+  const LV_NAME = ["лёгкий", "средний", "трудный"];
 
-  function resize() { dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0); }
-  addEventListener("resize", resize); resize();
+  /* ---------- прогресс ---------- */
+  const prog = () => K.store.get("balloons-prog", {});
+  const starsOf = (m, L) => (prog()[m] || [0, 0, 0])[L - 1] || 0;
+  const unlocked = (m, L) => L === 1 || starsOf(m, L - 1) > 0;
+  function saveStars(m, L, s) { const p = prog(); const a = p[m] || [0, 0, 0]; const old = a[L - 1] || 0; if (s > old) { a[L - 1] = s; p[m] = a; K.store.set("balloons-prog", p); } return old; }
+  const totalStars = () => MODES.reduce((n, m) => n + [1, 2, 3].reduce((k, L) => k + starsOf(m.id, L), 0), 0);
 
-  const R = K.rnd;
-  function makeTask() {
-    let m = mode === "mix" ? ["mul", "div", "add", "sub", "big"][R(0, 4)] : mode;
-    if (m === "mul") { const a = R(2, 9), b = R(2, 9); return { q: `${a} × ${b}`, a: a * b }; }
-    if (m === "div") { const b = R(2, 9), c = R(2, 9); return { q: `${b * c} : ${b}`, a: c }; }
-    if (m === "add") { const a = R(120, 680), b = R(50, 300); return { q: `${a} + ${b}`, a: a + b }; }
-    if (m === "sub") { const a = R(300, 990), b = R(40, a - 50); return { q: `${a} − ${b}`, a: a - b }; }
-    const a = R(12, 49), b = R(2, 9); return { q: `${a} × ${b}`, a: a * b };
+  /* ---------- DOM ---------- */
+  const top = K.top({ title: "Шарики-примеры" });
+  const pauseBtn = document.createElement("button");
+  pauseBtn.className = "k-back pause"; pauseBtn.setAttribute("aria-label", "Пауза и карта");
+  const ICON_PAUSE = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>`;
+  const ICON_MAP = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>`;
+  top.replaceChild(pauseBtn, top.querySelector(".k-logo"));
+  const $ = (id) => document.getElementById(id);
+  const $q = $("q"), $score = $("score"), $hearts = $("hearts"), $lvlTxt = $("lvlTxt"), $lvlBar = $("lvlBar"), $lvlName = $("lvlName"), $map = $("map"), $ex = $("ex");
+  const STAR = (on) => `<svg viewBox="0 0 24 24"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z" fill="${on ? "#e2bf6a" : "rgba(255,255,255,.1)"}" stroke="${on ? "#f3e3b0" : "rgba(255,255,255,.2)"}" stroke-width="1"/></svg>`;
+  const HEART = `<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.4-9.3C1.2 8.2 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.8 3.7 4.4 7.2C19.5 16.4 12 21 12 21z" fill="#d6b15e" stroke="#f3e3b0"/></svg>`;
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+  /* ---------- холст ---------- */
+  const cv = $("c"), g = cv.getContext("2d");
+  let W = 0, H = 0, dpr = 1;
+  function resize() {
+    dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    layout();
   }
-  function wrongs(a) {
-    const s = new Set([a]), out = [];
-    const deltas = [1, -1, 2, -2, 10, -10, 3, -3, 5, -5, 9, -9, 100, -100];
-    for (const d of K.shuffle(deltas)) { const v = a + d; if (v > 0 && !s.has(v)) { s.add(v); out.push(v); } if (out.length >= 4) break; }
-    return out;
+
+  /* 3D-шарик Fluent, перекрашенный фильтром один раз в offscreen-холсты (не каждый кадр) */
+  const TINTS = [
+    { f: "sepia(1) saturate(2.6) brightness(1.08) hue-rotate(-6deg)", c: "#d9a441" },  // золото
+    { f: "sepia(1) saturate(1.2) brightness(1.4)", c: "#e8d5a8" },                     // шампань
+    { f: "sepia(1) saturate(1.8) brightness(1.1) hue-rotate(-28deg)", c: "#d9967c" },  // розовое золото
+    { f: "grayscale(1) brightness(.75) contrast(1.35)", c: "#3a3a40" },                // оникс
+    { f: "grayscale(1) sepia(.25) brightness(1.6)", c: "#ece6da" },                    // жемчуг
+    { f: "sepia(1) saturate(1.2) hue-rotate(50deg) brightness(1.05)", c: "#9fb27f" },  // шалфей
+    { f: "sepia(1) saturate(1.1) hue-rotate(205deg) brightness(1.25)", c: "#b3b0e6" }, // лаванда
+    { f: "sepia(1) saturate(1.4) hue-rotate(150deg) brightness(1.1)", c: "#7fb4c8" }   // аква
+  ];
+  const BODY = { cx: 144.5, cy: 90, r: 72.5 }; // центр и радиус шара на картинке 256×256
+  let balloonArt = [], cloudArt = null;
+  function offscreen(im, draw) { const o = document.createElement("canvas"); o.width = im.width; o.height = im.height; const x = o.getContext("2d"); draw(x); return o; }
+  K.img("art/balloon.webp").then((im) => {
+    if (!im) return;
+    const can = "filter" in g;
+    balloonArt = TINTS.map((t) => offscreen(im, (x) => { if (can) x.filter = t.f; x.drawImage(im, 0, 0); }));
+  });
+  K.img("art/cloud.webp").then((im) => {
+    if (!im) return;
+    cloudArt = offscreen(im, (x) => {
+      if ("filter" in x) x.filter = "brightness(.1) sepia(.6)";
+      x.drawImage(im, 0, 0); x.filter = "none";
+      x.globalCompositeOperation = "source-atop";
+      const gr = x.createLinearGradient(0, 50, 0, 200);
+      gr.addColorStop(0, "rgba(243,227,176,.55)"); gr.addColorStop(.32, "rgba(214,177,94,.1)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+      x.fillStyle = gr; x.fillRect(0, 0, im.width, im.height);
+    });
+  });
+
+  /* ---------- фон: тёмные облака с золотым краем и золотые искры ---------- */
+  let clouds = [], glints = [];
+  function makeBg() {
+    clouds = Array.from({ length: 5 }, (_, i) => ({ z: .35 + i * .16, x: Math.random() * W, y: H * (.12 + Math.random() * .8) }));
+    clouds.sort((a, b) => a.z - b.z);
+    glints = Array.from({ length: 34 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: .6 + Math.random() * 1.8, ph: Math.random() * 7, sp: .5 + Math.random() * 1.2, vy: 4 + Math.random() * 10 }));
+  }
+  function drawBg(dt) {
+    if (cloudArt) for (const c of clouds) {
+      const w = 140 + 200 * c.z, h = w * .6;
+      c.x += (5 + 12 * c.z) * dt; if (c.x - w / 2 > W) { c.x = -w / 2; c.y = H * (.12 + Math.random() * .8); }
+      g.globalAlpha = .45 + .5 * c.z; g.drawImage(cloudArt, 0, 40, 256, 170, c.x - w / 2, c.y - h / 2, w, h);
+    }
+    for (const p of glints) {
+      p.y -= p.vy * dt; if (p.y < -5) { p.y = H + 5; p.x = Math.random() * W; }
+      const a = Math.pow(Math.max(0, Math.sin(t * p.sp + p.ph)), 3);
+      if (a < .03) continue;
+      g.globalAlpha = a * .9; g.fillStyle = "#f3e3b0";
+      if (p.s > 1.8) { const s = p.s * 2.6 * a; g.beginPath(); g.moveTo(p.x, p.y - s); g.lineTo(p.x + s * .22, p.y - s * .22); g.lineTo(p.x + s, p.y); g.lineTo(p.x + s * .22, p.y + s * .22); g.lineTo(p.x, p.y + s); g.lineTo(p.x - s * .22, p.y + s * .22); g.lineTo(p.x - s, p.y); g.lineTo(p.x - s * .22, p.y - s * .22); g.fill(); }
+      else { g.beginPath(); g.arc(p.x, p.y, p.s, 0, 7); g.fill(); }
+    }
+    g.globalAlpha = 1;
+  }
+
+  /* ---------- раскладка шариков: дорожки без пересечений ---------- */
+  const PAD = 8;
+  let geo = { r: 50, A: 8, n: 4, xs: [], zig: true, qBottom: 200 };
+  function layout() {
+    const n = 4, A = 7;
+    let r = Math.min(56, H * .068, W * .145);
+    let sp = (W - 2 * PAD - 2 * r) / (n - 1);
+    while (2 * sp < 2 * r + 2 * A + 10 && r > 26) { r -= 1; sp = (W - 2 * PAD - 2 * r) / (n - 1); }
+    geo = { r, A, n, sp, xs: Array.from({ length: n }, (_, i) => PAD + r + i * sp), zig: sp < 2 * r + 2 * A + 10, qBottom: geo.qBottom };
+    const qr = $q.getBoundingClientRect(); geo.qBottom = qr.bottom || 200;
+    makeBg();
+  }
+  addEventListener("resize", resize);
+
+  /* ---------- состояние ---------- */
+  let state = "menu", mode = "mul", level = 1, task = null, used = new Set();
+  let balloons = [], parts = [], score = 0, streak = 0, lives = LIVES, correct = 0, mistakes = 0, spd = 40, roundT = 0, t = 0, last = 0, hold = null;
+
+  function speedBase() { const s = [44, 52, 60][level - 1] * (SLOW[task ? task.mode : mode] || 1); return s * Math.max(.8, Math.min(1.25, H / 800)); }
+  const targetSpeed = () => speedBase() * (1 + .045 * correct);
+
+  /* ---------- раунд ---------- */
+  function setQ(text) {
+    const L = text.length;
+    $q.className = "q glass new " + (L > 18 ? "xs" : L > 14 ? "s" : L > 10 ? "m" : "");
+    $q.innerHTML = esc(text).replace("?", '<span class="qm">?</span>');
   }
   function round() {
-    task = makeTask(); solved = false;
-    $q.textContent = task.q + " = ?"; $q.classList.remove("new"); void $q.offsetWidth; $q.classList.add("new");
-    const vals = K.shuffle([task.a, ...wrongs(task.a)]);
-    const n = vals.length, slot = W / n;
-    const r = Math.min(48, slot * .42);
-    balloons = vals.map((v, i) => ({
-      v, ok: v === task.a, x: slot * (i + .5), y: H + r * 2 + R(0, 160), r,
-      c: COLS[(i + R(0, 5)) % COLS.length], ph: Math.random() * 6, vy: rise * (.85 + Math.random() * .3), popped: 0, wob: 0
-    }));
+    task = BT.make(mode, level, used);
+    setQ(task.q);
+    requestAnimationFrame(() => { geo.qBottom = $q.getBoundingClientRect().bottom; });
+    const answers = K.shuffle([{ ...task.ans, ok: true }, ...task.wrong.map((w) => ({ ...w, ok: false }))]);
+    const { r, n } = geo, hiFirst = Math.random() < .5;
+    const tints = K.shuffle(TINTS.map((_, i) => i));
+    balloons = answers.map((a, i) => {
+      const low = geo.zig ? ((i % 2 === 0) === hiFirst) : Math.random() < .5;
+      const off = geo.zig ? (low ? 2.45 * r : 0) + Math.random() * .2 * r : Math.random() * 1.2 * r;
+      return { a, ok: a.ok, lane: i, x: geo.xs[i], y: H + r * 1.25 + off, r, tint: tints[i], ph: Math.random() * 7, alpha: 1, st: "fly", pop: 0, rot: 0, sx: geo.xs[i], vyA: 0 };
+    });
+    spd = Math.max(spd, speedBase() * .9);
+    roundT = 0; state = "play";
   }
-  // шарик — 3D-иллюстрация, перекрашенная в шесть цветов
-  let BALLOON = null; K.img(K.artSrc("balloon")).then((im) => { BALLOON = im; });
-  const TINT = { "#d6b15e": "hue-rotate(45deg) saturate(.9) brightness(1.15)", "#f1ede4": "none", "#2b2b31": "hue-rotate(200deg)", "#e6c97f": "hue-rotate(110deg)", "#c9a37a": "hue-rotate(275deg)", "#b8b4ad": "hue-rotate(160deg)" };
-  const imgFor = () => BALLOON;
+
+  /* ---------- рисование шарика ---------- */
   function drawBalloon(b) {
-    const x = b.x + Math.sin(t * 1.6 + b.ph) * 10, y = b.y, r = b.r;
-    b.dx = x;
-    const sc = b.popped ? 1 + b.popped * 1.2 : 1 + Math.sin(b.wob) * .06;
-    g.save(); g.translate(x, y);
-    // ниточка
-    if (!BALLOON) { g.strokeStyle = "rgba(255,255,255,.45)"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(0, r * 1.15);
-    for (let i = 1; i <= 6; i++) g.lineTo(Math.sin(t * 3 + i + b.ph) * 4, r * 1.15 + i * 12); g.stroke(); }
-    g.scale(sc, sc); g.globalAlpha = b.popped ? Math.max(0, 1 - b.popped * 3) : 1;
-    const bim = imgFor(b.c);
-    if (bim) {
-      const h = r * 2.9, w = h * bim.width / bim.height;
-      g.filter = TINT[b.c] || "none"; g.drawImage(bim, -w * .52, -r * 1.3, w, h); g.filter = "none";
-      g.font = `700 ${Math.round(r * (String(b.v).length > 3 ? .5 : .6))}px Unbounded, sans-serif`; g.textAlign = "center"; g.textBaseline = "middle";
-      g.lineWidth = Math.max(3, r * .09); g.strokeStyle = "rgba(0,0,0,.55)"; g.strokeText(b.v, -r * .12, -r * .28); g.fillStyle = "#fff"; g.fillText(b.v, -r * .12, -r * .28); g.restore(); return;
+    const r = b.r;
+    g.save(); g.globalAlpha = b.alpha; g.translate(b.sx, b.y);
+    let sc = 1;
+    if (b.st === "hold") sc = 1.12 + Math.sin(t * 5) * .03;
+    if (b.ok && b.st === "hold") { // золотое сияние вокруг правильного ответа
+      const gr = g.createRadialGradient(0, 0, r * .8, 0, 0, r * 1.9);
+      gr.addColorStop(0, "rgba(243,227,176,.45)"); gr.addColorStop(1, "rgba(214,177,94,0)");
+      g.fillStyle = gr; g.beginPath(); g.arc(0, 0, r * 1.9, 0, 7); g.fill();
     }
-    const gr = g.createRadialGradient(-r * .35, -r * .45, r * .05, 0, 0, r * 1.2);
-    gr.addColorStop(0, "#ffffff"); gr.addColorStop(.2, b.c); gr.addColorStop(1, shade(b.c));
-    g.fillStyle = gr; g.shadowColor = "rgba(0,0,0,.5)"; g.shadowBlur = 18;
-    g.beginPath(); g.ellipse(0, 0, r, r * 1.15, 0, 0, 7); g.fill(); g.shadowBlur = 0;
-    g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 1.5; g.stroke();
-    g.beginPath(); g.moveTo(-6, r * 1.12); g.lineTo(6, r * 1.12); g.lineTo(0, r * 1.02); g.fill();
-    g.fillStyle = "rgba(255,255,255,.6)"; g.beginPath(); g.ellipse(-r * .4, -r * .5, r * .2, r * .34, -.5, 0, 7); g.fill();
-    g.fillStyle = b.c === "#2b2b31" ? "#f3e3b0" : "#17130b"; g.font = `900 ${Math.round(r * (String(b.v).length > 3 ? .5 : .62))}px Unbounded, sans-serif`;
-    g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(b.v, 0, 2);
+    g.rotate(b.rot); g.scale(sc, sc);
+    const art = balloonArt[b.tint];
+    if (art) {
+      const k = r / BODY.r;
+      g.save(); if (b.lane < geo.n / 2) g.scale(-1, 1); // нитка смотрит к центру экрана
+      g.drawImage(art, -BODY.cx * k, -BODY.cy * k, 256 * k, 256 * k); g.restore();
+    } else {
+      g.fillStyle = TINTS[b.tint].c; g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill();
+    }
+    if (b.a) drawLabel(b.a, r);
     g.restore();
   }
-  function shade(hex) { const n = parseInt(hex.slice(1), 16); const f = (v) => Math.round(v * .55); return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`; }
+  function fitFont(text, size, maxW) {
+    g.font = `700 ${size}px Unbounded, Manrope, sans-serif`;
+    const w = g.measureText(text).width;
+    if (w > maxW) { size = Math.floor(size * maxW / w); g.font = `700 ${size}px Unbounded, Manrope, sans-serif`; }
+    return size;
+  }
+  function outlined(text, y, size) {
+    g.lineJoin = "round"; g.miterLimit = 2;
+    g.lineWidth = Math.max(3.5, size * .3); g.strokeStyle = "rgba(14,11,6,.92)"; g.strokeText(text, 0, y);
+    g.fillStyle = "#fff"; g.fillText(text, 0, y);
+  }
+  function drawLabel(a, r) {
+    g.textAlign = "center"; g.textBaseline = "middle";
+    if (a.sub) {
+      const s1 = fitFont(a.main, r * .62, r * 1.3); outlined(a.main, -r * .16, s1);
+      const s2 = fitFont(a.sub, r * .32, r * 1.45); outlined(a.sub, r * .4, s2);
+    } else {
+      const s = fitFont(a.main, r * (a.main.length > 3 ? .56 : .66), r * 1.55); outlined(a.main, 0, s);
+    }
+  }
 
+  /* ---------- частицы: кусочки шарика, конфетти, кольцо, очки ---------- */
+  function popFx(b, good) {
+    const col = TINTS[b.tint].c;
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2 + Math.random() * .4, s = 160 + Math.random() * 260;
+      parts.push({ k: "shard", x: b.sx + Math.cos(a) * b.r * .7, y: b.y + Math.sin(a) * b.r * .7, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 60, rot: a + 1.57, vr: (Math.random() - .5) * 14, s: b.r * (.22 + Math.random() * .2), c: good ? col : "#6d6a66", life: 1, dec: 1.3 + Math.random() * .6, g: 700 });
+    }
+    parts.push({ k: "ring", x: b.sx, y: b.y, s: b.r, life: 1, dec: 2.6, c: good ? "243,227,176" : "200,190,180" });
+    if (good) {
+      const PALC = ["#f3e3b0", "#d6b15e", "#ffffff", "#9c7731", col, "#e9d8a6"];
+      for (let i = 0; i < 34; i++) {
+        const a = Math.random() * Math.PI * 2, s = 120 + Math.random() * 320;
+        parts.push({ k: "conf", x: b.sx, y: b.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 180, rot: Math.random() * 6, vr: (Math.random() - .5) * 10, fl: Math.random() * 6, s: 3 + Math.random() * 4, c: PALC[i % PALC.length], life: 1, dec: .55 + Math.random() * .4, g: 420 });
+      }
+    }
+  }
+  function floatText(x, y, text) { parts.push({ k: "txt", x, y, text, life: 1, dec: 1.1 }); }
+  function drawParts(dt) {
+    for (const p of parts) {
+      p.life -= p.dec * dt;
+      if (p.k === "ring") {
+        const k = 1 - p.life; g.globalAlpha = Math.max(0, p.life) * .8; g.strokeStyle = `rgb(${p.c})`; g.lineWidth = 3 * p.life + .5;
+        g.beginPath(); g.arc(p.x, p.y, p.s * (1 + k * 1.1), 0, 7); g.stroke(); continue;
+      }
+      if (p.k === "txt") {
+        p.y -= 50 * dt; g.globalAlpha = Math.max(0, Math.min(1, p.life * 2)); g.textAlign = "center"; g.textBaseline = "middle";
+        g.font = "700 26px Unbounded, sans-serif"; g.lineWidth = 6; g.lineJoin = "round"; g.strokeStyle = "rgba(14,11,6,.85)"; g.strokeText(p.text, p.x, p.y); g.fillStyle = "#f3e3b0"; g.fillText(p.text, p.x, p.y); continue;
+      }
+      p.vy += p.g * dt; p.vx *= Math.pow(.25, dt); p.vy *= Math.pow(.6, dt); p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+      g.globalAlpha = Math.max(0, Math.min(1, p.life * 1.5)); g.fillStyle = p.c;
+      g.save(); g.translate(p.x, p.y); g.rotate(p.rot);
+      if (p.k === "shard") {
+        const s = p.s; g.beginPath(); g.moveTo(-s, 0); g.quadraticCurveTo(0, -s * .9, s, 0); g.quadraticCurveTo(0, -s * .35, -s, 0); g.fill();
+        g.fillStyle = "rgba(255,255,255,.45)"; g.beginPath(); g.moveTo(-s * .5, -s * .25); g.quadraticCurveTo(0, -s * .62, s * .5, -s * .25); g.lineTo(0, -s * .4); g.fill();
+      } else { p.fl += dt * 9; g.scale(1, Math.cos(p.fl)); g.fillRect(-p.s, -p.s * .55, p.s * 2, p.s * 1.1); }
+      g.restore();
+    }
+    g.globalAlpha = 1;
+    parts = parts.filter((p) => p.life > 0 && p.y < H + 60);
+  }
+
+  /* ---------- игровой цикл ---------- */
+  let demoT = 0;
   function frame(ts) {
-    const dt = Math.min(.05, (ts - (last || ts)) / 1000); last = ts; t += dt;
+    const dt = Math.min(.05, (ts - (last || ts)) / 1000); last = ts;
+    const run = state !== "pause";
+    if (run) t += dt;
     g.clearRect(0, 0, W, H);
-    for (const b of balloons) {
-      if (b.popped) b.popped += dt * 3; else { b.y -= b.vy * dt; b.wob += dt * 4; }
-      drawBalloon(b);
-    }
-    balloons = balloons.filter((b) => !(b.popped > .4));
-    if (playing && !solved) {
-      const good = balloons.find((b) => b.ok);
-      if (!good || good.y < -good.r * 2) { miss("Шарик улетел! Ответ: " + task.a); }
-    }
+    drawBg(run ? dt : 0);
+    if (run) update(dt);
+    // дальние — первыми: сначала нижние шарики
+    for (const b of balloons) if (b.st !== "pop") drawBalloon(b);
+    drawParts(run ? dt : 0);
     requestAnimationFrame(frame);
   }
-  function miss(msg) {
-    solved = true; streak = 0; $streak.textContent = 0; lives--; drawHearts(); K.sfx("bad"); K.vibrate(60);
-    K.toast(msg);
-    if (lives <= 0) return over();
-    setTimeout(round, 900);
-  }
-  cv.addEventListener("pointerdown", (e) => {
-    if (!playing || solved) return;
-    const x = e.clientX, y = e.clientY;
-    let hit = null;
-    for (const b of balloons) { if (b.popped) continue; const dx = x - b.dx, dy = (y - b.y) / 1.15; if (dx * dx + dy * dy < (b.r + 14) ** 2) hit = b; }
-    if (!hit) return;
-    hit.popped = .01;
-    K.burst(hit.dx, hit.y, 22, [hit.c, "#fff"], { speed: 6, size: 5 });
-    if (hit.ok) {
-      solved = true; streak++; const gain = 10 + streak * 2 + Math.round(Math.max(0, hit.y / H) * 10);
-      score += gain; $score.textContent = score; $streak.textContent = streak;
-      K.sfx("pop", 1.2); K.sfx("good"); K.vibrate(15);
-      if (streak % 10 === 0) { K.confetti(); K.toast(`${streak} подряд! Ты супер!`); if (lives < 3) { lives++; drawHearts(); } }
-      rise = Math.min(140, rise + 3);
-      balloons.forEach((b) => { if (!b.popped) b.vy = -40; });
-      setTimeout(round, 650);
-    } else {
-      document.getElementById("q").classList.add("shake"); setTimeout(() => document.getElementById("q").classList.remove("shake"), 400);
-      miss(`${task.q} = ${task.a}`);
+  function update(dt) {
+    const { r, A } = geo;
+    if (state === "menu") { // заставка: шарики без чисел плывут за картой
+      demoT -= dt;
+      if (demoT <= 0 && balloons.length < 7) {
+        demoT = 1.6 + Math.random() * 1.4;
+        const lane = K.rnd(0, geo.n - 1), x = geo.xs[lane];
+        if (!balloons.some((b) => b.lane === lane && b.y > H - r * 2)) balloons.push({ lane, x, sx: x, y: H + r * 1.3, r: r * (.8 + Math.random() * .3), tint: K.rnd(0, TINTS.length - 1), ph: Math.random() * 7, alpha: .9, st: "fly", rot: 0, vy: 26 + Math.random() * 16 });
+      }
+      for (const b of balloons) { b.y -= b.vy * dt; sway(b, A); }
+      balloons = balloons.filter((b) => b.y > -r * 3);
+      return;
     }
-  });
-  const HEART = `<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.4-9.3C1.2 8.2 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.8 3.7 4.4 7.2C19.5 16.4 12 21 12 21z" fill="#d6b15e" stroke="#f3e3b0"/></svg>`;
-  function drawHearts() { $hearts.innerHTML = [0, 1, 2].map((i) => HEART.replace("<svg", `<svg class="${i < lives ? "" : "off"}"`)).join(""); }
+    if (state === "play") {
+      roundT += dt;
+      spd += (targetSpeed() - spd) * (1 - Math.exp(-dt * .6)); // скорость растёт плавно
+      const lowest = Math.max(...balloons.filter((b) => b.st === "fly").map((b) => b.y), 0);
+      const boost = Math.max(0, lowest - (H - r * 1.6)) * 2.2; // шарики быстро выходят из-за края, все вместе
+      for (const b of balloons) if (b.st === "fly") { b.y -= (spd + boost) * dt; sway(b, A); }
+      const good = balloons.find((b) => b.ok && b.st === "fly");
+      if (good && good.y < geo.qBottom - r * .2) miss(good);
+    } else {
+      for (const b of balloons) {
+        if (b.st === "away") { b.vyA += 900 * dt; b.y -= (spd + b.vyA) * dt; b.alpha = Math.max(0, b.alpha - dt * 2.2); sway(b, A); }
+        else if (b.st === "hold") { b.y += (b.ty - b.y) * (1 - Math.exp(-dt * 6)); b.x += (b.tx - b.x) * (1 - Math.exp(-dt * 6)); sway(b, A * .5); }
+        else if (b.st === "dim") { b.alpha += (.16 - b.alpha) * (1 - Math.exp(-dt * 5)); }
+        else if (b.st === "fly") sway(b, A);
+      }
+      balloons = balloons.filter((b) => b.st !== "pop" && b.alpha > .01 && b.y > -r * 3);
+    }
+  }
+  function sway(b, A) {
+    const s = Math.sin(t * 1.3 + b.ph);
+    b.sx = Math.max(PAD + b.r, Math.min(W - PAD - b.r, b.x + s * A)); // не вылетаем за край экрана
+    b.rot = Math.cos(t * 1.3 + b.ph) * .07;
+  }
 
-  function over() {
-    playing = false;
-    const rec = K.best("balloons-" + mode, score);
-    K.sfx(rec ? "win" : "lose"); if (rec && score) K.confetti();
-    const drops = Math.floor(score / 15);
+  /* ---------- касание ---------- */
+  cv.addEventListener("pointerdown", (e) => {
+    if (state !== "play") return;
+    const x = e.clientX, y = e.clientY;
+    let hit = null, best = Infinity;
+    for (const b of balloons) {
+      if (b.st !== "fly") continue;
+      const d = Math.hypot(x - b.sx, y - b.y);
+      if (d < b.r * 1.12 + 6 && d < best) { best = d; hit = b; }
+    }
+    if (!hit) return;
+    if (hit.ok) good(hit); else wrong(hit);
+  });
+
+  function good(b) {
+    state = "between"; b.st = "pop"; popFx(b, true);
+    streak++; correct++;
+    const fast = Math.max(0, Math.round(10 * (1 - roundT / 9)));
+    const gain = 10 + Math.min(10, streak - 1) * 2 + fast;
+    score += gain; $score.textContent = score; floatText(b.sx, b.y - b.r * .4, "+" + gain);
+    K.sfx("pop", 1.1 + Math.random() * .2); setTimeout(() => K.sfx("good"), 60); K.vibrate(15);
+    if (streak > 0 && streak % 5 === 0) K.toast(pick(["Отлично!", "Так держать!", "Супер!", "Ты молодец!"]) + ` ${streak} подряд`);
+    balloons.forEach((o) => { if (o !== b) { o.st = "away"; o.vyA = 0; } });
+    updateHud();
+    if (correct >= GOAL) setTimeout(finish, 750);
+    else setTimeout(round, 700);
+  }
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
+  function wrong(b) {
+    b.st = "pop"; popFx(b, false);
+    K.sfx("pop", .7); setTimeout(() => K.sfx("bad"), 70); K.vibrate([30, 40, 30]);
+    $q.classList.remove("shake"); void $q.offsetWidth; $q.classList.add("shake");
+    fail("Этот шарик — не тот");
+  }
+  function miss(goodB) {
+    K.sfx("bad"); K.vibrate(60);
+    fail("Шарик с ответом улетел");
+  }
+  function fail(why) {
+    state = "explain"; streak = 0; mistakes++; lives--; drawHearts(true);
+    const exTopGuess = H - 300;
+    for (const o of balloons) {
+      if (o.st === "pop") continue;
+      if (o.ok) { o.st = "hold"; o.tx = W / 2; o.ty = Math.max(geo.qBottom + o.r * 1.6, Math.min(H * .42, (geo.qBottom + exTopGuess) / 2)); }
+      else o.st = "dim";
+    }
+    showExplain(why);
+  }
+
+  /* ---------- объяснение решения ---------- */
+  function showExplain(why) {
+    const a = task.ans;
+    const lines = task.ex.map((l) => {
+      const isNote = !/=/.test(l) || /^(Действия|Неизвестный|Ближайшее|Прибавляем|Вычитаем)/.test(l);
+      const html = esc(l).replace(/([\d ]+(?: [+−×:] [\d ]+)+ = [\d ]+|[\d ]+ = [\d ]+ \+ [\d ]+)/g, "<em>$1</em>");
+      return `<li class="${isNote && !/<em>/.test(html) ? "note" : ""}">${html}</li>`;
+    });
+    $ex.innerHTML = `<div class="ex-h"><img src="art/balloon.webp" alt="" style="filter:sepia(1) saturate(2.6) brightness(1.08) hue-rotate(-6deg)"><div><small>${esc(why)}. Смотри, как решать:</small><b>${esc(task.q).replace("?", `<span>${esc(a.main + (a.sub ? " " + a.sub : ""))}</span>`)}</b></div></div>
+      <ol>${lines.map((l, i) => l.replace("<li", `<li style="animation-delay:${.15 + i * .22}s"`)).join("")}</ol>
+      <button class="btn big" id="exOk">${lives > 0 ? "Понятно!" : "Дальше"}</button>`;
+    $ex.hidden = false;
+    // заголовок может быть длинным — уменьшим
+    const hb = $ex.querySelector(".ex-h b"); if (hb.textContent.length > 16) hb.style.fontSize = hb.textContent.length > 22 ? ".95rem" : "1.1rem";
+    const exTop = $ex.getBoundingClientRect().top;
+    const h = balloons.find((o) => o.st === "hold");
+    if (h) h.ty = Math.max(geo.qBottom + h.r * 1.5, Math.min(exTop - h.r * 1.6, (geo.qBottom + exTop) / 2));
+    $("exOk").addEventListener("click", () => {
+      K.sfx("tap"); $ex.hidden = true;
+      balloons.forEach((o) => { o.st = "away"; o.vyA = 0; });
+      if (lives <= 0) setTimeout(lose, 300); else { state = "between"; setTimeout(round, 450); }
+    }, { once: true });
+    setTimeout(() => { const b = $("exOk"); b && b.focus({ preventScroll: true }); }, 60);
+  }
+
+  /* ---------- HUD ---------- */
+  function drawHearts(hit) {
+    $hearts.innerHTML = Array.from({ length: LIVES }, (_, i) => HEART.replace("<svg", `<svg class="${i < lives ? "" : "off"}"`)).join("");
+    if (hit) { $hearts.classList.remove("hit"); void $hearts.offsetWidth; $hearts.classList.add("hit"); }
+  }
+  function updateHud() {
+    $lvlTxt.textContent = `${correct} / ${GOAL}`; $lvlBar.style.width = (correct / GOAL * 100) + "%";
+    $lvlName.textContent = `${MODE[mode].sym === "★" ? "микс" : "уровень"} ${level}`;
+  }
+
+  /* ---------- старт / финиш уровня ---------- */
+  function begin(m, L) {
+    closeMap(); $ex.hidden = true;
+    mode = m; level = L; score = 0; streak = 0; lives = LIVES; correct = 0; mistakes = 0; used = new Set(); parts = [];
+    $score.textContent = 0; drawHearts(); updateHud();
+    task = null; spd = speedBase(); balloons = [];
+    pauseBtn.innerHTML = ICON_PAUSE; pauseBtn.setAttribute("aria-label", "Пауза");
+    round();
+    if (!K.store.get("balloons-tip", false)) { K.store.set("balloons-tip", true); setTimeout(() => K.toast("Лопни шарик с правильным ответом!"), 400); }
+  }
+  function finish() {
+    state = "end";
+    const stars = mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1;
+    const old = saveStars(mode, level, stars);
+    const rec = K.best(`balloons-${mode}-${level}`, score);
+    const drops = stars * 2 + level + (stars > old ? 3 : 0);
+    K.sfx("win"); K.confetti();
+    const nextL = level < 3 ? level + 1 : null;
+    const msg = stars === 3 ? "Без единой ошибки!" : stars === 2 ? "Всего одна ошибка — здорово!" : "Уровень пройден! Попробуй без ошибок";
     setTimeout(() => {
       K.panel({
-        title: rec && score ? "Новый рекорд!" : "Игра окончена",
-        score, scoreLabel: "очков", stars: score > 400 ? 3 : score > 200 ? 2 : score > 60 ? 1 : 0,
-        text: `+${drops} ${K.plural(drops, "капелька", "капельки", "капелек")}`,
-        buttons: [{ label: "Ещё раз", cls: "big", onClick: () => begin(mode) }, { label: "Другой режим", cls: "ghost", onClick: menu }]
+        title: `${MODE[mode].name}: уровень ${level}`, stars, score, scoreLabel: rec && score ? "очков · новый рекорд!" : "очков",
+        extra: `<img class="res-art" src="art/${stars === 3 ? "trophy" : "party"}.webp" alt=""><p>${msg}</p><div class="res-line"><span class="chip">+${drops} ${K.plural(drops, "капелька", "капельки", "капелек")}</span></div>`,
+        buttons: [
+          nextL ? { label: `Уровень ${nextL}`, cls: "big", onClick: () => begin(mode, nextL) } : { label: "К карте", cls: "big", onClick: openMap },
+          { label: "Ещё раз", cls: "ghost", onClick: () => begin(mode, level) },
+          ...(nextL ? [{ label: "Карта", cls: "ghost", onClick: openMap }] : [])
+        ]
       });
-      setTimeout(() => K.coins.add(drops, document.querySelector(".overlay .big-score")), 400);
-    }, 700);
+      setTimeout(() => K.coins.add(drops, document.querySelector(".overlay .big-score")), 450);
+      idleQ();
+    }, 600);
   }
-  function begin(m) { mode = m; score = 0; streak = 0; lives = 3; rise = 55; $score.textContent = 0; $streak.textContent = 0; drawHearts(); playing = true; round(); }
-  function menu() {
-    const MODES = [["mul", "×", "Таблица умножения"], ["div", ":", "Деление"], ["add", "+", "Сложение до 1000"], ["sub", "−", "Вычитание до 1000"], ["big", "48×7", "Умножение в столбик"], ["mix", "★", "Всё вперемешку"]];
-    const close = K.panel({
-      title: "Шарики-примеры",
-      text: "Лопни шарик с правильным ответом, пока он не улетел. Выбери, что тренируем:",
-      extra: `<div class="modes">${MODES.map(([id, s, n]) => `<button data-m="${id}"><b>${s}</b><small>${n}</small><small>рекорд ${K.getBest("balloons-" + id)}</small></button>`).join("")}</div>`
+  function lose() {
+    state = "end"; K.sfx("lose");
+    const drops = Math.floor(correct / 2);
+    K.panel({
+      title: "Почти получилось!", stars: 0, score, scoreLabel: `очков · верно ${correct} из ${GOAL}`,
+      extra: `<img class="res-art" src="art/balloon.webp" alt="" style="filter:sepia(1) saturate(1.2) brightness(1.4)"><p>Жизни закончились. Разбери ошибки и попробуй снова — у тебя получится!</p>${drops ? `<div class="res-line"><span class="chip">+${drops} ${K.plural(drops, "капелька", "капельки", "капелек")}</span></div>` : ""}`,
+      buttons: [{ label: "Ещё раз", cls: "big", onClick: () => begin(mode, level) }, { label: "Карта", cls: "ghost", onClick: openMap }]
     });
-    document.querySelectorAll(".modes button").forEach((b) => b.addEventListener("click", () => { K.sfx("tap"); close(); begin(b.dataset.m); }));
+    if (drops) setTimeout(() => K.coins.add(drops, document.querySelector(".overlay .big-score")), 450);
+    idleQ();
   }
-  lives = 3; drawHearts(); requestAnimationFrame(frame);
-  // заставка: шарики летят ещё до старта
-  task = { q: "7 × 8", a: 56 }; rise = 40; round(); $q.textContent = "Готов?";
-  menu();
+  function idleQ() { $q.className = "q glass idle"; }
+
+  /* ---------- пауза ---------- */
+  let pausedFrom = null;
+  function pause() {
+    if (state === "menu" || state === "end" || state === "pause") return;
+    pausedFrom = state; state = "pause";
+    K.panel({
+      title: "Пауза", text: `${MODE[mode].name} · ${LV_NAME[level - 1]} уровень<br>Верно ${correct} из ${GOAL}`,
+      buttons: [{ label: "Продолжить", cls: "big", onClick: () => { state = pausedFrom; last = 0; } }, { label: "Карта уровней", cls: "ghost", onClick: openMap }]
+    });
+  }
+  pauseBtn.addEventListener("click", () => { K.sfx("tap"); if (state === "menu") return; if (state === "end") { document.querySelectorAll(".overlay").forEach((o) => o.remove()); openMap(); return; } pause(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); else last = 0; });
+
+  /* ---------- карта режимов ---------- */
+  function openMap() {
+    document.querySelectorAll(".overlay").forEach((o) => o.remove());
+    state = "menu"; $ex.hidden = true; balloons = []; parts = []; idleQ(); task = null;
+    pauseBtn.innerHTML = ICON_MAP; pauseBtn.setAttribute("aria-label", "Карта");
+    const total = totalStars(), max = MODES.length * 9;
+    let nextSet = false;
+    const cards = MODES.map((m, mi) => {
+      const st = [1, 2, 3].map((L) => starsOf(m.id, L)), sum = st.reduce((a, b) => a + b, 0);
+      const lvls = [1, 2, 3].map((L) => {
+        const open = unlocked(m.id, L), s = st[L - 1];
+        const isNext = !nextSet && open && s === 0; if (isNext) nextSet = true;
+        return `<button class="lv ${s ? "done" : ""} ${open ? "" : "locked"} ${isNext ? "next" : ""}" data-m="${m.id}" data-l="${L}" aria-label="${m.name}, уровень ${L}${open ? `, звёзд: ${s}` : ", закрыт"}">
+          ${open ? `<span class="ln">${L}</span><span class="ls">${[0, 1, 2].map((i) => STAR(i < s)).join("")}</span>` : `<img src="art/lock.webp" alt="">`}
+          <small>${esc(m.lv[L - 1])}</small></button>`;
+      }).join("");
+      const symCls = m.sym.length > 4 ? "sm" : m.sym.length > 2 ? "md" : "";
+      return `<section class="mcard glass" style="animation-delay:${mi * .04}s">
+        <div class="mhead"><div class="msym ${symCls}">${esc(m.sym)}</div><div class="mt"><b>${esc(m.name)}</b><small>${esc(m.ex)}</small></div><div class="mcount">${STAR(sum > 0)}${sum}/9</div></div>
+        <div class="progress"><i style="width:${sum / 9 * 100}%"></i></div>
+        <div class="levels">${lvls}</div></section>`;
+    }).join("");
+    $map.innerHTML = `<div class="map-in">
+      <div class="hero"><div class="bb"><img src="art/balloon.webp" alt=""><img src="art/balloon.webp" alt=""></div>
+        <div><h1>Шарики-примеры</h1><p>Лопай шарик с верным ответом, пока он не улетел. Проходи уровни и собирай звёзды!</p>
+        <span class="chip">${STAR(true)} ${total} из ${max} звёзд</span></div></div>
+      ${cards}</div>`;
+    $map.hidden = false; document.body.classList.add("on-map");
+    $map.querySelectorAll(".lv").forEach((b) => b.addEventListener("click", () => {
+      const m = b.dataset.m, L = +b.dataset.l;
+      if (!unlocked(m, L)) { K.sfx("bad"); K.toast(`Сначала пройди уровень ${L - 1}`); b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); return; }
+      K.sfx("tap"); begin(m, L);
+    }));
+  }
+  function closeMap() { $map.hidden = true; document.body.classList.remove("on-map"); }
+
+  /* ---------- запуск ---------- */
+  resize(); drawHearts(); updateHud();
+  openMap();
+  requestAnimationFrame(frame);
+  // для автотестов
+  window.__balloons = { get state() { return state; }, get task() { return task; }, get balloons() { return balloons; }, get geo() { return geo; }, begin, openMap, get correct() { return correct; } };
 })();
 </script>
 </body>
