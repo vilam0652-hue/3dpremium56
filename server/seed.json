@@ -8,8 +8,8 @@
    "h": "KP9LXNV8ateZbqfn0twq9Q8818svzKKmUr/ojoU2Flw="
   },
   {
-   "label": "Аккаунт 1",
-   "admin": false,
+   "label": "Главный администратор",
+   "admin": true,
    "s": "Dbjsubu77MRsD2kcXEcZdA==",
    "h": "WNVkxOSXOMK7TCisYK68DHhSyH8w09L1AdvE8ZP6ejM="
   },

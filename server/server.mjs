@@ -35,6 +35,17 @@ if (!users) {
   users = seed.list.map((a, i) => ({ id: crypto.randomUUID(), label: a.label || `Аккаунт ${i + 1}`, kind: "pbkdf2", iter: seed.iter, s: a.s, h: a.h, admin: !!a.admin, created: Date.now() }));
   writeJSON(USERS, users);
 }
+// права и подписи из seed.json применяются и к уже созданным аккаунтам (совпадение по отпечатку)
+{
+  const seed = readJSON(join(HERE, "seed.json"), { list: [] }); let changed = false;
+  for (const e of seed.list) {
+    const u = users.find((x) => x.kind === "pbkdf2" && x.s === e.s && x.h === e.h);
+    if (!u) continue;
+    if (e.admin && !u.admin) { u.admin = true; changed = true; }
+    if (e.label && u.label !== e.label) { u.label = e.label; changed = true; }
+  }
+  if (changed) writeJSON(USERS, users);
+}
 let stats = readJSON(STATS, { chat: {}, downloads: {}, logins: 0 });
 let statsDirty = false;
 setInterval(() => { if (statsDirty) { writeJSON(STATS, stats); statsDirty = false; } }, 15000).unref();
