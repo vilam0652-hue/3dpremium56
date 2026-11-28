@@ -16,12 +16,19 @@ say() { printf '\n\033[1;33m▶ %s\033[0m\n' "$*"; }
 [ "${ID:-}" = "ubuntu" ] || [ "${ID:-}" = "debian" ] || echo "Внимание: скрипт проверен на Ubuntu/Debian, у тебя ${PRETTY_NAME:-неизвестная система}."
 
 say "Проверяю, не заняты ли порты 80 и 443 другой программой"
-BUSY=$(ss -ltnpH '( sport = :80 or sport = :443 )' 2>/dev/null | grep -v caddy || true)
-if [ -n "$BUSY" ]; then
-  echo "Порты 80/443 уже заняты:"; echo "$BUSY"
-  echo "Похоже, на сервере уже работает другой сайт (nginx/apache). Установка остановлена, чтобы ничего не сломать."
+busy() { ss -ltnpH "( sport = :$1 )" 2>/dev/null | grep -v caddy || true; }
+HTTPS_PORT="${HTTPS_PORT:-443}"
+if [ -n "$(busy 80)" ]; then
+  echo "Порт 80 занят другой программой:"; busy 80
+  echo "Без свободного порта 80 не получить HTTPS-сертификат. Установка остановлена, ничего не изменено."
   echo "Напиши об этом Claude — он подскажет, как поставить Каплю рядом."
   exit 1
+fi
+if [ -n "$(busy 443)" ]; then
+  echo "Порт 443 уже занят (например, VPN или другой сайт) — его не трогаю:"; busy 443 | head -n 2
+  for P in 8443 9443 10443 11443; do if [ -z "$(busy $P)" ]; then HTTPS_PORT=$P; break; fi; done
+  [ "$HTTPS_PORT" != "443" ] || { echo "Не нашёл свободного порта для сайта. Установка остановлена."; exit 1; }
+  echo "Капля будет работать на порту $HTTPS_PORT, а то, что на 443, продолжит работать как раньше."
 fi
 
 say "Ставлю нужные пакеты"
@@ -78,12 +85,13 @@ if [ -z "$DOMAIN" ]; then
   IP=$(curl -4 -fsS https://api.ipify.org || curl -4 -fsS https://ifconfig.me)
   DOMAIN="${IP//./-}.sslip.io"
 fi
-echo "$DOMAIN" > "$ETC/domain"
+ADDR="$DOMAIN"; [ "$HTTPS_PORT" = "443" ] || ADDR="$DOMAIN:$HTTPS_PORT"
+echo "$ADDR" > "$ETC/domain"
 
-say "Настраиваю HTTPS для $DOMAIN"
+say "Настраиваю HTTPS для $ADDR"
 CF=/etc/caddy/Caddyfile
 BLOCK="# kaplya-begin
-$DOMAIN {
+$ADDR {
 	encode zstd gzip
 	reverse_proxy 127.0.0.1:8080
 }
@@ -104,7 +112,7 @@ install -m 755 "$APP/deploy/kaplyactl" /usr/local/bin/kaplyactl
 systemctl daemon-reload
 systemctl enable --now kaplya.service kaplya-update.timer >/dev/null
 systemctl restart caddy
-if command -v ufw >/dev/null && ufw status | grep -q active; then ufw allow 80/tcp >/dev/null; ufw allow 443/tcp >/dev/null; fi
+if command -v ufw >/dev/null && ufw status | grep -q active; then ufw allow 80/tcp >/dev/null; ufw allow "$HTTPS_PORT"/tcp >/dev/null; fi
 
 say "Скачиваю APK на сервер"
 bash "$APP/deploy/update.sh" || true
@@ -115,12 +123,12 @@ cat <<EOF
 ========================================================
   Капля установлена!
 
-  Сайт:  https://$DOMAIN
+  Сайт:  https://$ADDR
   Входи теми же логином и паролем, что и раньше.
-  Управление сервером (для администратора): https://$DOMAIN/server-admin
+  Управление сервером (для администратора): https://$ADDR/server-admin
 
   Адрес чата для «Бадди» (вставь в «Я» → «Свой сервер»):
-  https://$DOMAIN/api/chat?code=$CHAT_CODE
+  https://$ADDR/api/chat?code=$CHAT_CODE
 
   Подключить GigaChat:   sudo kaplyactl set-gigachat
   Подключить OpenRouter: sudo kaplyactl set-openrouter
