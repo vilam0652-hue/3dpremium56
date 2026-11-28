@@ -6,3 +6,4 @@ dist/
 *.keystore
 .DS_Store
 android/app/src/main/res/mipmap-*/
+API.md
