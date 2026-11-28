@@ -84,7 +84,7 @@ body { background: var(--void); color: var(--text); font-family: var(--font-body
 .menu-best b { color: #f2cf6a; font-variant-numeric: tabular-nums; }
 .mbtns { display: flex; flex-direction: column; gap: 10px; width: min(290px, 100%); margin-top: 8px; }
 .mbtns .btn { width: 100%; animation: rise .6s cubic-bezier(.2, 1.3, .4, 1) backwards; }
-.mbtns .btn:nth-child(1) { animation-delay: .55s; } .mbtns .btn:nth-child(2) { animation-delay: .62s; } .mbtns .btn:nth-child(3) { animation-delay: .69s; } .mbtns .btn:nth-child(4) { animation-delay: .76s; }
+.mbtns .btn:nth-child(1) { animation-delay: .55s; } .mbtns .btn:nth-child(2) { animation-delay: .62s; } .mbtns .btn:nth-child(3) { animation-delay: .69s; } .mbtns .btn:nth-child(4) { animation-delay: .76s; } .mbtns .btn:nth-child(5) { animation-delay: .83s; }
 .btn.big { padding: 16px 22px; font-size: 1.1rem; }
 #rules { width: min(340px, 100%); text-align: left; background: var(--glass); border: 1px solid rgba(63, 211, 230, .3); border-radius: 16px; padding: 14px 18px; color: var(--muted); line-height: 1.5; }
 #rules ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
@@ -92,7 +92,28 @@ body { background: var(--void); color: var(--text); font-family: var(--font-body
 body.menu-open #hud, body.menu-open #hint { opacity: 0; pointer-events: none; }
 #hud, #hint { transition: opacity .4s; }
 #nogl { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--muted); }
-@media (prefers-reduced-motion: reduce) { .pop, .panel, .overlay { animation-duration: .01s !important; } }
+#hint.show { animation: hintPulse 1.8s ease-in-out infinite; }
+@keyframes hintPulse { 0%, 100% { color: var(--muted); } 50% { color: #fff; text-shadow: 0 0 8px rgba(63, 211, 230, .6); } }
+.panel .stats { color: var(--muted); font-weight: 700; font-size: .9rem; margin: -8px 0 18px; font-variant-numeric: tabular-nums; }
+.panel .stats b { color: var(--text); }
+
+/* first-run coach: a small neon card under the HUD plus a hand that shows the drag */
+#coach { position: fixed; z-index: 7; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 86px); transform: translateX(-50%); width: min(340px, calc(100% - 32px));
+  background: var(--glass); border: 1px solid rgba(63, 211, 230, .45); border-radius: 18px; padding: 14px 16px 14px; text-align: center; pointer-events: auto;
+  box-shadow: 0 0 22px rgba(63, 211, 230, .2), inset 0 0 24px rgba(228, 92, 196, .06); backdrop-filter: blur(6px); animation: rise .45s cubic-bezier(.2, 1.4, .4, 1); }
+#coach .step { font-size: .72rem; font-weight: 800; letter-spacing: .16em; color: var(--cyan); text-transform: uppercase; }
+#coach .dots { display: inline-flex; gap: 5px; margin-left: 8px; vertical-align: middle; }
+#coach .dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(164, 159, 208, .35); }
+#coach .dots i.on { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+#coach h3 { font-family: var(--font-display); font-weight: 400; font-size: 1.2rem; margin: 6px 0 4px; color: #fff; text-shadow: 0 0 8px rgba(228, 92, 196, .45); }
+#coach p { margin: 0; color: var(--muted); font-weight: 600; line-height: 1.35; }
+#coach .row { margin-top: 12px; }
+#coach .btn { padding: 11px 20px; min-height: 44px; }
+#coach .skip { background: none; border: 0; color: var(--muted); font: inherit; font-weight: 700; font-size: .85rem; margin-top: 8px; min-height: 36px; padding: 6px 12px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+#hand { position: fixed; z-index: 7; left: 0; top: 0; width: 64px; height: 64px; pointer-events: none; opacity: 0; filter: drop-shadow(0 0 10px rgba(63, 211, 230, .55)); will-change: transform, opacity; }
+#hand::after { content: ""; position: absolute; left: 14px; top: -6px; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--cyan); box-shadow: 0 0 10px var(--cyan); opacity: var(--ring, 0); transform: scale(var(--ringS, 1)); }
+#hand img { width: 100%; height: 100%; display: block; }
+@media (prefers-reduced-motion: reduce) { .pop, .panel, .overlay, #coach { animation-duration: .01s !important; } #hint.show { animation: none; } }
 </style>
 
 <canvas id="stage" aria-label="Игровое поле 3D Bust"></canvas>
@@ -110,7 +131,15 @@ body.menu-open #hud, body.menu-open #hint { opacity: 0; pointer-events: none; }
   </div>
 </div>
 <div id="pops"></div>
-<div id="hint">Перетащи фигуру на поле</div>
+<div id="hint" style="opacity:0">Перетащи фигуру на поле</div>
+<div id="coach" hidden role="status" aria-live="polite">
+  <div class="step"><span id="coachStep">Шаг 1 из 3</span><span class="dots"><i></i><i></i><i></i></span></div>
+  <h3 id="coachTitle"></h3>
+  <p id="coachText"></p>
+  <div class="row" id="coachRow" hidden><button class="btn" id="coachNext">Дальше</button></div>
+  <button class="skip" id="coachSkip">Пропустить обучение</button>
+</div>
+<div id="hand" aria-hidden="true"><img src="art/hand.webp" alt=""></div>
 
 <div id="menu">
   <div class="title" aria-label="3D Bust"><span class="d">3</span><span class="d">D</span><br><span>B</span><span>U</span><span>S</span><span>T</span></div>
@@ -121,6 +150,7 @@ body.menu-open #hud, body.menu-open #hint { opacity: 0; pointer-events: none; }
     <button class="btn alt" id="newBtn" hidden>Новая игра</button>
     <button class="btn alt" id="rulesBtn" aria-expanded="false">Как играть</button>
     <button class="btn alt" id="menuSound">Звук: вкл</button>
+    <button class="btn alt" id="menuVib" hidden>Вибрация: вкл</button>
   </div>
   <div id="rules" hidden>
     <ol>
@@ -139,6 +169,7 @@ body.menu-open #hud, body.menu-open #hint { opacity: 0; pointer-events: none; }
     <p>Ни одна фигура больше не помещается</p>
     <div class="final" id="ovScore">0</div>
     <div class="rec" id="ovRec"></div>
+    <div class="stats" id="ovStats"></div>
     <div class="row"><button class="btn" id="againBtn">Играть снова</button><button class="btn alt" id="toMenuBtn">В меню</button></div>
   </div>
 </div>
@@ -160,7 +191,7 @@ body.menu-open #hud, body.menu-open #hint { opacity: 0; pointer-events: none; }
 <script>
 (() => {
 "use strict";
-if (!window.THREE) { document.body.insertAdjacentHTML("beforeend", '<div id="nogl">Не удалось загрузить 3D-движок. Проверь интернет и открой страницу ещё раз.</div>'); return; }
+if (!window.THREE) { document.body.insertAdjacentHTML("beforeend", '<div id="nogl">Не удалось загрузить 3D-движок. Закрой игру и открой её ещё раз.</div>'); return; }
 const T = THREE;
 const $ = (s) => document.querySelector(s);
 
@@ -190,9 +221,25 @@ const cellX = (c) => c - (N - 1) / 2, cellZ = (r) => r - (N - 1) / 2;
 // ---------- renderer / scene ----------
 const canvas = $("#stage");
 let renderer;
-try { renderer = new T.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" }); }
-catch (e) { document.body.insertAdjacentHTML("beforeend", '<div id="nogl">Этот браузер не поддерживает 3D-графику (WebGL).</div>'); return; }
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, String(v)); } catch (e) { /* storage blocked */ } }
+};
+const hasComposer = !!(T.EffectComposer && T.RenderPass && T.UnrealBloomPass);
+// With the bloom composer the scene is drawn into render targets anyway, so canvas MSAA only costs fill-rate.
+try { renderer = new T.WebGLRenderer({ canvas, antialias: !hasComposer, powerPreference: "high-performance" }); }
+catch (e) { document.body.insertAdjacentHTML("beforeend", '<div id="nogl">Этот телефон не поддерживает 3D-графику (WebGL).</div>'); return; }
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+// Adaptive quality: 0 = full (DPR up to 2 + bloom) … 4 = lowest (DPR 0.75, no bloom, no stars).
+const QUALITY = [
+  { pr: DPR, bloom: true }, { pr: Math.min(DPR, 1.5), bloom: true }, { pr: Math.min(DPR, 1), bloom: true },
+  { pr: Math.min(DPR, 1), bloom: false }, { pr: Math.min(DPR, 0.75), bloom: false }
+];
+let qForced = null;
+{ const m = /[?&]q=(\d)/.exec(location.search); if (m) qForced = Math.min(QUALITY.length - 1, +m[1]); }
+// Start one step better than last session ended, so a phone that was busy once gets another chance.
+let qLevel = qForced != null ? qForced : Math.max(0, Math.min(QUALITY.length - 1, (parseInt(store.get("bust3d-q", "0"), 10) || 0) - 1));
+renderer.setPixelRatio(QUALITY[qLevel].pr);
 const scene = new T.Scene();
 scene.background = new T.Color(0x0c0b1e);
 scene.fog = new T.FogExp2(0x0c0b1e, 0.024);
@@ -202,13 +249,21 @@ const camDir = new T.Vector3(0, 1, 0.5).normalize();
 let camDist = 20;
 
 let composer = null, bloom = null;
-if (T.EffectComposer && T.RenderPass && T.UnrealBloomPass) {
+const BLOOM = 0.5;
+let bloomKick = 0; // extra bloom for a moment after a line burns
+if (hasComposer) {
   try {
     composer = new T.EffectComposer(renderer);
     composer.addPass(new T.RenderPass(scene, camera));
-    bloom = new T.UnrealBloomPass(new T.Vector2(512, 512), 0.5, 0.4, 0.3);
+    bloom = new T.UnrealBloomPass(new T.Vector2(512, 512), BLOOM, 0.4, 0.3);
     composer.addPass(bloom);
-  } catch (e) { composer = null; }
+  } catch (e) { composer = null; bloom = null; }
+}
+function applyQuality() {
+  const q = QUALITY[qLevel];
+  renderer.setPixelRatio(q.pr);
+  if (composer) composer.setPixelRatio(q.pr);
+  stars.visible = qLevel < 4; // only called after the scene is built
 }
 
 scene.add(new T.HemisphereLight(0x8f8cff, 0x240026, 0.75));
@@ -269,9 +324,14 @@ const ease = {
   outBounce: (t) => { const n1 = 7.5625, d1 = 2.75; if (t < 1 / d1) return n1 * t * t; if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + .75; if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + .9375; return n1 * (t -= 2.625 / d1) * t + .984375; },
   linear: (t) => t
 };
-function tween(dur, fn, e = ease.outCubic, delay = 0) {
-  return new Promise((res) => tweens.push({ start: performance.now() + delay, dur, fn, e, res, started: false }));
+// `key` groups tweens that drive the same object, so a new move (e.g. picking a piece up) can stop the old one.
+function tween(dur, fn, e = ease.outCubic, delay = 0, key = null) {
+  return new Promise((res) => tweens.push({ start: performance.now() + delay, dur, fn, e, res, key }));
 }
+function killTweens(key) {
+  for (let i = tweens.length - 1; i >= 0; i--) if (tweens[i].key === key) { const tw = tweens[i]; tweens.splice(i, 1); tw.res(); }
+}
+const animating = (key) => tweens.some((tw) => tw.key === key);
 function stepTweens(now) {
   for (let i = tweens.length - 1; i >= 0; i--) {
     const tw = tweens[i];
@@ -319,6 +379,25 @@ function sweep(isRow, idx, color, delay) {
     m.material.opacity = k < 0.3 ? k / 0.3 * 0.45 : 0.45 * (1 - (k - 0.3) / 0.7);
   }, ease.linear, delay).then(() => { scene.remove(m); m.geometry.dispose(); m.material.dispose(); });
 }
+// Expanding neon ring on the board surface: the "thump" of a burning line.
+const ringGeo = new T.RingGeometry(0.82, 1, 64);
+function shockwave(pos, color, size = 6, delay = 0) {
+  const m = new T.Mesh(ringGeo, new T.MeshBasicMaterial({ color, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide }));
+  m.rotation.x = -Math.PI / 2; m.position.set(pos.x, 0.12, pos.z); m.scale.setScalar(0.2); scene.add(m);
+  tween(650, (k) => { m.scale.setScalar(0.2 + size * k); m.material.opacity = 0.75 * (1 - k); }, ease.outCubic, delay)
+    .then(() => { scene.remove(m); m.material.dispose(); });
+}
+// Board tiles under burnt cells flash white, then cool back to their idle glow.
+const TILE_IDLE = new T.Color(0x120d38), WHITE = new T.Color(0xffffff);
+function flashTile(c, r, color, delay) {
+  const tl = tileAt(c, r), col = new T.Color(color);
+  tween(700, (k) => {
+    if (drag) return; // the drag preview owns tile colours while a piece is held
+    const e = k < 0.15 ? WHITE.clone().lerp(col, k / 0.15) : col.clone().lerp(TILE_IDLE, (k - 0.15) / 0.85);
+    tl.material.emissive.copy(e);
+  }, ease.linear, delay, tl).then(() => { if (!drag) tl.material.emissive.copy(TILE_IDLE); });
+}
+const fx = () => (qLevel >= 3 ? 0.5 : 1); // fewer particles on weak phones
 
 // ---------- sound ----------
 let actx = null, soundOn = true;
@@ -337,7 +416,8 @@ const sfx = {
   back: () => tone(300, 0.12, "triangle", 0.1, 0, 0.6),
   clear: (lines, combo) => { const base = 440 * Math.pow(1.06, Math.min(combo, 10) * 2); [0, 4, 7, 12, 16].slice(0, 2 + lines).forEach((s, i) => tone(base * Math.pow(2, s / 12), 0.22, "sawtooth", 0.07, i * 0.06)); tone(base * 2, 0.5, "sine", 0.08, 0.05, 1.5); },
   over: () => [0, -3, -7, -12].forEach((s, i) => tone(330 * Math.pow(2, s / 12), 0.35, "triangle", 0.12, i * 0.16)),
-  spawn: () => [0, 7].forEach((s, i) => tone(520 * Math.pow(2, s / 12), 0.08, "sine", 0.06, i * 0.05))
+  spawn: () => [0, 7].forEach((s, i) => tone(520 * Math.pow(2, s / 12), 0.08, "sine", 0.06, i * 0.05)),
+  record: () => [0, 4, 7, 12].forEach((s, i) => tone(523 * Math.pow(2, s / 12), 0.25, "triangle", 0.1, i * 0.09))
 };
 function paintSound() {
   $("#waves").style.display = soundOn ? "" : "none";
@@ -345,11 +425,20 @@ function paintSound() {
   $("#soundBtn").setAttribute("aria-label", soundOn ? "Выключить звук" : "Включить звук");
 }
 
+// ---------- vibration ----------
+const canVibrate = typeof navigator.vibrate === "function";
+let vibOn = store.get("bust3d-vib", "on") !== "off";
+function vib(p) { if (!vibOn || !canVibrate) return; try { navigator.vibrate(p); } catch (e) { /* not allowed */ } }
+function paintVib() { const b = $("#menuVib"); b.hidden = !canVibrate; b.textContent = vibOn ? "Вибрация: вкл" : "Вибрация: выкл"; }
+
 // ---------- game state ----------
 let board = [];      // board[r][c] = { ci, obj } | null
 let tray = [null, null, null]; // { si, ci, group, fits }
-let score = 0, shownScore = 0, best = 0, combo = 0, sinceClear = 0, over = false, busy = 0;
-try { best = Number(localStorage.getItem("bust3d-best")) || 0; } catch (e) { /* ignore */ }
+let score = 0, shownScore = 0, best = 0, combo = 0, sinceClear = 0, over = false;
+let gen = 0;          // bumps on every new game, so timers from the previous game do nothing
+let bestAtStart = 0;  // the record before this game began: "new record" means beating this
+let totalLines = 0, maxCombo = 0;
+best = Number(store.get("bust3d-best", 0)) || 0;
 
 function emptyBoard() { board = Array.from({ length: N }, () => Array(N).fill(null)); }
 function canPlace(shape, c0, r0) {
@@ -369,15 +458,14 @@ function linesIf(shape, c0, r0) {
 }
 
 function save() {
-  try {
-    localStorage.setItem("bust3d-save", JSON.stringify({
-      board: board.map((row) => row.map((x) => (x ? x.ci : -1))),
-      tray: tray.map((t) => (t ? { si: t.si, ci: t.ci } : null)),
-      score, combo, sinceClear, over
-    }));
-  } catch (e) { /* ignore */ }
+  store.set("bust3d-save", JSON.stringify({
+    v: 2,
+    board: board.map((row) => row.map((x) => (x ? x.ci : -1))),
+    tray: tray.map((t) => (t ? { si: t.si, ci: t.ci } : null)),
+    score, combo, sinceClear, over, bestAtStart, totalLines, maxCombo
+  }));
 }
-function saveBest() { try { localStorage.setItem("bust3d-best", String(best)); } catch (e) { /* ignore */ } }
+function saveBest() { store.set("bust3d-best", best); }
 
 // ---------- tray ----------
 function buildPiece(si, ci) {
@@ -407,12 +495,18 @@ function spawnTray(spec) {
     const ci = typeof si === "object" ? si.ci : cols[i];
     const sIdx = typeof si === "object" ? si.si : si;
     const group = buildPiece(sIdx, ci);
-    group.position.set(SLOT_X[i], 0.4, SLOT_Z);
+    group.position.set(SLOT_X[i], -0.8, SLOT_Z);
     group.scale.setScalar(0.001);
     scene.add(group);
     tray[i] = { si: sIdx, ci, group, fits: true };
-    tween(520, (k) => group.scale.setScalar(Math.max(0.001, TRAY_SCALE * k)), ease.outBack, i * 90);
-    tween(520, (k) => { group.rotation.y = (1 - k) * Math.PI; }, ease.outCubic, i * 90);
+    // Each piece rises out of its pad with a half spin and a springy pop; the pad ring flares as it lands.
+    tween(560, (k, t) => {
+      group.scale.setScalar(Math.max(0.001, TRAY_SCALE * k));
+      group.rotation.y = (1 - ease.outCubic(t)) * Math.PI;
+      group.position.y = -0.8 + 1.2 * ease.outCubic(t);
+    }, ease.outBack, i * 110, group).then(() => { group.rotation.y = 0; });
+    const pad = pads[i];
+    tween(600, (k) => { pad.scale.setScalar(1 + 0.25 * Math.sin(k * Math.PI)); pad.userData.flare = 0.5 * (1 - k); }, ease.linear, i * 110 + 200, pad);
   });
   sfx.spawn();
   refreshFits();
@@ -424,17 +518,23 @@ const fitPoints = [
   new T.Vector3(-N / 2 - 0.4, 0, N / 2 + 0.4), new T.Vector3(N / 2 + 0.4, 0, N / 2 + 0.4),
   new T.Vector3(-4.9, 0, SLOT_Z + 1.6), new T.Vector3(4.9, 0, SLOT_Z + 1.6), new T.Vector3(0, 1, -N / 2 - 0.6)
 ];
+const BAND_TOP = 0.6, BAND_BOT = -0.93;
 function fitCamera() {
   const w = window.innerWidth, h = window.innerHeight;
-  camera.aspect = w / h; camera.updateProjectionMatrix();
-  // Leave room for the HUD at the top: the visible band is roughly y in [-0.92, 0.62] NDC.
+  camera.aspect = w / h; camera.clearViewOffset(); camera.updateProjectionMatrix();
+  // Leave room for the HUD at the top: the visible band is roughly y in [-0.93, 0.6] NDC.
+  let lo = 0, hi = 0;
   for (let d = 10; d < 80; d += 0.25) {
     camera.position.copy(camTarget).addScaledVector(camDir, d); camera.lookAt(camTarget); camera.updateMatrixWorld();
-    const ok = fitPoints.every((p) => { const v = p.clone().project(camera); return Math.abs(v.x) <= 0.94 && v.y <= 0.6 && v.y >= -0.93; });
-    if (ok) { camDist = d; break; }
+    const ys = [];
+    const ok = fitPoints.every((p) => { const v = p.clone().project(camera); ys.push(v.y); return Math.abs(v.x) <= 0.94 && v.y <= BAND_TOP && v.y >= BAND_BOT; });
+    if (ok) { camDist = d; lo = Math.min(...ys); hi = Math.max(...ys); break; }
   }
+  // On tall phones the board is width-bound and would hug the top; centre it in the free band instead.
+  const shiftNdc = (BAND_TOP + BAND_BOT) / 2 - (lo + hi) / 2;
+  if (Math.abs(shiftNdc) > 0.01) camera.setViewOffset(w, h, 0, Math.round(shiftNdc * h / 2), w, h);
   renderer.setSize(w, h, false);
-  if (composer) { composer.setSize(w, h); if (bloom) bloom.resolution.set(w / 2, h / 2); }
+  if (composer) composer.setSize(w, h);
 }
 window.addEventListener("resize", fitCamera);
 
@@ -473,49 +573,72 @@ function showPreview() {
   cols.forEach((c) => { for (let r = 0; r < N; r++) mark(c, r); });
 }
 
+const TOUCH_OFF = -2.6, MOUSE_OFF = -0.6; // touch: lift the piece above the finger so it stays visible
 canvas.addEventListener("pointerdown", (e) => {
   audio();
-  if (over || drag || menuOpen) return;
+  if (over || drag || menuOpen || !e.isPrimary) return;
   const pt = pointerWorld(e, 0.4);
   if (!pt) return;
   let slot = -1, bestD = 2.4;
   SLOT_X.forEach((x, i) => { const d = Math.hypot(pt.x - x, (pt.z - SLOT_Z) * 0.9); if (tray[i] && d < bestD) { bestD = d; slot = i; } });
   if (slot < 0) return;
+  e.preventDefault();
   const p = tray[slot];
-  if (!p.fits) { tween(300, (k, t) => { p.group.position.x = SLOT_X[slot] + Math.sin(t * Math.PI * 6) * 0.15 * (1 - t); }, ease.linear); sfx.back(); return; }
-  canvas.setPointerCapture(e.pointerId);
-  drag = { slot, p, offZ: e.pointerType === "touch" ? -2.6 : -0.6, c0: 0, r0: 0, valid: false, id: e.pointerId };
+  if (!p.fits) {
+    killTweens(p.group);
+    p.group.position.set(SLOT_X[slot], 0.4, SLOT_Z); p.group.scale.setScalar(TRAY_SCALE);
+    tween(300, (k, t) => { p.group.position.x = SLOT_X[slot] + Math.sin(t * Math.PI * 6) * 0.15 * (1 - t); }, ease.linear, 0, p.group);
+    sfx.back(); vib(12); return;
+  }
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* pointer already gone */ }
+  // Stop any spawn / return animation on this piece so it cannot fight the finger.
+  killTweens(p.group);
+  p.group.rotation.set(0, 0, 0);
+  drag = { slot, p, offZ: e.pointerType === "mouse" ? MOUSE_OFF : TOUCH_OFF, c0: -99, r0: -99, valid: false, id: e.pointerId };
   const s0 = p.group.scale.x;
-  tween(160, (k) => p.group.scale.setScalar(s0 + (1 - s0) * k), ease.outBack);
-  sfx.pick();
-  hideHint();
+  tween(160, (k) => p.group.scale.setScalar(s0 + (1 - s0) * k), ease.outBack, 0, p.group);
+  sfx.pick(); vib(8);
+  idleReset();
+  tut.onPick();
   moveDrag(e);
 });
 function moveDrag(e) {
-  if (!drag) return;
+  if (!drag || e.pointerId !== drag.id) return;
   const pt = pointerWorld(e, LIFT);
   if (!pt) return;
   const { w, h } = shapeSize(SHAPES[drag.p.si]);
-  const X = pt.x, Z = pt.z + drag.offZ;
+  // Keep the held piece inside a sane area so it never flies off-screen near the edges.
+  const X = Math.max(-N / 2 - 1, Math.min(N / 2 + 1, pt.x)), Z = Math.max(-N / 2 - 1.5, Math.min(SLOT_Z + 1, pt.z + drag.offZ));
   drag.p.group.position.set(X, LIFT, Z);
-  const c0 = Math.round(X - (w - 1) / 2 + (N - 1) / 2), r0 = Math.round(Z - (h - 1) / 2 + (N - 1) / 2);
+  let c0 = Math.round(X - (w - 1) / 2 + (N - 1) / 2), r0 = Math.round(Z - (h - 1) / 2 + (N - 1) / 2);
+  // Forgiving edges: if the piece hangs over the border by one cell, snap it inside.
+  if (c0 === -1) c0 = 0; if (c0 + w === N + 1) c0 = N - w;
+  if (r0 === -1) r0 = 0; if (r0 + h === N + 1) r0 = N - h;
   const valid = canPlace(SHAPES[drag.p.si], c0, r0);
-  if (c0 !== drag.c0 || r0 !== drag.r0 || valid !== drag.valid) { drag.c0 = c0; drag.r0 = r0; drag.valid = valid; showPreview(); }
+  if (c0 !== drag.c0 || r0 !== drag.r0 || valid !== drag.valid) {
+    if (valid && (c0 !== drag.c0 || r0 !== drag.r0)) tone(880 + (c0 + r0) * 12, 0.03, "sine", 0.025);
+    drag.c0 = c0; drag.r0 = r0; drag.valid = valid; showPreview();
+  }
 }
 canvas.addEventListener("pointermove", moveDrag);
 function endDrag(e) {
   if (!drag || (e && e.pointerId !== drag.id)) return;
   const d = drag; drag = null;
+  try { canvas.releasePointerCapture(d.id); } catch (err) { /* already released */ }
   clearHighlight();
-  if (d.valid) place(d.slot, d.c0, d.r0);
-  else {
-    const g = d.p.group, from = g.position.clone(), s0 = g.scale.x;
-    sfx.back();
-    tween(320, (k) => { g.position.lerpVectors(from, new T.Vector3(SLOT_X[d.slot], 0.4, SLOT_Z), k); g.scale.setScalar(s0 + (TRAY_SCALE - s0) * k); }, ease.outBack);
-  }
+  if (d.valid && !(e && e.type === "pointercancel") && !over && tray[d.slot] === d.p) place(d.slot, d.c0, d.r0);
+  else { returnPiece(d.slot, d.p); tut.onDrop(); }
+}
+function returnPiece(slot, p) {
+  const g = p.group, from = g.position.clone(), s0 = g.scale.x, to = new T.Vector3(SLOT_X[slot], 0.4, SLOT_Z);
+  sfx.back();
+  killTweens(g);
+  tween(320, (k) => { g.position.lerpVectors(from, to, k); g.scale.setScalar(s0 + (TRAY_SCALE - s0) * k); }, ease.outBack, 0, g);
 }
 canvas.addEventListener("pointerup", endDrag);
 canvas.addEventListener("pointercancel", endDrag);
+canvas.addEventListener("lostpointercapture", endDrag);
+canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 
 // ---------- placing & clearing ----------
 let shake = 0;
@@ -531,10 +654,10 @@ function popText(text, cls, at, delay = 0) {
 }
 
 function place(slot, c0, r0) {
-  const p = tray[slot], shape = SHAPES[p.si];
+  const p = tray[slot], shape = SHAPES[p.si], g0 = gen;
+  killTweens(p.group);
   scene.remove(p.group);
   tray[slot] = null;
-  busy++;
   const center = new T.Vector3();
   shape.forEach(([dx, dy], i) => {
     const c = c0 + dx, r = r0 + dy;
@@ -545,9 +668,12 @@ function place(slot, c0, r0) {
     center.add(cube.position);
     tween(260, (k) => { cube.position.y = LIFT + (0.5 - LIFT) * k; }, ease.outBounce, i * 18);
     tween(260, (k, t) => { const s = 1 + Math.sin(t * Math.PI) * 0.12; cube.scale.set(s, 1 / s, s); }, ease.linear, i * 18 + 120);
+    // a soft glow under each cube as it lands
+    const tl = tileAt(c, r), col = new T.Color(COLORS[p.ci]).multiplyScalar(0.45);
+    tween(420, (k) => { if (!drag) tl.material.emissive.copy(col).lerp(TILE_IDLE, k); }, ease.outCubic, i * 18 + 140, tl).then(() => { if (!drag) tl.material.emissive.copy(TILE_IDLE); });
   });
   center.divideScalar(shape.length); center.y = 0.5;
-  sfx.place();
+  sfx.place(); vib(15);
   shake = Math.max(shake, 0.08);
 
   score += shape.length;
@@ -559,6 +685,7 @@ function place(slot, c0, r0) {
 
   if (lines) {
     combo++; sinceClear = 0;
+    totalLines += lines; maxCombo = Math.max(maxCombo, combo);
     const gain = 10 * lines * (lines + 1) / 2 * combo;
     score += gain;
     const cells = new Map();
@@ -570,18 +697,25 @@ function place(slot, c0, r0) {
     cells.forEach(([c, r]) => { const cell = board[r][c]; if (cell) { doomed.push([c, r, cell]); board[r][c] = null; } });
     const boardClear = board.every((row) => row.every((x) => !x));
     if (boardClear) score += 300;
+    const comboNow = combo;
     setTimeout(() => {
+      if (g0 !== gen) return;
       rows.forEach((r, i) => sweep(true, r, color, i * 60));
       cols.forEach((c, i) => sweep(false, c, color, (rows.length + i) * 60));
-      sfx.clear(lines, combo);
+      sfx.clear(lines, comboNow);
+      vib(lines >= 2 ? [30, 40, 30, 40, 60] : [25, 30, 45]);
       shake = Math.max(shake, 0.18 + lines * 0.06);
+      bloomKick = Math.min(1.2, 0.45 + lines * 0.2);
+      shockwave(center, color, 5 + lines * 1.5);
+      if (lines >= 2) shockwave(center, 0xffffff, 8 + lines, 120);
       doomed.forEach(([c, r, cell]) => {
         const cube = cell.obj, dist = Math.hypot(cellX(c) - center.x, cellZ(r) - center.z);
         const delay = dist * 38;
+        flashTile(c, r, COLORS[cell.ci], delay);
         const m = hlMats[cell.ci].clone(); m.transparent = true; cube.userData.box.material = m;
         const em = cube.userData.edge.material.clone(); cube.userData.edge.material = em;
         const spin = (Math.random() - 0.5) * 6, y0 = cube.position.y;
-        setTimeout(() => burst(cube.position, COLORS[cell.ci], 10, 0.8 + lines * 0.1), delay + 80);
+        setTimeout(() => burst(cube.position, COLORS[cell.ci], Math.round(14 * fx()), 0.8 + lines * 0.12), delay + 80);
         tween(480, (k, t) => {
           const s = t < 0.25 ? 1 + t / 0.25 * 0.35 : 1.35 * (1 - (t - 0.25) / 0.75);
           cube.scale.setScalar(Math.max(0.001, s));
@@ -593,12 +727,15 @@ function place(slot, c0, r0) {
       const words = ["", "", "Отлично!", "Супер!", "Невероятно!", "Легендарно!"];
       popText("+" + gain, "pts", center);
       if (lines >= 2) popText(words[Math.min(lines, 5)], "word", new T.Vector3(0, 0.5, -1.2), 120);
-      if (combo >= 2) popText("Комбо ×" + combo, "cmb", new T.Vector3(0, 0.5, 1.4), 220);
+      if (comboNow >= 2) popText("Комбо ×" + comboNow, "cmb", new T.Vector3(0, 0.5, 1.4), 220);
       if (boardClear) {
         setTimeout(() => {
+          if (g0 !== gen) return;
           popText("Поле чистое! +300", "word", new T.Vector3(0, 0.5, 0));
-          for (let i = 0; i < 6; i++) setTimeout(() => burst(new T.Vector3((Math.random() - 0.5) * 7, 0.6, (Math.random() - 0.5) * 7), COLORS[i % COLORS.length], 26, 1.4), i * 90);
-          sfx.clear(5, combo + 3);
+          for (let i = 0; i < 6; i++) setTimeout(() => burst(new T.Vector3((Math.random() - 0.5) * 7, 0.6, (Math.random() - 0.5) * 7), COLORS[i % COLORS.length], Math.round(26 * fx()), 1.4), i * 90);
+          shockwave(new T.Vector3(0, 0, 0), 0xffffff, 12);
+          bloomKick = 1.3;
+          sfx.clear(5, comboNow + 3); vib([40, 40, 40, 40, 80]);
         }, 450);
       }
     }, 170);
@@ -609,14 +746,17 @@ function place(slot, c0, r0) {
   updateCombo();
 
   if (score > best) { best = score; saveBest(); }
-  if (tray.every((x) => !x)) setTimeout(() => { spawnTray(randomTray()); afterMove(); }, lines ? 380 : 160);
-  else afterMove();
-  setTimeout(() => { busy--; }, 600);
+  tut.onPlace(lines);
+  if (tray.every((x) => !x)) {
+    save(); // an empty tray restores as a fresh deal, never as a copy of the piece just placed
+    setTimeout(() => { if (g0 !== gen) return; spawnTray(randomTray()); afterMove(); }, lines ? 380 : 160);
+  } else afterMove();
 }
+const noMoves = () => tray.some(Boolean) && tray.every((p) => !p || !p.fits);
 function afterMove() {
   refreshFits();
   save();
-  if (tray.some(Boolean) && tray.every((p) => !p || !p.fits)) setTimeout(gameOver, 750);
+  if (noMoves()) { const g0 = gen; setTimeout(() => { if (g0 === gen) gameOver(); }, 750); }
 }
 function updateCombo() {
   const el = $("#combo");
@@ -624,46 +764,64 @@ function updateCombo() {
 }
 
 function gameOver() {
-  if (over || menuOpen) return;
+  // Re-check: the board may have changed (or a new game started) since this was scheduled.
+  if (over || menuOpen || drag || !noMoves()) return;
   over = true; save();
-  sfx.over();
+  sfx.over(); vib([60, 50, 120]);
+  hideHint(); tut.end(false);
+  const g0 = gen;
   let i = 0;
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
     const cell = board[r][c]; if (!cell) continue;
     const cube = cell.obj; const d = (i++) * 12;
-    setTimeout(() => { cube.userData.box.material = deadMat; cube.userData.edge.material = deadEdge; }, d);
+    setTimeout(() => { if (g0 !== gen) return; cube.userData.box.material = deadMat; cube.userData.edge.material = deadEdge; }, d);
     tween(300, (k, t) => cube.scale.setScalar(1 - Math.sin(t * Math.PI) * 0.15), ease.linear, d);
   }
+  const isRecord = score > bestAtStart && score > 0;
   setTimeout(() => {
+    if (g0 !== gen) return;
     $("#ovScore").textContent = score;
-    $("#ovRec").textContent = score >= best && score > 0 ? "Новый рекорд!" : `Рекорд: ${best}`;
+    $("#ovRec").textContent = isRecord ? "Новый рекорд!" : `Рекорд: ${best}`;
+    $("#ovStats").innerHTML = `Линий: <b>${totalLines}</b> · Лучшее комбо: <b>${maxCombo >= 2 ? "×" + maxCombo : "—"}</b>`;
     $("#overGame").hidden = false;
     $("#againBtn").focus();
+    if (isRecord) {
+      sfx.record();
+      for (let k = 0; k < 5; k++) setTimeout(() => burst(new T.Vector3((Math.random() - 0.5) * 6, 1, (Math.random() - 0.5) * 6), k % 2 ? 0xffd24a : 0xffb21e, Math.round(30 * fx()), 1.5), k * 140);
+    }
   }, 900 + i * 12);
 }
 
 function newGame() {
+  gen++;
   $("#overGame").hidden = true; $("#overConfirm").hidden = true;
-  clearHighlight(); drag = null;
+  if (drag) { const d = drag; drag = null; try { canvas.releasePointerCapture(d.id); } catch (e) { /* ignore */ } }
+  clearHighlight();
+  tut.end(false);
   board.flat().forEach((cell, k) => {
     if (!cell) return;
     const cube = cell.obj, v = new T.Vector3((Math.random() - 0.5) * 4, 4 + Math.random() * 3, (Math.random() - 0.5) * 4), p0 = cube.position.clone();
     tween(600, (q, t) => { cube.position.set(p0.x + v.x * t, p0.y + v.y * t - 6 * t * t, p0.z + v.z * t); cube.rotation.x += 0.1; cube.scale.setScalar(Math.max(0.001, 1 - t)); }, ease.linear, (k % 13) * 10).then(() => scene.remove(cube));
   });
-  tray.forEach((p) => { if (p) { const g = p.group; tween(250, (k) => g.scale.setScalar(Math.max(0.001, TRAY_SCALE * (1 - k)))).then(() => scene.remove(g)); } });
+  tray.forEach((p) => { if (p) { const g = p.group; killTweens(g); const s0 = g.scale.x; tween(250, (k) => g.scale.setScalar(Math.max(0.001, s0 * (1 - k)))).then(() => scene.remove(g)); } });
   emptyBoard(); tray = [null, null, null];
-  score = 0; shownScore = 0; combo = 0; sinceClear = 0; over = false;
+  score = 0; shownScore = 0; combo = 0; sinceClear = 0; over = false; totalLines = 0; maxCombo = 0;
+  bestAtStart = best;
   $("#score").textContent = "0";
   updateCombo();
-  setTimeout(() => { spawnTray(randomTray()); save(); }, 380);
+  save();
+  const g0 = gen;
+  setTimeout(() => { if (g0 !== gen) return; spawnTray(randomTray()); save(); idleReset(); }, 380);
 }
 
 // ---------- menu ----------
 let menuOpen = true, menuBlend = 1, orbitA = 0;
 const hasGame = () => !over && (score > 0 || board.some((row) => row.some(Boolean)));
 function openMenu() {
-  if (drag) endDrag();
+  if (drag) { const d = drag; drag = null; clearHighlight(); returnPiece(d.slot, d.p); }
   menuOpen = true;
+  tut.hide();
+  hideHint();
   document.body.classList.add("menu-open");
   $("#menu").classList.remove("hide");
   $("#menuBest").textContent = best;
@@ -681,37 +839,149 @@ function closeMenu() {
   orbitA = Math.atan2(Math.sin(orbitA), Math.cos(orbitA));
   const a0 = orbitA, b0 = menuBlend;
   tween(900, (k) => { orbitA = a0 * (1 - k); menuBlend = b0 * (1 - k); }, ease.outCubic);
-  if (tray.some(Boolean) && tray.every((p) => !p || !p.fits)) setTimeout(gameOver, 900);
+  const g0 = gen;
+  if (noMoves()) setTimeout(() => { if (g0 === gen) gameOver(); }, 900);
+  else setTimeout(() => { if (g0 === gen && !menuOpen && !over) { if (!tut.resume()) idleReset(); } }, 700);
 }
 $("#playBtn").addEventListener("click", () => { audio(); sfx.pick(); closeMenu(); if (over) newGame(); });
 $("#newBtn").addEventListener("click", () => { audio(); sfx.pick(); closeMenu(); newGame(); });
 $("#rulesBtn").addEventListener("click", () => { const r = $("#rules"); r.hidden = !r.hidden; $("#rulesBtn").setAttribute("aria-expanded", String(!r.hidden)); });
 $("#menuSound").addEventListener("click", () => { audio(); $("#soundBtn").click(); });
+$("#menuVib").addEventListener("click", () => { vibOn = !vibOn; store.set("bust3d-vib", vibOn ? "on" : "off"); paintVib(); vib(30); });
 $("#menuBtn").addEventListener("click", openMenu);
 // Android Back button (APK wrapper): close dialogs or open the menu; false means "leave the app".
 window.__back = () => {
   if (!$("#overConfirm").hidden) { $("#overConfirm").hidden = true; return true; }
+  if (!$("#overGame").hidden) { $("#toMenuBtn").click(); return true; }
   if (menuOpen) return false;
   openMenu(); return true;
 };
 $("#toMenuBtn").addEventListener("click", () => { newGame(); openMenu(); });
 
 // ---------- hud ----------
+// "Drag a piece" hint: shown when a game starts and again whenever the player idles for a while.
 let hintTimer = 0;
-function hideHint() { $("#hint").style.opacity = "0"; }
-$("#soundBtn").addEventListener("click", () => { soundOn = !soundOn; try { localStorage.setItem("bust3d-sound", soundOn ? "on" : "off"); } catch (e) { /* ignore */ } paintSound(); if (soundOn) sfx.pick(); });
+function hideHint() { clearTimeout(hintTimer); const h = $("#hint"); h.style.opacity = "0"; h.classList.remove("show"); }
+function showHint() { if (menuOpen || over || tut.active || drag) return; const h = $("#hint"); h.style.opacity = "1"; h.classList.add("show"); }
+function idleReset() {
+  hideHint();
+  if (menuOpen || over || tut.active) return;
+  hintTimer = setTimeout(showHint, score === 0 ? 1200 : 12000);
+}
+$("#soundBtn").addEventListener("click", () => { soundOn = !soundOn; store.set("bust3d-sound", soundOn ? "on" : "off"); paintSound(); if (soundOn) sfx.pick(); });
 $("#restartBtn").addEventListener("click", () => { if (over) newGame(); else { $("#overConfirm").hidden = false; $("#cfYes").focus(); } });
 $("#cfYes").addEventListener("click", newGame);
 $("#cfNo").addEventListener("click", () => { $("#overConfirm").hidden = true; });
 $("#againBtn").addEventListener("click", newGame);
 paintSound();
 
+// ---------- first-run tutorial (3 short steps over the real game) ----------
+const TUT_ROW = 4, TUT_C0 = 3;          // the gap the first piece should fill
+const tutGhostMat = new T.MeshBasicMaterial({ color: 0x3fd3e6, transparent: true, opacity: 0.3, depthWrite: false, blending: T.AdditiveBlending });
+const tutGhosts = [0, 1].map((i) => { const g = new T.Group(); g.add(new T.Mesh(cubeGeo, tutGhostMat), new T.LineSegments(edgeGeo, ghostEdge)); g.position.set(cellX(TUT_C0 + i), 0.5, cellZ(TUT_ROW)); g.visible = false; scene.add(g); return g; });
+const tut = {
+  active: false, step: 0, shown: false,
+  start() { this.active = true; this.step = 1; },
+  // Called whenever the game becomes playable (menu closed). Returns true while the tutorial is running.
+  resume() { if (!this.active) return false; this.show(); return true; },
+  show() {
+    if (menuOpen || over) return;
+    const S = {
+      1: ["Перетащи фигуру", "Возьми фигуру снизу пальцем и поставь её в светящиеся клетки.", null],
+      2: this.burned ? ["Линия сгорела!", "Заполни строку или столбец целиком — и они исчезнут. За это дают очки.", "Дальше"]
+                     : ["Собирай линии", "Заполни строку или столбец целиком — и они сгорят. За это дают очки.", "Дальше"],
+      3: ["Комбо", "Сжигай линии ход за ходом — растёт комбо. Когда фигуры перестанут помещаться, игра закончится.", "Играть!"]
+    }[this.step];
+    $("#coachStep").textContent = `Шаг ${this.step} из 3`;
+    document.querySelectorAll("#coach .dots i").forEach((d, i) => d.classList.toggle("on", i < this.step));
+    $("#coachTitle").textContent = S[0]; $("#coachText").textContent = S[1];
+    $("#coachRow").hidden = !S[2]; if (S[2]) $("#coachNext").textContent = S[2];
+    $("#coachSkip").hidden = this.step === 3;
+    const c = $("#coach"); c.hidden = false; c.style.animation = "none"; void c.offsetWidth; c.style.animation = "";
+    this.shown = true;
+    const showGhost = this.step === 1 && !board[TUT_ROW][TUT_C0] && !board[TUT_ROW][TUT_C0 + 1];
+    tutGhosts.forEach((g) => { g.visible = showGhost; });
+    if (this.step === 1) this.handLoop(); else this.stopHand();
+  },
+  hide() { $("#coach").hidden = true; this.shown = false; this.stopHand(); tutGhosts.forEach((g) => { g.visible = false; }); },
+  next() { this.step++; if (this.step > 3) this.end(true); else this.show(); },
+  end() {
+    if (!this.active) return;
+    this.active = false; this.hide(); store.set("bust3d-tut", "done");
+    if (!menuOpen && !over) idleReset();
+  },
+  onPick() { if (this.active) { this.stopHand(); tutGhosts.forEach((g) => { g.visible = false; }); } },
+  onDrop() { if (this.active && this.step === 1 && !menuOpen) this.show(); },
+  onPlace(lines) {
+    if (!this.active) return;
+    if (this.step === 1) { this.burned = lines > 0; this.step = 2; setTimeout(() => this.active && this.show(), lines ? 650 : 250); }
+    else this.next();
+  },
+  // A hand glides from the middle piece to where the finger should end up (the piece floats above the finger).
+  handLoop() {
+    this.stopHand();
+    const hand = $("#hand");
+    const piece = tray.findIndex((p) => p && p.si === 1);
+    const slot = piece >= 0 ? piece : tray.findIndex((p) => p && p.fits);
+    if (slot < 0) { this.handOn = true; this.handTimer = setTimeout(() => { if (this.handOn && this.active && this.step === 1) this.handLoop(); }, 300); return; }
+    const from = new T.Vector3(SLOT_X[slot], 0.4, SLOT_Z), to = new T.Vector3(cellX(TUT_C0 + 0.5), LIFT, cellZ(TUT_ROW) - TOUCH_OFF);
+    const run = () => {
+      if (!this.active || this.step !== 1 || drag || menuOpen) return;
+      tween(2300, (k, t) => {
+        const a = screenOf(from), b = screenOf(to);
+        const m = t < 0.18 ? 0 : t > 0.72 ? 1 : ease.outCubic((t - 0.18) / 0.54);
+        const x = a.x + (b.x - a.x) * m, y = a.y + (b.y - a.y) * m;
+        const op = t < 0.08 ? t / 0.08 : t > 0.86 ? 1 - (t - 0.86) / 0.14 : 1;
+        const press = t > 0.1 && t < 0.78 ? 1 : 0;
+        hand.style.opacity = op;
+        hand.style.transform = `translate(${x - 26}px, ${y - 6}px) scale(${press ? 0.92 : 1})`;
+        hand.style.setProperty("--ring", press * op);
+        hand.style.setProperty("--ringS", press ? 1 + 0.15 * Math.sin(t * 20) : 0.6);
+        // a see-through copy of the piece rides along above the finger and settles into the gap
+        if (tutGhosts[0].visible) {
+          const lift = t < 0.72 ? Math.min(1, t / 0.18) : 1 - Math.min(1, (t - 0.72) / 0.1);
+          tutGhosts.forEach((g, i) => {
+            const gx = SLOT_X[slot] + (i - 0.5) * (0.5 + 0.5 * m) + (cellX(TUT_C0 + 0.5) - SLOT_X[slot]) * m;
+            g.position.set(gx, 0.5 + (LIFT - 0.5) * lift, SLOT_Z + (cellZ(TUT_ROW) - SLOT_Z) * m);
+            g.scale.setScalar(t < 0.1 ? 0.5 : 0.5 + 0.46 * Math.min(1, m * 1.5));
+          });
+        }
+      }, ease.linear, 0, "hand").then(() => { if (this.handOn) this.handTimer = setTimeout(run, 350); });
+    };
+    this.handOn = true; run();
+  },
+  stopHand() {
+    this.handOn = false; clearTimeout(this.handTimer); killTweens("hand"); $("#hand").style.opacity = 0;
+    tutGhosts.forEach((g, i) => { g.position.set(cellX(TUT_C0 + i), 0.5, cellZ(TUT_ROW)); g.scale.setScalar(0.96); });
+  }
+};
+$("#coachNext").addEventListener("click", () => { sfx.pick(); tut.next(); });
+$("#coachSkip").addEventListener("click", () => { sfx.back(); tut.end(); });
+
 // ---------- boot ----------
+function tutorialBoard() {
+  // Row TUT_ROW is almost full: the 2-cube bar from the tray burns it on the very first move.
+  for (let c = 0; c < N; c++) {
+    if (c === TUT_C0 || c === TUT_C0 + 1) continue;
+    const ci = [5, 1, 3, 4, 6, 2][c % 6];
+    const cube = makeCube(ci); cube.position.set(cellX(c), 0.5, cellZ(TUT_ROW)); cube.scale.setScalar(0.001); scene.add(cube);
+    board[TUT_ROW][c] = { ci, obj: cube };
+    tween(420, (k) => cube.scale.setScalar(Math.max(0.001, k)), ease.outBack, 700 + c * 50);
+  }
+  // A few loose cubes elsewhere, so the first burn is a plain line, not a whole-board bonus.
+  [[0, 6, 6], [1, 6, 3], [7, 2, 4]].forEach(([c, r, ci], i) => {
+    const cube = makeCube(ci); cube.position.set(cellX(c), 0.5, cellZ(r)); cube.scale.setScalar(0.001); scene.add(cube);
+    board[r][c] = { ci, obj: cube };
+    tween(420, (k) => cube.scale.setScalar(Math.max(0.001, k)), ease.outBack, 1100 + i * 60);
+  });
+  return [{ si: 3, ci: 2 }, { si: 1, ci: 0 }, { si: 13, ci: 1 }];
+}
 function restore() {
   emptyBoard();
   let saved = null;
-  try { saved = JSON.parse(localStorage.getItem("bust3d-save") || "null"); } catch (e) { saved = null; }
-  if (saved && Array.isArray(saved.board) && saved.board.length === N && !saved.over) {
+  try { saved = JSON.parse(store.get("bust3d-save", "null")); } catch (e) { saved = null; }
+  const okBoard = saved && Array.isArray(saved.board) && saved.board.length === N && saved.board.every((row) => Array.isArray(row) && row.length === N);
+  if (okBoard && !saved.over) {
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
       const ci = saved.board[r][c];
       if (ci >= 0 && ci < COLORS.length) {
@@ -720,34 +990,83 @@ function restore() {
         tween(420, (k) => cube.scale.setScalar(Math.max(0.001, k)), ease.outBack, (r + c) * 35);
       }
     }
-    score = saved.score | 0; combo = saved.combo | 0; sinceClear = saved.sinceClear | 0; shownScore = score;
-    const spec = (saved.tray || []).map((t) => (t && SHAPES[t.si] ? { si: t.si, ci: t.ci } : null));
+    score = Math.max(0, saved.score | 0); combo = Math.max(0, saved.combo | 0); sinceClear = Math.max(0, saved.sinceClear | 0); shownScore = score;
+    totalLines = saved.totalLines | 0; maxCombo = saved.maxCombo | 0;
+    bestAtStart = typeof saved.bestAtStart === "number" ? saved.bestAtStart : best;
+    if (score > best) { best = score; saveBest(); }
+    $("#score").textContent = score;
+    const spec = (Array.isArray(saved.tray) ? saved.tray : []).slice(0, 3).map((t) => (t && SHAPES[t.si] && t.ci >= 0 && t.ci < COLORS.length ? { si: t.si, ci: t.ci } : null));
+    while (spec.length < 3) spec.push(null);
     if (spec.some(Boolean)) spawnTray(spec); else spawnTray(randomTray());
-    hideHint();
+    if (store.get("bust3d-tut", "") !== "done") store.set("bust3d-tut", "done"); // returning player: no tutorial
   } else {
+    bestAtStart = best;
+    const firstRun = store.get("bust3d-tut", "") !== "done" && best === 0;
     // An intro wave over the empty board, then the first deal.
     tiles.forEach((tl, i) => { const r = Math.floor(i / N), c = i % N; tl.scale.setScalar(0.001); tween(500, (k) => tl.scale.set(Math.max(0.001, k), 1, Math.max(0.001, k)), ease.outBack, (r + c) * 40); });
-    setTimeout(() => spawnTray(randomTray()), 600);
+    if (firstRun) { tut.start(); const spec = tutorialBoard(); setTimeout(() => { spawnTray(spec); save(); }, 600); }
+    else setTimeout(() => { spawnTray(randomTray()); save(); }, 600);
   }
   updateCombo();
-  if (tray.some(Boolean) && tray.every((p) => !p || !p.fits)) setTimeout(gameOver, 900);
 }
 
 fitCamera();
+applyQuality();
 document.body.classList.add("menu-open");
+paintVib();
 restore();
 openMenu();
 $("#best").textContent = best;
 
+// ---------- pause when hidden, save on leave ----------
+let running = true, rafId = 0;
+function pauseAll() {
+  if (!running) return;
+  running = false; cancelAnimationFrame(rafId);
+  if (drag) { const d = drag; drag = null; clearHighlight(); returnPiece(d.slot, d.p); }
+  save();
+  if (actx && actx.state === "running") actx.suspend().catch(() => {});
+  if (qForced == null) store.set("bust3d-q", qLevel);
+}
+function resumeAll() {
+  if (running) return;
+  running = true; last = performance.now(); perf.reset(last);
+  rafId = requestAnimationFrame(frame);
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) pauseAll(); else resumeAll(); });
+window.addEventListener("pagehide", () => { save(); if (qForced == null) store.set("bust3d-q", qLevel); });
+window.addEventListener("blur", save);
+
+// ---------- adaptive quality: watch frame times, step down while the phone struggles ----------
+const perf = {
+  n: 0, sum: 0, since: 0, bad: 0,
+  reset(now) { this.n = 0; this.sum = 0; this.since = now + 1500; },
+  tick(now, ms) {
+    if (qForced != null || now < this.since || ms > 1000) return; // skip warm-up and hiccups after a pause
+    this.n++; this.sum += ms;
+    if (this.n < 60 && !(this.sum >= 1000 && this.n >= 5)) return; // ~1 s window or 60 frames
+    const avg = this.sum / this.n; this.n = 0; this.sum = 0;
+    this.bad = avg > 24 ? this.bad + 1 : 0; // under ~42 fps
+    if (this.bad >= 2 && qLevel < QUALITY.length - 1) {
+      qLevel++; this.bad = 0; applyQuality(); store.set("bust3d-q", qLevel); this.since = now + 1000;
+    }
+  }
+};
+perf.reset(performance.now() + 1500);
+
 let last = performance.now();
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!running) return;
+  const rawMs = now - last;
+  const dt = Math.min(0.05, rawMs / 1000); last = now;
+  perf.tick(now, rawMs);
   stepTweens(now);
   stepBursts(dt);
   const t = now / 1000;
   // idle motion: bobbing tray, breathing board edge, drifting stars and grid
-  tray.forEach((p, i) => { if (p && (!drag || drag.p !== p) && p.group.scale.x <= TRAY_SCALE + 0.001) { p.group.position.y = 0.4 + Math.sin(t * 2 + i * 1.3) * 0.08; p.group.rotation.y = Math.sin(t * 0.9 + i) * 0.12; } });
-  pads.forEach((pd, i) => { pd.material.opacity = tray[i] ? (tray[i].fits ? 0.22 + Math.sin(t * 2.4 + i) * 0.08 : 0.08) : 0.05; });
+  tray.forEach((p, i) => { if (p && (!drag || drag.p !== p) && !animating(p.group)) { p.group.position.y = 0.4 + Math.sin(t * 2 + i * 1.3) * 0.08; p.group.rotation.y = Math.sin(t * 0.9 + i) * 0.12; } });
+  pads.forEach((pd, i) => { pd.material.opacity = (tray[i] ? (tray[i].fits ? 0.22 + Math.sin(t * 2.4 + i) * 0.08 : 0.08) : 0.05) + (pd.userData.flare || 0); });
+  if (tutGhosts[0].visible) tutGhostMat.opacity = 0.18 + 0.22 * (0.5 + 0.5 * Math.sin(t * 5));
   baseEdge.material.color.setHSL(0.52 + Math.sin(t * 0.3) * 0.07, 0.75, 0.5);
   stars.rotation.y = t * 0.01;
   grid.position.z = (t * 0.6) % 1;
@@ -758,15 +1077,23 @@ function frame(now) {
   const tgt = camTarget.clone().multiplyScalar(1 - menuBlend);
   camera.position.copy(tgt).addScaledVector(dir, camDist * (1 + 0.12 * menuBlend));
   camera.position.x += Math.sin(t * 0.35) * 0.35 * (1 - menuBlend);
-  if (shake > 0.001) { camera.position.x += (Math.random() - 0.5) * shake; camera.position.y += (Math.random() - 0.5) * shake; shake *= 0.86; }
+  if (shake > 0.001) { camera.position.x += (Math.random() - 0.5) * shake; camera.position.y += (Math.random() - 0.5) * shake; shake *= Math.pow(0.86, dt * 60); }
   camera.lookAt(tgt);
   // score counter rolls up
-  if (shownScore !== score) { shownScore += Math.max(1, Math.ceil((score - shownScore) * 0.18)) * Math.sign(score - shownScore); if (Math.abs(score - shownScore) < 1) shownScore = score; $("#score").textContent = shownScore; }
-  $("#best").textContent = best;
-  if (composer) composer.render(); else renderer.render(scene, camera);
-  requestAnimationFrame(frame);
+  if (shownScore !== score) { shownScore += Math.max(1, Math.ceil(Math.abs(score - shownScore) * 0.18)) * Math.sign(score - shownScore); if (Math.abs(score - shownScore) < 1) shownScore = score; $("#score").textContent = shownScore; }
+  if (best !== shownBest) { shownBest = best; $("#best").textContent = best; }
+  if (bloomKick > 0.001) bloomKick *= Math.pow(0.9, dt * 60); else bloomKick = 0;
+  if (composer && QUALITY[qLevel].bloom) { bloom.strength = BLOOM + bloomKick; composer.render(); }
+  else renderer.render(scene, camera);
+  rafId = requestAnimationFrame(frame);
 }
-requestAnimationFrame(frame);
+let shownBest = -1;
+rafId = requestAnimationFrame(frame);
+// Test hook for automated checks only (?debug in the URL).
+if (/[?&]debug\b/.test(location.search)) window.__bustDbg = {
+  scr: (x, y, z) => screenOf(new T.Vector3(x, y, z)), SLOT_X, SLOT_Z, LIFT, TOUCH_OFF, cellX, cellZ,
+  state: () => ({ score, best, combo, over, qLevel, tut: tut.active && tut.step, running, tray: tray.map((p) => p && { si: p.si, fits: p.fits, shape: SHAPES[p.si] }), board: board.map((r) => r.map((x) => (x ? 1 : 0)).join("")) })
+};
 })();
 </script>
 </body></html>
