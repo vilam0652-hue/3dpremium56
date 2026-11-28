@@ -4,203 +4,72 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Стеклобой</title>
-<meta name="theme-color" content="#060a1c">
+<meta name="theme-color" content="#08080a">
 <link rel="stylesheet" href="../../shared/k.css">
 <script src="../../shared/k.js"></script>
 <style>
-  .field { border-radius: 26px; overflow: hidden; }
-  #c { display: block; touch-action: none; }
-  .hearts { display: flex; gap: 4px; justify-content: center; height: 26px; align-items: center; }
-  .hearts svg { width: 22px; height: 22px; transition: transform .3s var(--spring), opacity .3s; }
+  .hud { align-items: stretch; }
+  .hud .stat { min-width: 74px; padding: 6px 12px; }
+  .hud.off { visibility: hidden; }
+  .hud .pause { min-width: 0; width: 50px; padding: 0; display: grid; place-items: center; border: 1px solid var(--stroke); color: var(--text); font: inherit; }
+  .hud .pause svg { width: 20px; height: 20px; }
+  .hud .pause:active { transform: scale(.92); }
+  .hearts { display: flex; gap: 2px; justify-content: center; height: 27px; align-items: center; }
+  .hearts svg { width: 19px; height: 19px; transition: transform .3s var(--spring), opacity .3s; }
   .hearts svg.off { opacity: .2; transform: scale(.7); }
+  .hearts svg.pop { animation: hpop .5s var(--spring); }
+  @keyframes hpop { from { transform: scale(1.8); } }
+
+  .stage { padding: 8px 0 max(8px, env(safe-area-inset-bottom, 0px)); }
+  .field { border-radius: 24px; overflow: hidden; position: relative; }
+  #c { display: block; touch-action: none; }
+
+  /* карта уровней */
+  .mapview { position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 6px max(14px, env(safe-area-inset-left, 0px)) 110px; touch-action: pan-y; }
+  .mapview .head { display: flex; align-items: center; gap: 14px; width: min(460px, 100%); margin: 6px auto 14px; }
+  .mapview .head img { width: 64px; height: 64px; filter: drop-shadow(0 10px 18px rgba(0,0,0,.55)); }
+  .mapview .head h1 { font-family: var(--f-display); font-weight: 700; font-size: 1.35rem; margin: 0; line-height: 1.1; }
+  .mapview .head .row { margin-top: 6px; gap: 6px; }
+  .mapview .chip { padding: 5px 11px; font-size: .8rem; color: var(--gold-hi); }
+  .mapview .chip svg { width: 15px; height: 15px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: min(460px, 100%); margin: 0 auto; }
+  .tile { position: relative; border-radius: 20px; padding: 8px 6px 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 1px solid var(--stroke); text-align: center; transition: transform .3s var(--spring); }
+  .tile:active { transform: scale(.94); }
+  .tile canvas { width: 100%; aspect-ratio: 11 / 8; border-radius: 10px; background: rgba(0,0,0,.35); }
+  .tile .n { position: absolute; top: 4px; left: 8px; font-family: var(--f-display); font-size: .7rem; color: var(--muted); }
+  .tile .nm { font-size: .74rem; font-weight: 800; line-height: 1.15; min-height: 1.15em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .tile .st { display: flex; gap: 1px; }
+  .tile .st svg { width: 15px; height: 15px; }
+  .tile.locked { opacity: .55; }
+  .tile.locked canvas { filter: grayscale(1) brightness(.5); }
+  .tile.locked .lock { position: absolute; top: 18%; left: 50%; width: 38px; height: 38px; transform: translateX(-50%); filter: drop-shadow(0 6px 10px rgba(0,0,0,.6)); }
+  .tile.next { border-color: rgba(214,177,94,.7); box-shadow: 0 0 0 0 rgba(214,177,94,.55); animation: knext 2s ease-out infinite; }
+  @keyframes knext { 0% { box-shadow: 0 0 0 0 rgba(214,177,94,.5); } 70%, 100% { box-shadow: 0 0 0 12px rgba(214,177,94,0); } }
+  .playbar { position: absolute; left: 0; right: 0; bottom: max(14px, env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; pointer-events: none; }
+  .playbar .btn { pointer-events: auto; min-width: 230px; }
+
+  /* итоги */
+  .res-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+  .res-stats div { border-radius: 16px; padding: 8px 4px; background: rgba(255,255,255,.05); border: 1px solid var(--stroke); }
+  .res-stats b { display: block; font-family: var(--f-display); font-weight: 500; font-size: 1.05rem; color: var(--text); }
+  .res-stats small { font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 800; }
+  .res-hint { font-size: .85rem; }
+  .overlay .panel .row { gap: 8px; }
+  .overlay .panel .btn { padding: 0 20px; }
 </style>
 </head>
 <body class="game-page">
-<div class="hud">
+<div class="hud" id="hud" hidden>
+  <button class="stat glass pause" id="pauseBtn" aria-label="Пауза"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg></button>
   <div class="stat glass"><b id="score" class="num">0</b><small>очки</small></div>
   <div class="stat glass"><b id="lvl" class="num">1</b><small>уровень</small></div>
   <div class="stat glass"><div class="hearts" id="hearts"></div><small>жизни</small></div>
 </div>
-<main class="stage"><div class="field glass"><canvas id="c"></canvas></div></main>
-<script>
-(() => {
-  K.top({ title: "Стеклобой" });
-  const cv = document.getElementById("c"), g = cv.getContext("2d");
-  const $score = document.getElementById("score"), $lvl = document.getElementById("lvl"), $hearts = document.getElementById("hearts");
-  const COLS = ["#f3e3b0", "#e6c97f", "#d6b15e", "#b8913f", "#e9e4da", "#8c6a2a"];
-  const LEVELS = [
-    ["......", "AAAAAA", "BBBBBB", "CCCCCC", "DDDDDD"],
-    ["A....A", "BB..BB", "CCCCCC", "D#DD#D", "EEEEEE", "F....F"],
-    ["..AA..", ".BBBB.", "CC##CC", "DDDDDD", ".E..E.", "F.FF.F"],
-    ["#A#A#A", "BBBBBB", "C#CC#C", "DDDDDD", "E#EE#E", "FFFFFF"],
-    ["AAAAAA", "B#BB#B", "CCCCCC", "##DD##", "EEEEEE", "F#FF#F", "AAAAAA"]
-  ];
-  let W, H, dpr, paddle, balls, bricks, shards, drops, score, lives, level, playing = false, stuck, last = 0, t = 0, shake = 0;
-
-  function layout() {
-    const st = document.querySelector(".stage").getBoundingClientRect();
-    W = Math.floor(Math.min(innerWidth - 32, 460)); H = Math.floor(Math.min(st.height - 24, W * 1.45));
-    dpr = Math.min(2, devicePixelRatio || 1);
-    cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px"; g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  function buildLevel() {
-    bricks = [];
-    const map = LEVELS[(level - 1) % LEVELS.length], cols = 6, gap = 6, bw = (W - 24 - gap * (cols - 1)) / cols, bh = Math.max(18, bw * .38);
-    map.forEach((row, r) => [...row].forEach((ch, c) => {
-      if (ch === ".") return;
-      const hard = ch === "#";
-      bricks.push({ x: 12 + c * (bw + gap), y: 54 + r * (bh + gap), w: bw, h: bh, c: hard ? "#2a2a30" : COLS["ABCDEF".indexOf(ch)], hp: hard ? 2 + (level > 3 ? 1 : 0) : 1, hard, hit: 0 });
-    }));
-  }
-  function newBall() { return { x: paddle.x, y: paddle.y - 12, vx: 0, vy: 0, r: 8, trail: [] }; }
-  function reset() { paddle = { x: W / 2, y: H - 36, w: Math.max(80, W * .24), tw: Math.max(80, W * .24), wideT: 0 }; balls = [newBall()]; stuck = true; }
-
-  function launch() { if (!stuck) return; stuck = false; const sp = speed(); balls.forEach((b) => { const a = -Math.PI / 2 + (Math.random() - .5) * .6; b.vx = Math.cos(a) * sp; b.vy = Math.sin(a) * sp; }); K.sfx("tap"); }
-  const speed = () => Math.min(560, (W * .85) + level * 25);
-
-  cv.addEventListener("pointerdown", (e) => { cv.setPointerCapture(e.pointerId); aim(e); });
-  cv.addEventListener("pointermove", aim);
-  cv.addEventListener("pointerup", () => { if (playing) launch(); });
-  function aim(e) { const r = cv.getBoundingClientRect(); paddle && (paddle.tx = Math.max(paddle.w / 2, Math.min(W - paddle.w / 2, e.clientX - r.left))); }
-  addEventListener("keydown", (e) => { if (!paddle) return; if (e.key === "ArrowLeft") paddle.tx = Math.max(paddle.w / 2, (paddle.tx ?? paddle.x) - 40); if (e.key === "ArrowRight") paddle.tx = Math.min(W - paddle.w / 2, (paddle.tx ?? paddle.x) + 40); if (e.key === " " && playing) launch(); });
-
-  function shatter(b) {
-    const n = b.hard ? 10 : 14;
-    for (let i = 0; i < n; i++) {
-      const x = b.x + Math.random() * b.w, y = b.y + Math.random() * b.h;
-      const pts = [0, 1, 2].map(() => [(Math.random() - .5) * b.h, (Math.random() - .5) * b.h]);
-      shards.push({ x, y, vx: (x - (b.x + b.w / 2)) * 3 + (Math.random() - .5) * 120, vy: -Math.random() * 180 - 40, rot: 0, vr: (Math.random() - .5) * 12, pts, c: b.c, life: 1.6 });
-    }
-  }
-  function collideBrick(ball, b) {
-    const cx = Math.max(b.x, Math.min(ball.x, b.x + b.w)), cy = Math.max(b.y, Math.min(ball.y, b.y + b.h));
-    const dx = ball.x - cx, dy = ball.y - cy;
-    if (dx * dx + dy * dy > ball.r * ball.r) return false;
-    if (Math.abs(dx) > Math.abs(dy)) { ball.vx = Math.abs(ball.vx) * Math.sign(dx || 1); } else { ball.vy = Math.abs(ball.vy) * Math.sign(dy || 1); }
-    return true;
-  }
-  function step(dt) {
-    paddle.x += ((paddle.tx ?? paddle.x) - paddle.x) * Math.min(1, dt * 18);
-    if (paddle.wideT > 0) { paddle.wideT -= dt; if (paddle.wideT <= 0) paddle.tw = Math.max(80, W * .24); }
-    paddle.w += (paddle.tw - paddle.w) * Math.min(1, dt * 8);
-    for (const ball of balls) {
-      if (stuck) { ball.x = paddle.x; ball.y = paddle.y - 14; continue; }
-      const sub = 4;
-      for (let s = 0; s < sub; s++) {
-        ball.x += ball.vx * dt / sub; ball.y += ball.vy * dt / sub;
-        if (ball.x < ball.r) { ball.x = ball.r; ball.vx = Math.abs(ball.vx); K.sfx("tap"); }
-        if (ball.x > W - ball.r) { ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx); K.sfx("tap"); }
-        if (ball.y < ball.r) { ball.y = ball.r; ball.vy = Math.abs(ball.vy); K.sfx("tap"); }
-        // ракетка: угол отскока зависит от места удара
-        if (ball.vy > 0 && ball.y + ball.r > paddle.y - 7 && ball.y < paddle.y + 7 && Math.abs(ball.x - paddle.x) < paddle.w / 2 + ball.r) {
-          const k = (ball.x - paddle.x) / (paddle.w / 2), a = -Math.PI / 2 + k * 1.05, sp = Math.hypot(ball.vx, ball.vy);
-          ball.vx = Math.cos(a) * sp; ball.vy = Math.sin(a) * sp; ball.y = paddle.y - 7 - ball.r; K.sfx("place"); K.vibrate(8);
-        }
-        for (const b of bricks) {
-          if (b.dead || !collideBrick(ball, b)) continue;
-          b.hp--; b.hit = 1;
-          if (b.hp <= 0) {
-            b.dead = true; shatter(b); score += b.hard ? 30 : 10; $score.textContent = score; K.sfx("pop", 1 + Math.random() * .4); shake = 4;
-            if (Math.random() < .14) drops.push({ x: b.x + b.w / 2, y: b.y + b.h / 2, kind: Math.random() < .5 ? "multi" : "wide" });
-          } else K.sfx("place");
-          break;
-        }
-      }
-      ball.trail.push([ball.x, ball.y]); if (ball.trail.length > 10) ball.trail.shift();
-    }
-    const before = balls.length;
-    balls = balls.filter((b) => b.y < H + 20);
-    if (before && !balls.length) loseLife();
-    for (const d of drops) {
-      d.y += 140 * dt;
-      if (d.y > paddle.y - 10 && d.y < paddle.y + 10 && Math.abs(d.x - paddle.x) < paddle.w / 2 + 10) {
-        d.got = true; K.sfx("good");
-        if (d.kind === "wide") { paddle.tw = Math.max(80, W * .24) * 1.6; paddle.wideT = 10; K.toast("Широкая ракетка!"); }
-        else { const src = balls[0]; if (src) for (let i = 0; i < 2; i++) { const a = -Math.PI / 2 + (i ? .5 : -.5), sp = Math.hypot(src.vx, src.vy) || speed(); balls.push({ x: src.x, y: src.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 8, trail: [] }); } K.toast("Три мяча!"); }
-      }
-    }
-    drops = drops.filter((d) => !d.got && d.y < H + 20);
-    for (const s of shards) { s.vy += 600 * dt; s.x += s.vx * dt; s.y += s.vy * dt; s.rot += s.vr * dt; s.life -= dt; }
-    shards = shards.filter((s) => s.life > 0 && s.y < H + 40);
-    bricks.forEach((b) => (b.hit = Math.max(0, b.hit - dt * 5)));
-    if (playing && bricks.every((b) => b.dead || false)) levelUp();
-  }
-  function loseLife() {
-    lives--; drawHearts(); K.sfx("bad"); K.vibrate(60); shake = 10;
-    if (lives <= 0) return over();
-    reset();
-  }
-  function levelUp() {
-    playing = false; K.sfx("win"); K.confetti();
-    const gain = 50 * level; score += gain; $score.textContent = score;
-    K.panel({ title: `Уровень ${level} пройден!`, stars: lives, text: `Бонус +${gain}. Дальше стекло крепче!`, buttons: [{ label: "Дальше", cls: "big", onClick: () => { level++; $lvl.textContent = level; buildLevel(); reset(); playing = true; } }] });
-    K.coins.add(5 + level * 2, $score);
-  }
-  function rrect(x, y, w, h, r) { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); }
-  function draw() {
-    g.save();
-    if (shake > 0) { g.translate((Math.random() - .5) * shake, (Math.random() - .5) * shake); shake *= .85; if (shake < .3) shake = 0; }
-    g.clearRect(-20, -20, W + 40, H + 40);
-    for (const b of bricks) {
-      if (b.dead) continue;
-      // неоновый кубик: верхняя грань, передняя грань со свечением, кайма
-      const d = Math.min(8, b.h * .35), x = b.x, y = b.y + d, w = b.w, h = b.h - d;
-      g.globalAlpha = b.hard ? .6 + .13 * b.hp : 1;
-      g.fillStyle = b.c + "55"; g.beginPath(); g.moveTo(x, y); g.lineTo(x + d, y - d); g.lineTo(x + w + d * 0 , y - d); g.lineTo(x + w, y); g.closePath(); g.fill();
-      g.shadowColor = "rgba(214,177,94,.45)"; g.shadowBlur = b.hit ? 22 : 8;
-      const gr = g.createLinearGradient(x, y, x, y + h);
-      gr.addColorStop(0, b.c); gr.addColorStop(1, b.c + "88");
-      g.fillStyle = gr; rrect(x, y, w, h, 4); g.fill();
-      g.shadowBlur = 0; g.globalAlpha = 1;
-      g.strokeStyle = "rgba(255,255,255,.75)"; g.lineWidth = 1.2; rrect(x + .5, y + .5, w - 1, h - 1, 4); g.stroke();
-      g.fillStyle = "rgba(255,255,255,.35)"; g.fillRect(x + 4, y + 3, w - 8, 2);
-      if (b.hard && b.hp < 3) { g.strokeStyle = "rgba(243,227,176,.8)"; g.lineWidth = 1.5; g.beginPath(); g.moveTo(x + w * .3, y); g.lineTo(x + w * .45, y + h * .6); g.lineTo(x + w * .7, y + h); g.stroke(); }
-      if (b.hit) { g.fillStyle = `rgba(255,255,255,${b.hit * .6})`; rrect(x, y, w, h, 4); g.fill(); }
-    }
-    for (const s of shards) {
-      g.save(); g.translate(s.x, s.y); g.rotate(s.rot); g.globalAlpha = Math.min(1, s.life);
-      g.fillStyle = s.c; g.strokeStyle = "rgba(255,255,255,.8)"; g.beginPath(); g.moveTo(...s.pts[0]); g.lineTo(...s.pts[1]); g.lineTo(...s.pts[2]); g.closePath(); g.fill(); g.stroke(); g.restore();
-    }
-    for (const d of drops) {
-      g.save(); g.translate(d.x, d.y); g.rotate(t * 3);
-      g.fillStyle = d.kind === "wide" ? "#e9e4da" : "#d6b15e"; g.shadowColor = g.fillStyle; g.shadowBlur = 14;
-      rrect(-12, -12, 24, 24, 7); g.fill(); g.shadowBlur = 0; g.rotate(-t * 3);
-      g.fillStyle = "#17130b"; g.font = "700 13px Unbounded, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(d.kind === "wide" ? "↔" : "×3", 0, 1); g.restore();
-    }
-    // ракетка-капля
-    const pg = g.createLinearGradient(0, paddle.y - 8, 0, paddle.y + 8);
-    pg.addColorStop(0, "#fff8e0"); pg.addColorStop(.35, "#d6b15e"); pg.addColorStop(1, "#8c6a2a");
-    g.fillStyle = pg; g.shadowColor = "rgba(214,177,94,.7)"; g.shadowBlur = 18; rrect(paddle.x - paddle.w / 2, paddle.y - 7, paddle.w, 14, 7); g.fill(); g.shadowBlur = 0;
-    for (const b of balls) {
-      b.trail.forEach(([x, y], i) => { g.globalAlpha = i / b.trail.length * .4; g.fillStyle = "#f3e3b0"; g.beginPath(); g.arc(x, y, b.r * i / b.trail.length, 0, 7); g.fill(); });
-      g.globalAlpha = 1;
-      const bg = g.createRadialGradient(b.x - 3, b.y - 3, 1, b.x, b.y, b.r);
-      bg.addColorStop(0, "#fff"); bg.addColorStop(1, "#e9e4da"); g.fillStyle = bg; g.shadowColor = "rgba(255,255,255,.8)"; g.shadowBlur = 16;
-      g.beginPath(); g.arc(b.x, b.y, b.r, 0, 7); g.fill(); g.shadowBlur = 0;
-    }
-    if (stuck && playing) { g.fillStyle = "rgba(255,255,255,.75)"; g.font = "800 15px Manrope, sans-serif"; g.textAlign = "center"; g.fillText("Нажми, чтобы запустить мяч", W / 2, H * .62); }
-    g.restore();
-  }
-  function frame(ts) {
-    const dt = Math.min(.033, (ts - (last || ts)) / 1000); last = ts; t += dt;
-    if (playing) step(dt); else if (shards) { for (const s of shards) { s.vy += 600 * dt; s.x += s.vx * dt; s.y += s.vy * dt; s.rot += s.vr * dt; s.life -= dt; } }
-    if (paddle) draw();
-    requestAnimationFrame(frame);
-  }
-  const HEART = `<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.4-9.3C1.2 8.2 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.8 3.7 4.4 7.2C19.5 16.4 12 21 12 21z" fill="#d6b15e" stroke="#f3e3b0"/></svg>`;
-  function drawHearts() { $hearts.innerHTML = [0, 1, 2].map((i) => HEART.replace("<svg", `<svg class="${i < lives ? "" : "off"}"`)).join(""); }
-  function over() {
-    playing = false;
-    const rec = K.best("breakout", score); K.sfx(rec ? "win" : "lose"); if (rec && score) K.confetti();
-    const drops_ = Math.floor(score / 40);
-    K.panel({ title: rec && score ? "Новый рекорд!" : "Мячи закончились", score, scoreLabel: `очков · уровень ${level}`, stars: level > 3 ? 3 : level > 2 ? 2 : level > 1 ? 1 : 0,
-      text: `+${drops_} ${K.plural(drops_, "капелька", "капельки", "капелек")}`, buttons: [{ label: "Ещё раз", cls: "big", onClick: start }] });
-    setTimeout(() => K.coins.add(drops_, document.querySelector(".overlay .big-score")), 400);
-  }
-  function start() { layout(); score = 0; lives = 3; level = 1; shards = []; drops = []; $score.textContent = 0; $lvl.textContent = 1; drawHearts(); buildLevel(); reset(); playing = true; }
-  layout(); level = 1; shards = []; drops = []; lives = 3; drawHearts(); buildLevel(); reset(); requestAnimationFrame(frame);
-  K.panel({ title: "Стеклобой", text: "Двигай ракетку пальцем и разбивай стеклянные кирпичи. Белое стекло крепкое: бей по нему несколько раз. Лови бонусы!", buttons: [{ label: "Играть", cls: "big", onClick: start }] });
-})();
-</script>
+<main class="stage" id="stage">
+  <div class="field glass" id="field"><canvas id="c" aria-label="Игровое поле"></canvas></div>
+  <section class="mapview" id="map" hidden></section>
+</main>
+<script src="levels.js"></script>
+<script src="game.js"></script>
 </body>
 </html>
