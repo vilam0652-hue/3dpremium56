@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Капля — вход</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#08080a">
+<link rel="icon" href="icons/buddy-96.png">
+<link rel="stylesheet" href="shared/k.css">
+<script src="shared/k.js"></script>
+<script src="site/accounts.js"></script>
+<style>
+  body { -webkit-user-select: auto; user-select: auto; }
+  .gate { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 40px; width: min(1080px, 100%); margin: 0 auto; padding: 32px max(16px, env(safe-area-inset-right, 0px)) 32px max(16px, env(safe-area-inset-left, 0px)); }
+  .pitch { display: flex; flex-direction: column; gap: 18px; }
+  .pitch h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(2.2rem, 6vw, 3.8rem); line-height: 1; letter-spacing: -.03em; margin: 0; text-wrap: balance; }
+  .pitch p { margin: 0; color: #d7d2c8; font-weight: 500; font-size: 1.08rem; max-width: 42ch; }
+  .art { display: flex; gap: 14px; align-items: flex-end; }
+  .art img { width: 76px; height: 76px; object-fit: contain; filter: drop-shadow(0 18px 20px rgba(0,0,0,.6)); animation: fl 6s ease-in-out infinite; }
+  .art img:nth-child(2) { width: 104px; height: 104px; animation-delay: -2s; }
+  .art img:nth-child(3) { animation-delay: -4s; }
+  @keyframes fl { 50% { translate: 0 -10px; } }
+  .login { padding: 34px 28px; border-radius: 30px; display: flex; flex-direction: column; gap: 16px; }
+  .login h2 { font-family: var(--f-display); font-weight: 700; font-size: 1.5rem; margin: 0; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field span { font-size: .82rem; color: var(--muted); font-weight: 700; }
+  .field input { height: 52px; padding: 0 16px; border-radius: 16px; border: 1px solid var(--stroke); background: rgba(255,255,255,.04); color: var(--text); font-size: 1rem; outline: none; transition: border-color .2s, background .2s; width: 100%; }
+  .field input:focus { border-color: var(--gold); background: rgba(255,255,255,.07); }
+  .pw { position: relative; display: block; }
+  .pw input { padding-right: 96px; }
+  .pw button { position: absolute; right: 6px; top: 6px; height: 40px; padding: 0 14px; border-radius: 12px; border: 0; background: rgba(255,255,255,.07); color: var(--muted); font-weight: 700; font-size: .85rem; }
+  .remember { display: flex; gap: 10px; align-items: center; color: var(--muted); font-weight: 600; font-size: .92rem; }
+  .remember input { width: 20px; height: 20px; accent-color: var(--gold); }
+  .err { min-height: 1.4em; color: var(--bad); font-weight: 700; font-size: .92rem; margin: 0; }
+  .login .btn { width: 100%; }
+  .hint { color: var(--faint); font-size: .84rem; margin: 0; }
+  @media (max-width: 820px) { .gate { grid-template-columns: 1fr; gap: 24px; align-content: center; } .pitch p { display: none; } .art img { width: 56px; height: 56px; } .art img:nth-child(2) { width: 76px; height: 76px; } }
+</style>
+</head>
+<body>
+<main class="gate">
+  <section class="pitch">
+    <span class="eyebrow">Капля · для начальной школы</span>
+    <h1>Учиться — как <span class="gold-text">играть</span></h1>
+    <p>Десять приложений: английский с щенком Бадди, игры с физикой и тренажёры по программе 4 класса. Войди, чтобы открыть каталог и скачать приложения.</p>
+    <div class="art" aria-hidden="true"><img src="shared/art/rocket.webp" alt=""><img src="shared/art/dog.webp" alt=""><img src="shared/art/watermelon.webp" alt=""></div>
+  </section>
+  <form class="login glass" id="form" autocomplete="on">
+    <h2>Вход</h2>
+    <label class="field"><span>Логин</span><input id="login" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+    <label class="field"><span>Пароль</span><span class="pw"><input id="password" name="password" type="password" autocomplete="current-password" required><button type="button" id="show" aria-label="Показать пароль">Показать</button></span></label>
+    <label class="remember"><input type="checkbox" id="remember" checked> Запомнить меня на этом устройстве</label>
+    <p class="err" id="err" role="alert"></p>
+    <button class="btn big" id="go" type="submit">Войти</button>
+    <p class="hint">Логин и пароль выдаёт администратор. Регистр в логине не важен.</p>
+  </form>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const KEY = "kaplya-session";
+  const params = new URLSearchParams(location.search);
+  const next = params.get("next");
+  const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "./";
+  // уже вошёл — сразу дальше
+  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.exp > Date.now()) { location.replace(safeNext); return; } } catch (e) { /* нет хранилища */ }
+  const fromB64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  let fails = 0, lockUntil = 0;
+  $("show").onclick = () => { const p = $("password"); p.type = p.type === "password" ? "text" : "password"; $("show").textContent = p.type === "password" ? "Показать" : "Скрыть"; };
+
+  async function check(login, password) {
+    const A = window.KAPLYA_ACCOUNTS; if (!A || !crypto.subtle) throw new Error("nocrypto");
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(login.trim().toLowerCase() + "\u0000" + password), "PBKDF2", false, ["deriveBits"]);
+    for (const a of A.list) {
+      const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt: fromB64(a.s), iterations: A.iter, hash: "SHA-256" }, key, 256));
+      const h = fromB64(a.h); let diff = 0; for (let i = 0; i < h.length; i++) diff |= h[i] ^ bits[i];
+      if (diff === 0 && bits.length === h.length) return true;
+    }
+    return false;
+  }
+
+  $("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const wait = Math.ceil((lockUntil - Date.now()) / 1000);
+    if (wait > 0) { $("err").textContent = `Слишком много попыток. Подожди ${wait} с.`; return; }
+    $("err").textContent = ""; $("go").disabled = true; $("go").textContent = "Проверяю…";
+    try {
+      if (await check($("login").value, $("password").value)) {
+        const days = $("remember").checked ? 30 : 1;
+        try { localStorage.setItem(KEY, JSON.stringify({ u: $("login").value.trim(), exp: Date.now() + days * 864e5 })); } catch (err) { /* без хранилища вход не запомнится */ }
+        location.replace(safeNext);
+        return;
+      }
+      fails++; if (fails >= 3) lockUntil = Date.now() + Math.min(60, 5 * 2 ** (fails - 3)) * 1000;
+      $("err").textContent = "Неверный логин или пароль."; $("password").select();
+    } catch (err) {
+      $("err").textContent = "Этот браузер не поддерживает защищённый вход. Открой сайт в Chrome.";
+    } finally { $("go").disabled = false; $("go").textContent = "Войти"; }
+  });
+})();
+</script>
+</body>
+</html>

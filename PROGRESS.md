@@ -73,6 +73,12 @@
 - Telegram-бот/сервер для ИИ-чата «Бадди» (поле «свой сервер»: POST {messages} → {reply}).
 - Пересъёмка скриншотов после изменений: сервер на 8795, `node tools/shots.js`, `python3 tools/shots-webp.py`, `python3 tools/build-site.py`.
 
+## Вход на сайт (2026-11-28)
+- Весь сайт (главная и `app/*.html`) закрыт входом: `site/gate.js` в `<head>` без сессии перекидывает на `login.html?next=…`. Сессия в localStorage `kaplya-session` (30 дней с «запомнить», иначе 1 день). Кнопка «Выйти» в подвале (`data-logout`). `admin.html` — отдельный вход администратора.
+- Аккаунты: `site/accounts.js` (соль + PBKDF2-SHA256 210k от «логин в нижнем регистре + \0 + пароль»), исходник `.accounts.local.json` (в .gitignore), генератор `node tools/make-accounts.mjs .accounts.local.json`. Сейчас 2 аккаунта (логины/пароли — в `API.md`, не в git).
+- Ограничение: репозиторий и релизы публичные, поэтому вход защищает страницы от обычных посетителей, но не исходники на GitHub и не прямые ссылки на APK.
+- `API.md` (в .gitignore): ключ GigaChat API и аккаунты сайта.
+
 ## Полезное
 - Артефакт с промптами для Gemini/Meshy (больше не нужен, владелец отказался генерировать): https://claude.ai/artifact/XA5TfNGDbevQ6LaSDwPuTQ
 - Коммиты: автор `vilam0652-hue <vilam0652-hue@users.noreply.github.com>`, в конце сообщения строки `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` и `Claude-Session: https://claude.ai/code/session_01FxeEqjE8DP4WAVfJJi3LDx`.

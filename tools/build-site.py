@@ -23,6 +23,7 @@ PAGE = """<!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<script src="../site/gate.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{name} — Капля</title>
 <meta name="description" content="{tagline}. {about_short}">
@@ -86,7 +87,7 @@ PAGE = """<!doctype html>
     <div class="more">{more}</div>
   </section>
 </main>
-<footer class="wrap site-foot"><span>Капля · для начальной школы</span><span><a href="../admin.html">Вход для администратора</a></span></footer>
+<footer class="wrap site-foot"><span>Капля · для начальной школы</span><span><a href="#" data-logout>Выйти</a> · <a href="../admin.html">Вход для администратора</a></span></footer>
 <script src="../site/site.js"></script>
 </body>
 </html>

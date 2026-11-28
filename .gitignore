@@ -7,3 +7,4 @@ dist/
 .DS_Store
 android/app/src/main/res/mipmap-*/
 API.md
+.accounts.local.json
