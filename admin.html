@@ -72,6 +72,7 @@
 
 <script>
 (() => {
+  if (location.protocol === "https:" && !location.hostname.endsWith("github.io")) location.replace("server-admin");
   document.getElementById("logo").innerHTML = K.dropSVG();
   const $ = (id) => document.getElementById(id);
   const seg = location.hostname.endsWith("github.io") ? location.pathname.split("/").filter(Boolean)[0] : null;
@@ -83,9 +84,14 @@
 
   async function decrypt(login, password) {
     const B = window.ADMIN_BLOB, enc = new TextEncoder();
-    const base = await crypto.subtle.importKey("raw", enc.encode(login.trim() + "\u0000" + password), "PBKDF2", false, ["deriveKey"]);
-    const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: fromB64(B.salt), iterations: B.iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
-    return new TextDecoder().decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(B.iv) }, key, fromB64(B.ct)));
+    const base = await crypto.subtle.importKey("raw", enc.encode(login.trim().toLowerCase() + "\u0000" + password), "PBKDF2", false, ["deriveKey"]);
+    for (const k of B.keys) {
+      const kek = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: fromB64(k.salt), iterations: B.iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+      let raw; try { raw = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(k.iv) }, kek, fromB64(k.wk)); } catch (e) { continue; }
+      const dk = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["decrypt"]);
+      return new TextDecoder().decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(B.iv) }, dk, fromB64(B.ct)));
+    }
+    throw new Error("bad");
   }
 
   $("loginForm").addEventListener("submit", async (e) => {
