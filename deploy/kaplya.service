@@ -1,0 +1,21 @@
+[Unit]
+Description=Капля — сайт и ИИ-чат
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=kaplya
+Group=kaplya
+EnvironmentFile=/etc/kaplya/kaplya.env
+WorkingDirectory=/opt/kaplya/repo
+ExecStart=/usr/bin/node --max-old-space-size=192 /opt/kaplya/repo/server/server.mjs
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/kaplya
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

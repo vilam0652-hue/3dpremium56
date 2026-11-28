@@ -66,6 +66,15 @@
   // уже вошёл — сразу дальше
   try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.exp > Date.now()) { location.replace(safeNext); return; } } catch (e) { /* нет хранилища */ }
   const fromB64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  // на своём сервере (VPS) логин и пароль проверяет сервер
+  let SERVER = false;
+  const serverReady = fetch("api/health", { cache: "no-store" }).then((r) => r.ok && r.headers.get("content-type")?.includes("json")).then((ok) => { SERVER = !!ok; }).catch(() => {});
+  async function serverLogin(login, password) {
+    const r = await fetch("api/login", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login, password }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 429) throw Object.assign(new Error(j.error), { shown: true });
+    return r.ok;
+  }
   let fails = 0, lockUntil = 0;
   $("show").onclick = () => { const p = $("password"); p.type = p.type === "password" ? "text" : "password"; $("show").textContent = p.type === "password" ? "Показать" : "Скрыть"; };
 
@@ -86,7 +95,8 @@
     if (wait > 0) { $("err").textContent = `Слишком много попыток. Подожди ${wait} с.`; return; }
     $("err").textContent = ""; $("go").disabled = true; $("go").textContent = "Проверяю…";
     try {
-      if (await check($("login").value, $("password").value)) {
+      await serverReady;
+      if (SERVER ? await serverLogin($("login").value, $("password").value) : await check($("login").value, $("password").value)) {
         const days = $("remember").checked ? 30 : 1;
         try { localStorage.setItem(KEY, JSON.stringify({ u: $("login").value.trim(), exp: Date.now() + days * 864e5 })); } catch (err) { /* без хранилища вход не запомнится */ }
         location.replace(safeNext);
@@ -95,7 +105,7 @@
       fails++; if (fails >= 3) lockUntil = Date.now() + Math.min(60, 5 * 2 ** (fails - 3)) * 1000;
       $("err").textContent = "Неверный логин или пароль."; $("password").select();
     } catch (err) {
-      $("err").textContent = "Этот браузер не поддерживает защищённый вход. Открой сайт в Chrome.";
+      $("err").textContent = err.shown ? err.message : SERVER ? "Сервер не отвечает. Попробуй ещё раз." : "Этот браузер не поддерживает защищённый вход. Открой сайт в Chrome.";
     } finally { $("go").disabled = false; $("go").textContent = "Войти"; }
   });
 })();

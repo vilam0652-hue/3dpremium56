@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Капля — управление сервером</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#08080a">
+<link rel="icon" href="/icons/buddy-96.png">
+<link rel="stylesheet" href="/shared/k.css">
+<link rel="stylesheet" href="/site/site.css">
+<script src="/shared/k.js"></script>
+<style>
+  .page { padding-block: 26px 60px; display: flex; flex-direction: column; gap: 16px; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .top h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.6rem, 5vw, 2.4rem); margin: 0; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  .card { padding: 22px; border-radius: 26px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .card h2 { font-family: var(--f-display); font-weight: 700; font-size: 1.15rem; margin: 0; }
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 760px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .kpi { padding: 16px; border-radius: 20px; }
+  .kpi b { display: block; font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+  .kpi span { color: var(--muted); font-size: .82rem; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  th { text-align: left; color: var(--muted); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; padding: 8px 10px; border-bottom: 1px solid var(--stroke); }
+  td { padding: 10px; border-bottom: 1px solid var(--stroke-lo); vertical-align: middle; }
+  .wrap-t { overflow-x: auto; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 800; color: #17130b; background: var(--gold-grad); }
+  .mini { min-height: 34px; padding: 0 12px; font-size: .8rem; }
+  .row-act { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+  .field { display: flex; flex-direction: column; gap: 6px; flex: 1 1 180px; }
+  .field span { font-size: .8rem; color: var(--muted); font-weight: 700; }
+  .field input { height: 46px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--stroke); background: rgba(255,255,255,.04); color: var(--text); font-size: .98rem; outline: none; }
+  .field input:focus { border-color: var(--gold); }
+  .secret { font-family: ui-monospace, Menlo, Consolas, monospace; background: rgba(214,177,94,.1); border: 1px solid var(--stroke-c); border-radius: 12px; padding: 10px 12px; overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; color: var(--gold-hi); }
+  .note { color: var(--muted); font-size: .9rem; margin: 0; }
+  .err { color: var(--bad); font-weight: 700; margin: 0; min-height: 1.2em; }
+  .ok { color: var(--good); }
+</style>
+</head>
+<body>
+<main class="wrap page">
+  <div class="top"><div><span class="eyebrow">Сервер Капли</span><h1>Управление</h1></div><div class="row"><a class="btn ghost" href="/">Сайт</a><button class="btn ghost" id="logout">Выйти</button></div></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="grid2">
+    <section class="card glass">
+      <span class="eyebrow">Новый ученик</span><h2>Добавить аккаунт</h2>
+      <form class="row" id="addForm" style="align-items:flex-end">
+        <label class="field"><span>Логин (латиницей)</span><input id="newLogin" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="masha.ivanova" required></label>
+        <label class="field"><span>Подпись (имя)</span><input id="newLabel" autocomplete="off" placeholder="Маша Иванова"></label>
+        <button class="btn" type="submit">Создать</button>
+      </form>
+      <p class="err" id="addErr"></p>
+      <div id="newCreds" hidden><p class="note">Пароль создан автоматически. Запиши его сейчас — потом его не увидеть, только сбросить.</p><div class="secret" id="credsText"></div></div>
+    </section>
+    <section class="card glass">
+      <span class="eyebrow">ИИ для «Бадди»</span><h2>Чат с Бадди для всего класса</h2>
+      <p class="note">Вставь этот адрес в приложении «Бадди»: вкладка «Я» → «ИИ-собеседник» → «Свой сервер». Ключ ИИ остаётся на сервере.</p>
+      <div class="secret" id="chatUrl">—</div>
+      <p class="note" id="aiState"></p>
+    </section>
+  </div>
+  <section class="card glass">
+    <span class="eyebrow">Аккаунты</span><h2>Кто может входить на сайт</h2>
+    <div class="wrap-t"><table><thead><tr><th>Имя</th><th>Логин</th><th>Последний вход</th><th></th></tr></thead><tbody id="users"></tbody></table></div>
+  </section>
+  <section class="card glass">
+    <span class="eyebrow">Статистика</span><h2>ИИ-чат за 14 дней и скачивания APK</h2>
+    <div class="wrap-t"><table><thead><tr><th>День</th><th class="num">Ответов</th><th class="num">GigaChat</th><th class="num">OpenRouter</th></tr></thead><tbody id="chat"></tbody></table></div>
+    <div class="wrap-t"><table><thead><tr><th>Приложение</th><th class="num">Скачиваний с сервера</th></tr></thead><tbody id="dl"></tbody></table></div>
+  </section>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const api = async (path, opt = {}) => { const r = await fetch(path, { credentials: "same-origin", headers: { "Content-Type": "application/json" }, ...opt }); const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || r.status); return j; };
+  const when = (t) => t ? new Date(t).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
+  async function load() {
+    const s = await api("/api/admin/state");
+    const today = s.chat[s.chat.length - 1] || {};
+    $("kpis").innerHTML = [[s.users.length, "аккаунтов"], [s.logins, "входов всего"], [today.n || 0, "ответов ИИ сегодня"], [Object.values(s.downloads).reduce((a, b) => a + b, 0), "скачиваний APK"]]
+      .map(([v, l]) => `<div class="kpi glass"><b>${v}</b><span>${l}</span></div>`).join("");
+    $("chatUrl").textContent = s.chatUrl || "Код чата не задан";
+    $("aiState").innerHTML = `GigaChat: <b class="${s.ai.gigachat ? "ok" : ""}">${s.ai.gigachat ? "подключён" : "нет ключа"}</b> · OpenRouter: <b class="${s.ai.openrouter ? "ok" : ""}">${s.ai.openrouter ? "подключён" : "нет ключа"}</b>`;
+    $("users").innerHTML = s.users.map((u) => `<tr><td>${esc(u.label)} ${u.admin ? '<span class="tag">админ</span>' : ""}</td><td>${u.login ? esc(u.login) : '<span class="note">скрыт</span>'}</td><td>${when(u.last)}</td>
+      <td><div class="row-act">${u.login ? `<button class="btn ghost mini" data-reset="${u.id}">Новый пароль</button>` : ""}<button class="btn ghost mini" data-del="${u.id}">Удалить</button></div></td></tr>`).join("");
+    $("chat").innerHTML = s.chat.length ? s.chat.slice().reverse().map((d) => `<tr><td>${d.day}</td><td class="num">${d.n || 0}</td><td class="num">${d.gigachat || 0}</td><td class="num">${d.openrouter || 0}</td></tr>`).join("") : `<tr><td colspan="4" class="note">Пока пусто</td></tr>`;
+    const dl = Object.entries(s.downloads).sort((a, b) => b[1] - a[1]);
+    $("dl").innerHTML = dl.length ? dl.map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${v}</td></tr>`).join("") : `<tr><td colspan="2" class="note">Пока пусто</td></tr>`;
+  }
+  const showCreds = (j) => { $("credsText").textContent = `Логин: ${j.login}\nПароль: ${j.password}`; $("credsText").style.whiteSpace = "pre"; $("newCreds").hidden = false; };
+  $("addForm").addEventListener("submit", async (e) => {
+    e.preventDefault(); $("addErr").textContent = "";
+    try { showCreds(await api("/api/admin/users", { method: "POST", body: JSON.stringify({ login: $("newLogin").value, label: $("newLabel").value }) })); $("newLogin").value = ""; $("newLabel").value = ""; load(); }
+    catch (err) { $("addErr").textContent = err.message; }
+  });
+  let confirmDel = null;
+  $("users").addEventListener("click", async (e) => {
+    const r = e.target.closest("[data-reset]"), d = e.target.closest("[data-del]");
+    try {
+      if (r) { showCreds(await api(`/api/admin/users/${r.dataset.reset}/reset`, { method: "POST" })); window.scrollTo({ top: 0, behavior: "smooth" }); }
+      if (d) {
+        if (confirmDel !== d.dataset.del) { confirmDel = d.dataset.del; d.textContent = "Точно удалить?"; return; }
+        await api(`/api/admin/users/${d.dataset.del}`, { method: "DELETE" }); confirmDel = null; load();
+      }
+    } catch (err) { $("addErr").textContent = err.message; }
+  });
+  $("logout").onclick = async () => { await fetch("/api/logout"); try { localStorage.removeItem("kaplya-session"); } catch (e) {} location.href = "/login.html"; };
+  load().catch((err) => { $("kpis").innerHTML = `<p class="err">Не удалось загрузить: ${esc(err.message)}</p>`; });
+})();
+</script>
+</body>
+</html>

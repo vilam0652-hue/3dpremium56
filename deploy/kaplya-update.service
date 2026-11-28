@@ -1,0 +1,7 @@
+[Unit]
+Description=Капля — обновление с GitHub и скачивание APK
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/kaplya/kaplya.env
+ExecStart=/bin/bash /opt/kaplya/repo/deploy/update.sh

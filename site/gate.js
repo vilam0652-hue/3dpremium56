@@ -15,7 +15,8 @@
   }
   window.KAPLYA_LOGOUT = function () {
     try { localStorage.removeItem(KEY); } catch (e) { /* нет хранилища */ }
-    location.replace(root + "login.html");
+    var go = function () { location.replace(root + "login.html"); };
+    try { fetch(root + "api/logout", { credentials: "same-origin" }).then(go, go); } catch (e) { go(); }
   };
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll("[data-logout]").forEach(function (b) { b.addEventListener("click", function (e) { e.preventDefault(); window.KAPLYA_LOGOUT(); }); });

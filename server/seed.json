@@ -1,0 +1,23 @@
+{
+ "iter": 210000,
+ "list": [
+  {
+   "label": "Администратор",
+   "admin": true,
+   "s": "5cM3AcJm47DUmoW9t8hG8A==",
+   "h": "KP9LXNV8ateZbqfn0twq9Q8818svzKKmUr/ojoU2Flw="
+  },
+  {
+   "label": "Аккаунт 1",
+   "admin": false,
+   "s": "Dbjsubu77MRsD2kcXEcZdA==",
+   "h": "WNVkxOSXOMK7TCisYK68DHhSyH8w09L1AdvE8ZP6ejM="
+  },
+  {
+   "label": "Аккаунт 2",
+   "admin": false,
+   "s": "sInnR5JsbyClslop0H7++A==",
+   "h": "1o0j/ppuwNn9ElyZ7dPRrjOICDNk8H1G+Irwwu/Bt68="
+  }
+ ]
+}

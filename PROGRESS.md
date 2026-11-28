@@ -79,6 +79,15 @@
 - Ограничение: репозиторий и релизы публичные, поэтому вход защищает страницы от обычных посетителей, но не исходники на GitHub и не прямые ссылки на APK.
 - `API.md` (в .gitignore): ключ GigaChat API и аккаунты сайта.
 
+## Свой сервер на VPS (2026-11-28)
+- У владельца VPS в Финляндии: Ubuntu, 1 ГБ RAM. IP пока не сообщён, домена нет (по умолчанию `<IP-с-дефисами>.sslip.io`).
+- `server/server.mjs` — Node 20 без зависимостей: вход проверяет сервер (cookie `kaplya`, HMAC, 30 дней), без входа отдаёт только `login.html` и общие файлы; закрыты `.*`, `*.md`, `server/ deploy/ tools/ android/`. `/apk/kaplya-<id>.apk` — только после входа (файлы в `/var/lib/kaplya/apk`, качает `deploy/update.sh` из релиза GitHub). `/api/chat?code=CHAT_CODE` — ИИ для «Бадди» (GigaChat → запасной OpenRouter), лимиты 60/день на IP, 8/мин, 3000/день всего. `/server-admin` (`server/admin.html`) — ученики (создание со сгенерированным паролем, сброс, удаление), статистика, адрес чата.
+- Аккаунты при первом запуске: из `server/seed.json` (только PBKDF2-отпечатки: администратор = прежний логин админки, «Аккаунт 1», «Аккаунт 2»). Новые — scrypt.
+- `deploy/install.sh` (одна команда, ставит Node 20, Caddy, swap 1 ГБ, сертификаты Минцифры для GigaChat, systemd `kaplya.service`, таймер `kaplya-update.timer` каждые 10 мин), `deploy/kaplyactl` (status, set-gigachat, set-openrouter, chat-url, new-chat-code, new-admin, update, logs, restart). Настройки: `/etc/kaplya/kaplya.env`.
+- Сайт работает в двух режимах: GitHub Pages (как раньше, клиентская проверка) и сервер (https, не github.io → `login.html` идёт в `/api/login`, APK по `/apk/…`, у админа в подвале ссылка «Управление сервером»).
+- Проверено локально: 15 проверок API + вход/выход в браузере. На реальном VPS ещё НЕ запускалось — ждём, когда владелец выполнит команду установки.
+- Команда установки: `curl -fsSL https://raw.githubusercontent.com/vilam0652-hue/3dpremium56/main/deploy/install.sh | sudo bash`
+
 ## Полезное
 - Артефакт с промптами для Gemini/Meshy (больше не нужен, владелец отказался генерировать): https://claude.ai/artifact/XA5TfNGDbevQ6LaSDwPuTQ
 - Коммиты: автор `vilam0652-hue <vilam0652-hue@users.noreply.github.com>`, в конце сообщения строки `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` и `Claude-Session: https://claude.ai/code/session_01FxeEqjE8DP4WAVfJJi3LDx`.

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Управление сервером Капли: sudo kaplyactl <команда>
+set -euo pipefail
+ENVF=/etc/kaplya/kaplya.env
+[ "$(id -u)" -eq 0 ] || { echo "Нужен sudo: sudo kaplyactl $*"; exit 1; }
+setkey() { # setkey NAME VALUE
+  if grep -q "^$1=" "$ENVF"; then sed -i "s|^$1=.*|$1=$2|" "$ENVF"; else echo "$1=$2" >> "$ENVF"; fi
+}
+DOMAIN=$(cat /etc/kaplya/domain 2>/dev/null || echo "?")
+case "${1:-help}" in
+  set-gigachat)
+    read -rsp "Вставь ключ авторизации GigaChat (символы не видны) и нажми Enter: " K; echo
+    [ -n "$K" ] || { echo "Пусто — ничего не изменено"; exit 1; }
+    setkey GIGACHAT_KEY "$K"; systemctl restart kaplya
+    echo "Проверяю ключ…"
+    if curl -fsS --cacert /etc/kaplya/ru-ca.pem -X POST https://ngw.devices.sberbank.ru:9443/api/v2/oauth \
+        -H "Authorization: Basic $K" -H "RqUID: $(cat /proc/sys/kernel/random/uuid)" -H "Content-Type: application/x-www-form-urlencoded" \
+        -d scope=GIGACHAT_API_PERS -o /dev/null; then echo "GigaChat работает ✔"; else echo "GigaChat не ответил. Возможно, Сбер не пускает зарубежные серверы — тогда подключи OpenRouter: sudo kaplyactl set-openrouter"; fi ;;
+  set-openrouter)
+    read -rsp "Вставь ключ OpenRouter (sk-or-…) и нажми Enter: " K; echo
+    [ -n "$K" ] || { echo "Пусто — ничего не изменено"; exit 1; }
+    setkey OPENROUTER_KEY "$K"; systemctl restart kaplya; echo "Готово ✔" ;;
+  chat-url)
+    . "$ENVF"; echo "https://$DOMAIN/api/chat?code=$CHAT_CODE" ;;
+  new-chat-code)
+    setkey CHAT_CODE "$(openssl rand -hex 8)"; systemctl restart kaplya; . "$ENVF"
+    echo "Новый адрес чата (старый больше не работает): https://$DOMAIN/api/chat?code=$CHAT_CODE" ;;
+  new-admin)
+    PW=$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-18)
+    LOGIN="admin$(openssl rand -hex 2)"
+    runuser -u kaplya -- node -e '
+      const fs=require("fs"),c=require("crypto"),f="/var/lib/kaplya/users.json";
+      const u=JSON.parse(fs.readFileSync(f));const s=c.randomBytes(16);
+      u.push({id:c.randomUUID(),label:"Администратор",login:process.argv[1],kind:"scrypt",s:s.toString("base64"),h:c.scryptSync(process.argv[2],s,32,{N:16384,r:8,p:1}).toString("base64"),admin:true,created:Date.now()});
+      fs.writeFileSync(f,JSON.stringify(u,null,1));' "$LOGIN" "$PW"
+    systemctl restart kaplya; echo "Новый администратор — логин: $LOGIN  пароль: $PW" ;;
+  update) bash /opt/kaplya/repo/deploy/update.sh ;;
+  status)
+    systemctl --no-pager -l status kaplya | head -n 5
+    echo; echo "Сайт: https://$DOMAIN"; echo "Управление: https://$DOMAIN/server-admin"
+    . "$ENVF"; echo "GigaChat: $([ -n "${GIGACHAT_KEY:-}" ] && echo подключён || echo нет)  OpenRouter: $([ -n "${OPENROUTER_KEY:-}" ] && echo подключён || echo нет)"
+    echo "APK на сервере: $(ls /var/lib/kaplya/apk/*.apk 2>/dev/null | wc -l)" ;;
+  logs) journalctl -u kaplya -n 60 --no-pager ;;
+  restart) systemctl restart kaplya caddy; echo "Перезапущено" ;;
+  *) cat <<EOF
+Команды:
+  sudo kaplyactl status          — состояние, адреса
+  sudo kaplyactl set-gigachat    — подключить GigaChat (ключ вводится скрыто)
+  sudo kaplyactl set-openrouter  — подключить OpenRouter (запасной ИИ)
+  sudo kaplyactl chat-url        — адрес чата для «Бадди»
+  sudo kaplyactl new-chat-code   — сменить адрес чата (если он утёк)
+  sudo kaplyactl new-admin       — создать нового администратора (если забыл пароль)
+  sudo kaplyactl update          — обновить сейчас
+  sudo kaplyactl logs            — последние сообщения сервера
+  sudo kaplyactl restart         — перезапустить
+EOF
+  ;;
+esac
