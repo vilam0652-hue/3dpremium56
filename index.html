@@ -64,6 +64,7 @@
 
   /* ---------- каталог ---------- */
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 16px; }
+  @media (min-width: 1040px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .app.wide { grid-column: span 2; grid-template-rows: none; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .app.wide .shot { height: 100%; min-height: 300px; border-bottom: 0; border-right: 1px solid var(--stroke); } .app.wide .shot img { width: 52%; } }
   .app { display: grid; grid-template-rows: auto 1fr; border-radius: 28px; overflow: hidden; transition: transform .4s var(--spring), border-color .25s; }
   .app:hover { transform: translateY(-4px); border-color: var(--stroke-c); }
   .shot { position: relative; display: block; height: 250px; overflow: hidden; border-bottom: 1px solid var(--stroke); background: radial-gradient(90% 90% at 50% 0%, #1d1c21, #0b0b0d); }
@@ -110,7 +111,7 @@
     </div>
     <div class="facts">
       <div><b>10</b><span>приложений</span></div>
-      <div><b>40</b><span>уроков английского</span></div>
+      <div><b>60</b><span>уроков английского</span></div>
       <div><b>0 ₽</b><span>без рекламы и покупок</span></div>
       <div><b>Офлайн</b><span>работают без интернета</span></div>
     </div>
@@ -123,11 +124,11 @@
       <div class="stack">
         <span class="eyebrow">Английский язык</span>
         <h2>Бадди — английский как в Duolingo</h2>
-        <p>Щенок Бадди из Лондона ведёт по 40 урокам: слова, фразы, аудирование. Каждый день немного, и английский становится привычкой.</p>
+        <p>Щенок Бадди из Лондона ведёт по 60 урокам: слова, фразы, аудирование. Каждый день немного, и английский становится привычкой.</p>
         <div class="feat">
           <div>🦴 Косточки<small>серия дней подряд</small></div>
           <div>🐱 Котики-хранители<small>берегут серию, если пропустил день</small></div>
-          <div>🎧 6 видов заданий<small>слушай, собирай, переводи</small></div>
+          <div>🎧 7 видов заданий<small>слушай, собирай, пиши</small></div>
           <div>💬 Чат с Бадди<small>собеседник на основе ИИ</small></div>
         </div>
         <div class="row"><a class="btn dark big" data-dl="buddy" href="#">Скачать APK</a><a class="btn big ghost" href="app/buddy.html" style="color:#141414;box-shadow:inset 0 0 0 1px rgba(20,20,20,.15)">Подробнее</a></div>
@@ -177,22 +178,25 @@
   const seg = location.hostname.endsWith("github.io") ? location.pathname.split("/").filter(Boolean)[0] : null;
   const REPO = "vilam0652-hue/" + (seg || "3dpremium56");
   const APK = (id) => `https://github.com/${REPO}/releases/download/apk/kaplya-${id}.apk`;
-  const APPS = /*APPS*/[{"id": "bust", "name": "3D Bust", "kind": "game", "desc": "Головоломка из неоновых 3D-кубиков: ставь фигуры на поле 8×8, сжигай линии, собирай комбо. Свечение, объём, рекорды.", "tagline": "Головоломка из неоновых 3D-кубиков", "shot": null}, {"id": "buddy", "name": "Бадди — английский", "kind": "learn", "desc": "Полный курс английского как в Duolingo: 8 разделов, 40 уроков, 6 видов заданий. Косточки за серию, котики-хранители, наряды и ИИ-собеседник — щенок Бадди.", "tagline": "Английский каждый день вместе со щенком", "shot": null}, {"id": "merge", "name": "Фруктовое слияние", "kind": "game", "desc": "Физика! Бросай фрукты в корзину: два одинаковых сливаются в следующий — от черники до арбуза. Заодно учишь названия фруктов по-английски.", "tagline": "Сочная физика и английские слова", "shot": null}, {"id": "space", "name": "Звёздный рейс", "kind": "game", "desc": "3D-полёт сквозь астероиды на стеклянном корабле. Звёзды, щит, скорость растёт.", "tagline": "3D-полёт сквозь пояс астероидов", "shot": null}, {"id": "balloons", "name": "Шарики-примеры", "kind": "game", "desc": "Лопай шарик с правильным ответом, пока он не улетел. Умножение, деление, счёт до 1000.", "tagline": "Математика 4 класса в виде игры", "shot": null}, {"id": "breakout", "name": "Стеклобой", "kind": "game", "desc": "Арканоид, где стеклянные кирпичи разлетаются на осколки. 5 уровней, бонусы, три мяча.", "tagline": "Арканоид из золота и стекла", "shot": null}, {"id": "multiply", "name": "Таблица-Турбо", "kind": "learn", "desc": "Таблица умножения и деления на звёзды. Подсказка-точки показывает, откуда берётся ответ.", "tagline": "Таблица умножения на звёзды", "shot": null}, {"id": "words", "name": "Грамотей", "kind": "learn", "desc": "Словарные слова, безударные гласные и парные согласные. Ошибся — видишь правило и проверочное слово.", "tagline": "Орфография без скуки", "shot": null}, {"id": "world", "name": "Знайка", "kind": "learn", "desc": "Окружающий мир за 4 класс: природные зоны, космос, тело человека, история России.", "tagline": "Окружающий мир за 4 класс", "shot": null}, {"id": "grades", "name": "Мои оценки", "kind": "learn", "desc": "Ставь оценки одним касанием и узнавай, что выходит за месяц и сколько пятёрок нужно до «5».", "tagline": "Дневник оценок, который считает за тебя", "shot": null}]/*END*/;
+  const APPS = /*APPS*/[{"id": "bust", "name": "3D Bust", "kind": "game", "desc": "Неоновая 3D-головоломка: ставь фигуры на поле 8×8 и сжигай линии. Комбо, сохранение партии, обучение за три шага.", "tagline": "Головоломка из неоновых 3D-кубиков", "shot": "bust-1.webp"}, {"id": "buddy", "name": "Бадди — английский", "kind": "learn", "desc": "Курс английского как в Duolingo: 12 разделов, 60 уроков, 7 видов заданий. Косточки за серию, котики-хранители, работа над ошибками и ИИ-собеседник.", "tagline": "Английский каждый день вместе со щенком", "shot": "buddy-1.webp"}, {"id": "merge", "name": "Фруктовое слияние", "kind": "game", "desc": "Физика и английский: сливай фрукты от черники до арбуза, выполняй миссии и собирай «Книгу фруктов» с озвучкой.", "tagline": "Сочная физика и английские слова", "shot": "merge-1.webp"}, {"id": "space", "name": "Звёздный рейс", "kind": "game", "desc": "3D-полёт сквозь астероиды: щит, магнит и нитро, миссии на каждый забег и рекорд дистанции.", "tagline": "3D-полёт сквозь пояс астероидов", "shot": "space-1.webp"}, {"id": "balloons", "name": "Шарики-примеры", "kind": "game", "desc": "Лопай шарик с правильным ответом: 9 режимов по программе 4 класса, 3 уровня в каждом и разбор ошибок по шагам.", "tagline": "Математика 4 класса в виде игры", "shot": "balloons-1.webp"}, {"id": "breakout", "name": "Стеклобой", "kind": "game", "desc": "Арканоид из золота и стекла: 15 уровней-рисунков, 6 бонусов, бомбы и движущиеся ряды, до трёх звёзд за уровень.", "tagline": "Арканоид из золота и стекла", "shot": "breakout-1.webp"}, {"id": "multiply", "name": "Таблица-Турбо", "kind": "learn", "desc": "Таблица умножения с умным повторением: карта пробелов 9×9, режимы «на время» и «экзамен», подсказки-приёмы.", "tagline": "Таблица умножения на звёзды", "shot": "multiply-1.webp"}, {"id": "words", "name": "Грамотей", "kind": "learn", "desc": "Орфография 1–4 класса: 9 тем и 461 задание. Правило перед раундом, разбор каждой ошибки и повтор трудных слов.", "tagline": "Орфография без скуки", "shot": "words-1.webp"}, {"id": "world", "name": "Знайка", "kind": "learn", "desc": "Окружающий мир 4 класса: 9 тем и 254 вопроса четырёх типов с объяснением каждого ответа.", "tagline": "Окружающий мир за 4 класс", "shot": "world-1.webp"}, {"id": "grades", "name": "Мои оценки", "kind": "learn", "desc": "Дневник оценок: итоги за месяц, четверть и год, цели, «что если» и резервная копия данных.", "tagline": "Дневник оценок, который считает за тебя", "shot": "grades-1.webp"}]/*END*/;
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   document.getElementById("yr").textContent = "© " + new Date().getFullYear();
   document.getElementById("floatArt").innerHTML = [["dog", "a1"], ["rocket", "a2"], ["watermelon", "a3"], ["cube", "a4"], ["globe", "a5"], ["star", "a6"]].map(([n, c]) => `<img class="${c}" src="shared/art/${n}.webp" alt="">`).join("");
   const paintBuddy = () => { document.getElementById("buddyArt").innerHTML = buddyArt({ mood: "wave" }); };
   paintBuddy(); addEventListener("buddy-art-ready", paintBuddy);
-  // картинка в шапке из Gemini, если она уже добавлена
-  const wide = matchMedia("(min-width: 760px)").matches;
-  K.img(wide ? "site/hero.jpg" : "site/hero-mobile.jpg").then((im) => { if (!im) return; const el = document.getElementById("heroArt"); el.style.backgroundImage = `url("${im.src}")`; el.classList.add("on"); });
   const card = (a) => `<article class="app glass">
       <a class="shot" href="app/${a.id}.html" aria-label="Подробнее: ${esc(a.name)}">${a.shot ? `<img src="site/shots/${a.shot}" alt="Экран приложения «${esc(a.name)}»" loading="lazy" width="780" height="1600">` : ""}</a>
       <div class="body"><div class="name"><img src="icons/${a.id}-192.png" alt="" width="52" height="52"><div><div class="kind">${a.kind === "game" ? "Игра" : "Учёба"}</div><h3><a href="app/${a.id}.html">${esc(a.name)}</a></h3></div></div>
-      <p>${esc(a.tagline)}. ${esc(a.desc)}</p>
+      <p>${esc(a.desc)}</p>
       <div class="acts"><a class="btn" href="${APK(a.id)}" rel="noopener">Скачать APK</a><a class="btn ghost" href="app/${a.id}.html">Подробнее</a></div></div></article>`;
-  document.getElementById("gamesGrid").innerHTML = APPS.filter((a) => a.kind === "game").map(card).join("");
-  document.getElementById("learnGrid").innerHTML = APPS.filter((a) => a.kind === "learn" && a.id !== "buddy").map(card).join("");
+  const fill = (id, list) => {
+    const el = document.getElementById(id); el.innerHTML = list.map(card).join("");
+    const cards = el.children, n = cards.length;
+    if (n % 3 === 2) cards[0].classList.add("wide");
+    if (n % 3 === 1 && n > 1) { cards[0].classList.add("wide"); cards[n - 1].classList.add("wide"); }
+  };
+  fill("gamesGrid", APPS.filter((a) => a.kind === "game"));
+  fill("learnGrid", APPS.filter((a) => a.kind === "learn" && a.id !== "buddy"));
   document.querySelectorAll("[data-dl]").forEach((a) => (a.href = APK(a.dataset.dl)));
 })();
 </script>
