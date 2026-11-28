@@ -246,7 +246,15 @@ const server = http.createServer(async (req, res) => {
       return createReadStream(file).pipe(res);
     }
     if (path === "/server-admin") {
-      if (!me.admin) return send(res, 403, "Только для администратора");
+      if (!me.admin) {
+        res.writeHead(403, { "Content-Type": MIME[".html"], "Cache-Control": "no-store" });
+        return res.end(`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Только для администратора — Капля</title>
+<link rel="stylesheet" href="/shared/k.css"><script src="/shared/k.js"></script><style>.g{min-height:100vh;display:grid;place-items:center;padding:24px 16px}.c{width:min(420px,100%);padding:30px 24px;border-radius:28px;display:flex;flex-direction:column;gap:14px}.c h1{font-family:var(--f-display);font-weight:700;font-size:1.5rem;margin:0}.c p{margin:0;color:var(--muted)}.c .btn{width:100%}</style></head>
+<body><main class="g"><div class="c glass"><span class="eyebrow">Управление сервером</span><h1>Только для администратора</h1>
+<p>Сейчас ты вошёл как «${String(me.label).replace(/[<>&"]/g, "")}». Чтобы управлять учениками, выйди и войди логином администратора.</p>
+<button class="btn" id="sw">Войти как администратор</button><a class="btn ghost" href="/">Вернуться на сайт</a></div></main>
+<script>document.getElementById("sw").onclick=async()=>{await fetch("/api/logout");try{localStorage.removeItem("kaplya-session")}catch(e){}location.href="/login.html?next=%2Fserver-admin"}</script></body></html>`);
+      }
       res.writeHead(200, { "Content-Type": MIME[".html"], "Cache-Control": "no-store" }); return res.end(readFileSync(join(HERE, "admin.html")));
     }
     return serveFile(res, path, /\.(webp|png|woff2|glb|js|css)$/.test(path));
