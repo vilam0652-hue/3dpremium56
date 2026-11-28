@@ -92,3 +92,5 @@
 - Артефакт с промптами для Gemini/Meshy (больше не нужен, владелец отказался генерировать): https://claude.ai/artifact/XA5TfNGDbevQ6LaSDwPuTQ
 - Коммиты: автор `vilam0652-hue <vilam0652-hue@users.noreply.github.com>`, в конце сообщения строки `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` и `Claude-Session: https://claude.ai/code/session_01FxeEqjE8DP4WAVfJJi3LDx`.
 - Push: `git -c push.negotiate=true push origin main` (предупреждение «push negotiation failed» — не ошибка).
+
+- Админ-панель (admin.html) зашифрована v2: ключ данных завёрнут под каждого админа (старый админ + Cuci45609), логин без учёта регистра. Перешифровка: `node tools/encrypt-admin.mjs panel.html creds1.json creds2.json`. На своём сервере admin.html перекидывает на /server-admin.
