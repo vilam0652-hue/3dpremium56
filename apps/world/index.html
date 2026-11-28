@@ -4,134 +4,398 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Знайка</title>
-<meta name="theme-color" content="#060a1c">
+<meta name="theme-color" content="#08080a">
 <link rel="stylesheet" href="../../shared/k.css">
 <script src="../../shared/k.js"></script>
+<script src="data.js"></script>
 <style>
-  main { padding-block: 18px 40px; }
-  .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-top: 18px; }
-  .cat { text-align: left; padding: 16px; border-radius: 26px; border: 1px solid var(--stroke); color: var(--text); display: flex; flex-direction: column; gap: 4px; min-height: 150px; transition: transform .4s var(--spring); }
-  .cat:active { transform: scale(.96); }
-  .cat .ico { font-size: 2.4rem; line-height: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
-  .cat b { font-family: var(--f-display); font-weight: 700; font-size: 1.02rem; margin-top: auto; }
-  .cat small { color: var(--muted); }
-  .quiz { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-block: 10px 30px; }
+  main { padding-block: 16px calc(40px + env(safe-area-inset-bottom, 0px)); }
+  #app { transition: opacity .18s ease, transform .18s ease; }
+  #app.out { opacity: 0; transform: translateY(8px); }
+  #app.in > * { animation: w-in .5s var(--ease) both; }
+  #app.in > *:nth-child(2) { animation-delay: .04s; } #app.in > *:nth-child(3) { animation-delay: .08s; }
+  #app.in > *:nth-child(4) { animation-delay: .12s; } #app.in > *:nth-child(5) { animation-delay: .16s; }
+  @keyframes w-in { from { opacity: 0; transform: translateY(14px); } }
+  .w-art { display: block; object-fit: contain; filter: drop-shadow(0 10px 16px rgba(0,0,0,.5)); -webkit-user-drag: none; pointer-events: none; }
+
+  /* ---------- главная ---------- */
+  .hero { display: flex; align-items: center; gap: 14px; margin-top: 4px; }
+  .hero .w-art { width: 78px; height: 78px; flex: none; animation: w-float 5s ease-in-out infinite; }
+  .hero h1 { font-size: clamp(2rem, 9vw, 2.6rem); margin: 2px 0 0; }
+  .hero p { margin: 2px 0 0; font-size: .92rem; }
+  @keyframes w-float { 50% { transform: translateY(-6px) rotate(-3deg); } }
+  .summary { margin-top: 16px; padding: 14px 16px; border-radius: 24px; display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: center; }
+  .summary .lbl { font-size: .78rem; color: var(--muted); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .summary .val { font-family: var(--f-display); font-weight: 600; font-size: 1.15rem; display: flex; align-items: center; gap: 6px; }
+  .summary .val svg { width: 22px; height: 22px; }
+  .summary .progress { grid-column: 1 / -1; }
+  .summary .masters { text-align: right; }
+  .row-cards { display: grid; gap: 12px; margin-top: 12px; }
+  .mini { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 24px; text-align: left; color: var(--text); width: 100%; }
+  button.mini { transition: transform .35s var(--spring); }
+  button.mini:active { transform: scale(.97); }
+  .mini .w-art { width: 48px; height: 48px; flex: none; }
+  .mini b { display: block; font-family: var(--f-display); font-weight: 600; font-size: .98rem; line-height: 1.25; }
+  .mini small { display: block; color: var(--muted); font-size: .86rem; line-height: 1.35; margin-top: 2px; }
+  .mini .go { margin-left: auto; flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--gold-grad); color: #17130b; }
+  .mini .go svg { width: 18px; height: 18px; }
+  .sec { margin: 22px 2px 0; display: flex; justify-content: space-between; align-items: baseline; }
+  .sec h2 { font-family: var(--f-display); font-weight: 600; font-size: 1.05rem; margin: 0; }
+  .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 12px; margin-top: 12px; }
+  .cat { text-align: left; padding: 14px 14px 14px; border-radius: 26px; color: var(--text); display: flex; flex-direction: column; gap: 6px; min-height: 172px; }
+  .cat:active { transform: scale(.96) !important; }
+  .cat .top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .cat .top .w-art { width: 58px; height: 58px; }
+  .cat b { font-family: var(--f-display); font-weight: 600; font-size: .9rem; line-height: 1.25; margin-top: auto; hyphens: auto; overflow-wrap: anywhere; }
+  .cat small { color: var(--muted); font-size: .8rem; }
+  .cat.master { border-color: rgba(214,177,94,.55); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 0 0 1px rgba(214,177,94,.25), 0 18px 40px -22px rgba(214,177,94,.55); }
+  .cat.master small { color: var(--gold-hi); font-weight: 800; }
+  .mstars { display: flex; gap: 1px; }
+  .mstars svg { width: 18px; height: 18px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px 3px 5px; border-radius: 999px; background: var(--gold-grad); color: #17130b; font-weight: 800; font-size: .72rem; width: max-content; }
+  .badge .w-art { width: 18px; height: 18px; filter: none; }
+  .foot { margin-top: 22px; text-align: center; color: var(--faint); font-size: .74rem; }
+
+  /* ---------- вопрос ---------- */
+  .quiz { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 2px; }
   .quiz > * { width: min(520px, 100%); }
-  .meta { display: flex; justify-content: space-between; color: var(--muted); font-weight: 800; font-size: .9rem; }
-  .qcard { padding: 22px 20px; border-radius: 30px; }
-  .qcard .ico { font-size: 2.6rem; }
-  .qcard h2 { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.15rem, 5vw, 1.45rem); line-height: 1.3; margin: 8px 0 0; text-wrap: balance; }
+  .qhead { display: flex; align-items: center; gap: 12px; }
+  .qhead .progress { flex: 1; height: 10px; }
+  .qhead .cnt { font-family: var(--f-display); font-weight: 500; font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 44px; text-align: right; }
+  .x { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.06); border: 1px solid var(--stroke); color: var(--muted); flex: none; transition: transform .3s var(--spring); }
+  .x:active { transform: scale(.9); }
+  .x svg { width: 18px; height: 18px; }
+  .streak { display: inline-flex; align-items: center; gap: 2px; font-family: var(--f-display); font-weight: 600; font-size: .85rem; color: var(--gold-hi); min-width: 44px; }
+  .streak .w-art { width: 22px; height: 22px; }
+  .streak.pop { animation: k-bump .5s var(--spring); }
+  .qcard { padding: 18px 18px 20px; border-radius: 30px; display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden; }
+  .qcard.enter { animation: w-card .55s var(--spring) both; }
+  @keyframes w-card { from { opacity: 0; transform: translateX(40px) scale(.96); } }
+  .qart { width: 108px; height: 108px; position: relative; display: grid; place-items: center; margin: 2px 0 6px; }
+  .qart::before { content: ""; position: absolute; inset: 8px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--c) 40%, transparent), transparent 70%); filter: blur(10px); }
+  .qart .w-art { width: 100%; height: 100%; position: relative; animation: w-float 4.5s ease-in-out infinite; }
+  .qtype { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); border: 1px solid var(--stroke-c); background: rgba(214,177,94,.07); }
+  .qcard h2 { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.08rem, 4.8vw, 1.35rem); line-height: 1.32; margin: 12px 0 0; text-wrap: balance; }
+  .qcard .hint { margin: 8px 0 0; color: var(--muted); font-size: .86rem; }
+
   .opts { display: grid; gap: 10px; }
-  .opt { text-align: left; padding: 16px 18px; border-radius: 20px; border: 1px solid var(--stroke-c); background: rgba(255,255,255,.05); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-weight: 700; font-size: 1.05rem; color: var(--text); display: flex; gap: 12px; align-items: center; transition: transform .3s var(--spring), background .2s, border-color .2s; animation: k-pop .45s var(--spring) both; }
+  .opts.grid2 { grid-template-columns: 1fr 1fr; }
+  .opt { position: relative; text-align: left; min-height: 58px; padding: 12px 16px 12px 12px; border-radius: 20px; border: 1px solid var(--stroke); background: linear-gradient(165deg, rgba(255,255,255,.08), rgba(255,255,255,.025)); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: inset 0 1px 0 rgba(255,255,255,.1); font-weight: 700; font-size: 1.02rem; line-height: 1.3; color: var(--text); display: flex; gap: 12px; align-items: center; transition: transform .3s var(--spring), background .35s, border-color .35s, box-shadow .35s, opacity .35s, color .35s; animation: k-pop .45s var(--spring) both; }
+  .opts.grid2 .opt { flex-direction: column; justify-content: center; text-align: center; min-height: 92px; padding: 14px 10px; gap: 8px; }
   .opt:nth-child(2) { animation-delay: .05s; } .opt:nth-child(3) { animation-delay: .1s; } .opt:nth-child(4) { animation-delay: .15s; }
   .opt:active { transform: scale(.97); }
-  .opt i { font-style: normal; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; border: 1px solid var(--cyan); color: var(--cyan);  font-family: var(--f-display); font-size: .85rem; flex: none; }
-  .opt.right { border-color: var(--good); background: rgba(168,213,162,.18); box-shadow: 0 0 18px rgba(168,213,162,.45); }
-  .opt.wrong { border-color: var(--bad); background: rgba(239,138,128,.16); box-shadow: 0 0 18px rgba(239,138,128,.4); }
+  .opt i { font-style: normal; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--stroke-c); color: var(--gold-hi); font-family: var(--f-display); font-size: .82rem; flex: none; transition: background .35s, color .35s, border-color .35s; }
   .opt[disabled] { cursor: default; }
-  .explain { padding: 16px 18px; border-radius: 22px; animation: k-pop .45s var(--spring); }
-  .explain b { font-family: var(--f-display); }
+  .opt.right { border-color: rgba(243,227,176,.85); color: #fff8e6; background: linear-gradient(135deg, rgba(243,227,176,.2), rgba(156,119,49,.16)); box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 0 0 1px rgba(214,177,94,.45), 0 0 30px -4px rgba(214,177,94,.55); opacity: 1; }
+  .opt.right i { background: var(--gold-grad); color: #17130b; border-color: transparent; }
+  .opt.right.win { animation: w-glow 1s var(--ease); }
+  @keyframes w-glow { 0% { box-shadow: 0 0 0 0 rgba(214,177,94,.7); } 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 0 0 1px rgba(214,177,94,.45), 0 0 30px -4px rgba(214,177,94,.55); } }
+  .opt.wrong { border-color: rgba(239,138,128,.45); background: rgba(239,138,128,.07); color: #e9c9c4; }
+  .opt.wrong i { border-color: rgba(239,138,128,.5); color: #efb0a8; }
+  .opt.dim { opacity: .38; }
+  .soft-shake { animation: w-shake .45s ease; }
+  @keyframes w-shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+
+  .tf { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tf .opt { flex-direction: column; justify-content: center; text-align: center; min-height: 120px; font-family: var(--f-display); font-weight: 600; font-size: 1.05rem; gap: 8px; }
+  .tf .opt .w-art { width: 48px; height: 48px; }
+
+  .ord { display: flex; flex-direction: column; gap: 12px; }
+  .slots { display: grid; gap: 8px; padding: 12px; border-radius: 24px; }
+  .slot { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 8px 12px 8px 8px; border-radius: 16px; border: 1px dashed rgba(255,255,255,.16); background: rgba(255,255,255,.02); color: var(--faint); font-weight: 700; text-align: left; transition: background .3s, border-color .3s, box-shadow .3s, opacity .3s; }
+  .slot n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex: none; font-family: var(--f-display); font-size: .8rem; color: var(--gold-hi); border: 1px solid var(--stroke-c); }
+  .slot.full { border-style: solid; border-color: var(--stroke-c); background: linear-gradient(165deg, rgba(255,255,255,.09), rgba(255,255,255,.03)); color: var(--text); animation: k-pop .35s var(--spring); }
+  .slot.right { border-color: rgba(243,227,176,.85); background: linear-gradient(135deg, rgba(243,227,176,.2), rgba(156,119,49,.16)); box-shadow: 0 0 22px -6px rgba(214,177,94,.6); }
+  .slot.right n { background: var(--gold-grad); color: #17130b; border-color: transparent; }
+  .slot.wrong { border-color: rgba(239,138,128,.45); background: rgba(239,138,128,.07); color: #e9c9c4; }
+  .pool { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; min-height: 50px; }
+  .chipb { min-height: 48px; padding: 10px 16px; border-radius: 16px; border: 1px solid var(--stroke-c); background: linear-gradient(165deg, rgba(255,255,255,.1), rgba(255,255,255,.03)); color: var(--text); font-weight: 700; font-size: .98rem; line-height: 1.25; max-width: 100%; transition: transform .25s var(--spring); animation: k-pop .4s var(--spring) both; }
+  .chipb:active { transform: scale(.94); }
+  .ordbar { display: flex; gap: 10px; }
+  .ordbar .btn { flex: 1; }
+
+  /* ---------- объяснение: нижняя карточка ---------- */
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; padding: 0 max(12px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); display: flex; justify-content: center; pointer-events: none; }
+  .sheet .card { pointer-events: auto; width: min(540px, 100%); padding: 16px 18px 16px; border-radius: 28px; background: linear-gradient(165deg, rgba(40,38,34,.92), rgba(16,16,18,.94)); animation: w-up .5s var(--spring) both; }
+  .sheet .card.good { border-color: rgba(214,177,94,.55); box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 0 0 1px rgba(214,177,94,.2), 0 -10px 50px -20px rgba(214,177,94,.5); }
+  .sheet .card.bad { border-color: rgba(239,138,128,.28); }
+  @keyframes w-up { from { transform: translateY(110%); } }
+  .sheet .hd { display: flex; align-items: center; gap: 12px; }
+  .sheet .hd .w-art { width: 46px; height: 46px; flex: none; }
+  .sheet .hd b { font-family: var(--f-display); font-weight: 700; font-size: 1.2rem; }
+  .sheet .hd .bad-t { color: #f0c2bb; }
+  .sheet .ans { margin: 10px 0 0; font-size: .94rem; color: var(--muted); }
+  .sheet .ans strong { color: var(--gold-hi); font-weight: 800; }
+  .sheet .why { margin: 6px 0 0; font-size: 1rem; line-height: 1.45; color: var(--text); }
+  .sheet .btn { width: 100%; margin-top: 14px; }
+
+  /* ---------- итог ---------- */
+  .fact { display: flex; gap: 12px; align-items: center; text-align: left; padding: 12px 14px; border-radius: 20px; background: rgba(255,255,255,.04); border: 1px solid var(--stroke-c); width: 100%; }
+  .fact .w-art { width: 44px; height: 44px; flex: none; }
+  .fact span { display: block; font-size: .7rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }
+  .fact p { margin: 2px 0 0 !important; color: var(--text) !important; font-size: .92rem; line-height: 1.4; }
+  .newmaster { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 18px; background: var(--gold-grad); color: #17130b; font-weight: 800; text-align: left; animation: k-pop .6s .5s var(--spring) both; width: 100%; }
+  .newmaster .w-art { width: 40px; height: 40px; filter: none; }
+  .overlay .panel .row { gap: 8px; }
+  .overlay .panel .row .btn { flex: 1 1 auto; }
 </style>
 </head>
 <body>
 <main class="wrap" id="app"></main>
 <script>
 (() => {
+  "use strict";
   K.top({ title: "Знайка · Окружающий мир" });
   const app = document.getElementById("app");
-  // [вопрос, правильный, неверный, неверный, неверный, объяснение]
-  const CATS = {
-    zones: { ico: "globe", name: "Природные зоны", tint: "tint-mint", q: [
-      ["В какой природной зоне живёт белый медведь?", "Арктика (зона льдов)", "Тундра", "Тайга", "Степь", "Белый медведь охотится на тюленей среди льдов Северного Ледовитого океана."],
-      ["Какое растение типично для тундры?", "Ягель (олений мох)", "Кактус", "Ковыль", "Дуб", "Ягель — это лишайник. Им зимой питаются северные олени."],
-      ["Какая зона занимает в России самую большую площадь?", "Зона лесов (тайга)", "Тундра", "Степь", "Пустыня", "Тайга тянется от западных границ России до Тихого океана."],
-      ["Почему в степи мало деревьев?", "Мало влаги и сухое жаркое лето", "Слишком холодно", "Мешает вечная мерзлота", "Всё вытоптали животные", "Деревьям не хватает воды: дождей мало, а летом сильная жара."],
-      ["Какое животное живёт в пустыне?", "Верблюд", "Морж", "Лось", "Песец", "Верблюд долго обходится без воды и не проваливается в песок."],
-      ["Где находится вечная мерзлота?", "В тундре", "В степи", "На Черноморском побережье", "В смешанном лесу", "Летом в тундре оттаивает лишь тонкий слой почвы, глубже земля всегда мёрзлая."],
-      ["Какое дерево растёт в субтропиках Черноморского побережья?", "Пальма", "Лиственница", "Карликовая берёза", "Кедр", "На побережье Чёрного моря тёплая зима, там растут пальмы и магнолии."],
-      ["Какие почвы самые плодородные в России?", "Чернозёмы", "Тундровые", "Песчаные", "Подзолистые", "Чернозёмы степной зоны содержат много перегноя — поэтому там выращивают пшеницу."],
-      ["Кто живёт в смешанном лесу?", "Кабан", "Тюлень", "Сайгак", "Белый медведь", "Кабаны любят леса, где растут дубы: они едят жёлуди."],
-      ["Что такое природная зона?", "Территория с похожим климатом, растениями и животными", "Заповедник", "Граница между странами", "Горный хребет", "Зоны сменяют друг друга с севера на юг, потому что меняется количество тепла."]
-    ] },
-    space: { ico: "planet", name: "Земля и космос", tint: "tint-violet", q: [
-      ["Какая планета самая большая в Солнечной системе?", "Юпитер", "Земля", "Марс", "Венера", "В Юпитер поместилось бы больше 1300 планет размером с Землю."],
-      ["Сколько планет в Солнечной системе?", "8", "9", "7", "12", "Меркурий, Венера, Земля, Марс, Юпитер, Сатурн, Уран, Нептун."],
-      ["Что такое Солнце?", "Звезда", "Планета", "Спутник", "Комета", "Солнце — ближайшая к нам звезда, огромный раскалённый газовый шар."],
-      ["Почему на Земле день сменяется ночью?", "Земля вращается вокруг своей оси", "Солнце гаснет", "Луна закрывает Солнце", "Земля летит вокруг Луны", "Полный оборот вокруг оси Земля делает за сутки — 24 часа."],
-      ["Почему бывают времена года?", "Земля движется вокруг Солнца с наклонённой осью", "Солнце то приближается, то удаляется", "Так решили люди", "Из-за Луны", "Из-за наклона оси летом наше полушарие получает больше солнечного света."],
-      ["Кто первым полетел в космос?", "Юрий Гагарин", "Валентина Терешкова", "Сергей Королёв", "Алексей Леонов", "12 апреля 1961 года Гагарин облетел Землю. Этот день — День космонавтики."],
-      ["Что такое Луна?", "Спутник Земли", "Звезда", "Планета", "Астероид", "Луна светит отражённым солнечным светом."],
-      ["Какая планета называется «красной»?", "Марс", "Венера", "Сатурн", "Меркурий", "Почва Марса содержит много ржавчины — оксида железа."],
-      ["Какая планета ближе всех к Солнцу?", "Меркурий", "Венера", "Земля", "Нептун", "Год на Меркурии длится всего 88 земных суток."],
-      ["У какой планеты самые заметные кольца?", "Сатурн", "Марс", "Земля", "Меркурий", "Кольца Сатурна состоят из кусочков льда и камня."]
-    ] },
-    body: { ico: "anatomical-heart", name: "Тело человека", tint: "tint-pink", q: [
-      ["Какой орган качает кровь по всему телу?", "Сердце", "Лёгкие", "Желудок", "Печень", "Сердце работает без отдыха всю жизнь, примерно 70 ударов в минуту."],
-      ["Каким органом мы дышим?", "Лёгкими", "Желудком", "Почками", "Сердцем", "В лёгких кислород из воздуха попадает в кровь."],
-      ["Какой орган управляет всем организмом?", "Головной мозг", "Сердце", "Желудок", "Кожа", "Мозг получает сигналы от органов чувств и отдаёт команды мышцам."],
-      ["Сколько всего органов чувств у человека?", "5", "3", "7", "10", "Зрение, слух, обоняние, вкус и осязание."],
-      ["Что защищает головной мозг?", "Череп", "Рёбра", "Позвоночник", "Кожа ладоней", "Череп — это прочная костяная «шкатулка» для мозга."],
-      ["Где начинается переваривание пищи?", "Во рту", "В желудке", "В лёгких", "В сердце", "Во рту зубы измельчают пищу, а слюна начинает её переваривать."],
-      ["Сколько раз в день нужно чистить зубы?", "2 раза: утром и вечером", "1 раз в неделю", "Только перед праздником", "5 раз", "Чистка утром и вечером защищает зубы от кариеса."],
-      ["Что нужно делать, чтобы не испортить осанку?", "Сидеть прямо и заниматься спортом", "Носить портфель на одном плече", "Спать сидя", "Сутулиться", "Осанку держат мышцы спины, а спорт делает их сильнее."],
-      ["Какой орган самый большой у человека?", "Кожа", "Печень", "Сердце", "Мозг", "Кожа покрывает всё тело и защищает его от микробов."],
-      ["Сколько часов нужно спать школьнику?", "9–11 часов", "4 часа", "15 часов", "Можно не спать", "Во сне растёт тело и отдыхает мозг."]
-    ] },
-    history: { ico: "castle", name: "История России", tint: "tint-sun", q: [
-      ["Как называется столица России?", "Москва", "Санкт-Петербург", "Киев", "Новгород", "Москва — столица и самый большой город России."],
-      ["Кто основал Санкт-Петербург?", "Пётр I", "Иван Грозный", "Юрий Долгорукий", "Александр Невский", "Пётр I заложил город в 1703 году на реке Неве."],
-      ["Кто считается основателем Москвы?", "Юрий Долгорукий", "Пётр I", "Дмитрий Донской", "Владимир Мономах", "Первое упоминание Москвы в летописи — 1147 год."],
-      ["Кто крестил Русь?", "Князь Владимир", "Князь Олег", "Пётр I", "Екатерина II", "В 988 году князь Владимир принял христианство."],
-      ["Кто победил на Куликовской битве (1380)?", "Дмитрий Донской", "Хан Мамай", "Наполеон", "Иван III", "За эту победу князь Дмитрий получил прозвище Донской."],
-      ["Кто изобрёл радио в России?", "Александр Попов", "Михаил Ломоносов", "Дмитрий Менделеев", "Иван Кулибин", "Попов показал работу радиоприёмника в 1895 году."],
-      ["Какой праздник отмечают 9 мая?", "День Победы", "День космонавтики", "Новый год", "День знаний", "9 мая 1945 года закончилась Великая Отечественная война."],
-      ["По чьему проекту открыли первый университет в Москве?", "Михаила Ломоносова", "Петра I", "Александра Пушкина", "Льва Толстого", "Московский университет открыт в 1755 году по проекту Ломоносова."],
-      ["Как называется главный документ (закон) России?", "Конституция", "Летопись", "Указ", "Грамота", "Конституция определяет права и обязанности граждан."],
-      ["Какие цвета на флаге России?", "Белый, синий, красный", "Красный, жёлтый, зелёный", "Синий и жёлтый", "Белый и красный", "Полосы идут сверху вниз: белая, синяя, красная."]
-    ] }
-  };
-  const best = () => K.store.get("world-best", {});
+  const TOPICS = window.WORLD_TOPICS, FACTS = window.WORLD_FACTS;
+  const ROUND = 10;
+  const ART = (n, cls = "") => `<img class="w-art ${cls}" src="art/${n}.webp" alt="" draggable="false">`;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const TYPE = { c: "Выбери ответ", tf: "Верно или нет?", odd: "Найди лишнее", ord: "Расставь по порядку" };
+  const STAR = (on) => `<svg viewBox="0 0 24 24"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z" fill="${on ? "#d6b15e" : "rgba(255,255,255,.08)"}" stroke="${on ? "#f3e3b0" : "rgba(255,255,255,.2)"}" stroke-width=".9"/></svg>`;
+  const ARROW = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>`;
+
+  // ключ вопроса: устойчив к перестановке вопросов в списке
+  const keyOf = (tid, q) => { const s = tid + "|" + q.q + "|" + (q.order ? q.order.join("/") : String(q.ok)); let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return tid + ":" + (h >>> 0).toString(36); };
+  const BYKEY = {};
+  TOPICS.forEach((t) => t.q.forEach((q) => { q.key = keyOf(t.id, q); q.tid = t.id; BYKEY[q.key] = q; }));
+  const topic = (id) => TOPICS.find((t) => t.id === id);
+
+  /* ---------- прогресс ---------- */
+  const DEF = () => ({ stars: {}, master: {}, seen: {}, miss: {} });
+  function load() {
+    const s = Object.assign(DEF(), K.store.get("world-v2", null) || {});
+    // перенос старого рекорда «лучший: N из 10»
+    const old = K.store.get("world-best", null);
+    if (old && !s.migrated) {
+      for (const id in old) { const st = starsFor(old[id], 10); if (st > (s.stars[id] || 0)) s.stars[id] = st; if (st === 3) s.master[id] = true; }
+      s.migrated = true; K.store.set("world-v2", s);
+    }
+    // убираем ошибки, которых больше нет в базе
+    for (const k in s.miss) if (!BYKEY[k]) delete s.miss[k];
+    return s;
+  }
+  const save = () => K.store.set("world-v2", P);
+  const starsFor = (right, n) => right >= n ? 3 : right >= Math.ceil(n * .8) ? 2 : right >= Math.ceil(n * .5) ? 1 : 0;
+  let P = load();
+  const missCount = (tid) => Object.keys(P.miss).filter((k) => !tid || P.miss[k] === tid).length;
+  const dayIndex = () => { const d = new Date(); return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5); };
+  const factOfDay = () => FACTS[dayIndex() % FACTS.length];
+
+  /* ---------- переходы между экранами ---------- */
+  let swapT = 0;
+  function swap(html, after) {
+    clearTimeout(swapT); closeSheet();
+    app.classList.add("out");
+    swapT = setTimeout(() => {
+      app.innerHTML = html; app.classList.remove("out", "in"); void app.offsetWidth; app.classList.add("in");
+      scrollTo({ top: 0 }); after && after();
+    }, app.innerHTML ? 170 : 0);
+  }
+
+  /* ---------- главная ---------- */
   function home() {
-    const b = best();
-    app.innerHTML = `<span class="eyebrow">Окружающий мир · 4 класс</span>
-      <h1 class="h-display" style="font-size:clamp(1.6rem,7vw,2.4rem);margin-top:6px">Узнай мир за 10 вопросов</h1>
-      <p class="muted" style="margin:6px 0 0">После каждого ответа — короткое объяснение. Так запоминается лучше.</p>
-      <div class="cats">${Object.entries(CATS).map(([id, c]) => `<button class="cat glass ${c.tint}" data-tilt data-id="${id}"><span class="ico">${K.art(c.ico)}</span><b>${c.name}</b><small>${b[id] != null ? "лучший: " + b[id] + " из 10" : c.q.length + " вопросов"}</small></button>`).join("")}</div>`;
-    app.querySelectorAll(".cat").forEach((el) => el.addEventListener("click", () => { K.sfx("tap"); run(el.dataset.id); }));
-    K.tilt(app);
+    inQuiz = false;
+    const total = TOPICS.length * 3, have = TOPICS.reduce((a, t) => a + (P.stars[t.id] || 0), 0);
+    const masters = TOPICS.filter((t) => P.master[t.id]).length;
+    const qn = TOPICS.reduce((a, t) => a + t.q.length, 0);
+    const mc = missCount(), [fArt, fText] = factOfDay();
+    const fresh = !have && !mc;
+    swap(`
+      <div class="hero">${ART("books")}<div><span class="eyebrow">Окружающий мир · 4 класс</span>
+        <h1 class="h-display"><span class="gold-text">Знайка</span></h1>
+        <p class="muted">${TOPICS.length} тем · ${qn} вопросов</p></div></div>
+      <div class="summary glass">
+        <div><div class="lbl">Звёзды</div><div class="val">${STAR(true)}${have}<span class="muted" style="font-size:.85rem">/ ${total}</span></div></div>
+        <div class="masters"><div class="lbl">Знаток тем</div><div class="val" style="justify-content:flex-end"><img class="w-art" style="width:24px;height:24px" src="art/crown.webp" alt="">${masters}</div></div>
+        <div class="progress"><i style="width:${have / total * 100}%"></i></div>
+      </div>
+      <div class="row-cards">
+        ${fresh ? `<div class="mini glass tint-sun">${ART("target")}<div><b>Как играть</b><small>Выбери тему — 10 вопросов. После каждого ответа — объяснение. Ответь на всё верно — получишь 3 звезды и звание «Знаток темы».</small></div></div>` : ""}
+        ${mc ? `<button class="mini glass tint-orange" id="fix">${ART("bulb")}<div><b>Работа над ошибками</b><small>${mc} ${K.plural(mc, "вопрос ждёт", "вопроса ждут", "вопросов ждут")} второй попытки</small></div><span class="go">${ARROW}</span></button>` : ""}
+        <div class="mini glass tint-violet">${ART(fArt)}<div><span class="eyebrow">Факт дня</span><small style="color:var(--text);font-size:.92rem">${fText}</small></div></div>
+      </div>
+      <div class="sec"><h2>Темы</h2><small class="muted">3 звезды = Знаток</small></div>
+      <div class="cats">${TOPICS.map((t) => { const st = P.stars[t.id] || 0, m = P.master[t.id];
+        return `<button class="cat glass ${t.tint}${m ? " master" : ""}" data-tilt data-id="${t.id}">
+          <div class="top">${ART(t.ico)}<span class="mstars">${[0, 1, 2].map((i) => STAR(i < st)).join("")}</span></div>
+          <b>${t.name}</b>${m ? `<span class="badge">${ART("crown")}Знаток темы</span>` : `<small>${t.q.length} ${K.plural(t.q.length, "вопрос", "вопроса", "вопросов")}</small>`}</button>`; }).join("")}</div>
+      <p class="foot">Иллюстрации: Microsoft Fluent Emoji, лицензия MIT</p>`, () => {
+      app.querySelectorAll(".cat").forEach((el) => el.addEventListener("click", () => { K.sfx("tap"); startTopic(el.dataset.id); }));
+      const fx = document.getElementById("fix"); fx && fx.addEventListener("click", () => { K.sfx("tap"); startFix(); });
+      K.tilt(app);
+    });
   }
-  let cat, qs, i, right;
-  function run(id) { cat = id; qs = K.shuffle(CATS[id].q).slice(0, 10); i = 0; right = 0; show(); }
+
+  /* ---------- раунды ---------- */
+  let R = null, inQuiz = false;
+  function pickTopic(t) {
+    const seen = new Set(P.seen[t.id] || []);
+    let fresh = K.shuffle(t.q.filter((q) => !seen.has(q.key)));
+    let pick = fresh.slice(0, ROUND);
+    if (pick.length < ROUND) { // всё пройдено — начинаем новый круг
+      const more = K.shuffle(t.q.filter((q) => !pick.includes(q))).slice(0, ROUND - pick.length);
+      pick = pick.concat(more); P.seen[t.id] = more.map((q) => q.key);
+    } else P.seen[t.id] = [...seen, ...pick.map((q) => q.key)];
+    save();
+    return K.shuffle(pick);
+  }
+  function startTopic(id) { begin({ mode: "topic", tid: id, qs: pickTopic(topic(id)) }); }
+  function startFix(keys) {
+    const ks = keys || K.shuffle(Object.keys(P.miss)).slice(0, ROUND);
+    const qs = ks.map((k) => BYKEY[k]).filter(Boolean);
+    if (!qs.length) return home();
+    begin({ mode: "fix", tid: null, qs });
+  }
+  function begin(r) {
+    R = Object.assign(r, { i: 0, right: 0, streak: 0, best: 0, wrong: [] });
+    if (!inQuiz) { inQuiz = true; try { history.pushState({ quiz: 1 }, "", "#quiz"); } catch (e) { /* file:// */ } }
+    show();
+  }
+  function leave() { if (history.state && history.state.quiz) history.back(); else home(); }
+  addEventListener("popstate", () => { document.querySelectorAll(".overlay").forEach((o) => o.remove()); if (inQuiz) home(); });
+
   function show() {
-    const [q, ok, ...rest] = qs[i]; const why = rest.pop();
-    const opts = K.shuffle([ok, ...rest]);
-    app.innerHTML = `<div class="quiz"><div class="meta"><span>Вопрос ${i + 1} из ${qs.length}</span><span>Верно: ${right}</span></div>
-      <div class="progress"><i style="width:${i / qs.length * 100}%"></i></div>
-      <div class="qcard glass ${CATS[cat].tint}"><div class="ico">${K.art(CATS[cat].ico)}</div><h2>${q}</h2></div>
-      <div class="opts">${opts.map((o, k) => `<button class="opt" data-o="${encodeURIComponent(o)}"><i>${"АБВГ"[k]}</i><span>${o}</span></button>`).join("")}</div>
-      <div id="ex"></div><button class="btn ghost" id="quit" style="width:auto;align-self:center">Выйти</button></div>`;
-    app.querySelectorAll(".opt").forEach((el) => el.addEventListener("click", () => {
-      const pickOk = decodeURIComponent(el.dataset.o) === ok;
-      app.querySelectorAll(".opt").forEach((b) => { b.disabled = true; if (decodeURIComponent(b.dataset.o) === ok) b.classList.add("right"); });
-      const r = el.getBoundingClientRect();
-      if (pickOk) { right++; K.sfx("good"); K.burst(r.left + r.width / 2, r.top + r.height / 2, 16, undefined, { speed: 5 }); }
-      else { el.classList.add("wrong", "shake"); K.sfx("bad"); K.vibrate(50); }
-      document.getElementById("ex").innerHTML = `<div class="explain glass ${pickOk ? "tint-mint" : "tint-orange"}"><b>${pickOk ? "Верно!" : "Запомни:"}</b> ${why}<div style="margin-top:12px"><button class="btn" id="nx">${i + 1 < qs.length ? "Дальше" : "Результат"}</button></div></div>`;
-      document.getElementById("nx").onclick = () => { K.sfx("tap"); i++; i < qs.length ? show() : finish(); };
-      document.getElementById("nx").scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }));
-    document.getElementById("quit").onclick = home;
+    const q = R.qs[R.i], t = topic(q.tid);
+    const head = `<div class="qhead"><button class="x" id="quit" aria-label="Выйти"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="progress"><i style="width:${R.i / R.qs.length * 100}%"></i></div><span class="cnt">${R.i + 1}/${R.qs.length}</span></div>`;
+    const card = `<div class="qcard glass ${t.tint} enter">${q.img ? `<div class="qart">${ART(q.img)}</div>` : ""}
+      <span class="qtype">${R.mode === "fix" ? "Ошибка · " : ""}${TYPE[q.t]}</span><h2>${esc(q.q)}</h2>
+      ${q.t === "ord" ? `<p class="hint">Нажимай по порядку: что первое, что второе…</p>` : q.t === "odd" ? `<p class="hint">Что здесь не подходит к остальным?</p>` : ""}</div>`;
+    let body = "";
+    if (q.t === "c" || q.t === "odd") {
+      const opts = K.shuffle([q.ok, ...(q.wrong || q.rest)]);
+      const grid = q.t === "odd" || opts.every((o) => o.length <= 14);
+      body = `<div class="opts${grid ? " grid2" : ""}">${opts.map((o, k) => `<button class="opt" data-v="${esc(o)}"><i>${"АБВГ"[k]}</i><span>${esc(o)}</span></button>`).join("")}</div>`;
+    } else if (q.t === "tf") {
+      body = `<div class="tf"><button class="opt" data-v="1">${ART("check")}<span>Верно</span></button><button class="opt" data-v="0">${ART("cross")}<span>Неверно</span></button></div>`;
+    } else {
+      let mix = K.shuffle(q.order); let guard = 0;
+      while (mix.every((v, k) => v === q.order[k]) && guard++ < 10) mix = K.shuffle(q.order);
+      body = `<div class="ord"><div class="slots glass">${q.order.map((_, k) => `<button class="slot" data-k="${k}"><n>${k + 1}</n><span></span></button>`).join("")}</div>
+        <div class="pool">${mix.map((v) => `<button class="chipb" data-v="${esc(v)}">${esc(v)}</button>`).join("")}</div>
+        <div class="ordbar"><button class="btn ghost" id="reset">Сбросить</button><button class="btn" id="check" disabled>Проверить</button></div></div>`;
+    }
+    const html = `<div class="quiz">${head}${card}${body}<div id="pad"></div></div>`;
+    const bind = () => {
+      document.getElementById("quit").onclick = () => { K.sfx("tap"); askQuit(); };
+      if (q.t === "ord") bindOrder(q); else app.querySelectorAll(".opt").forEach((el) => el.addEventListener("click", () => pickOpt(q, el)));
+    };
+    if (R.i === 0) swap(html, bind);
+    else { closeSheet(); app.innerHTML = html; scrollTo({ top: 0 }); bind(); }
   }
+
+  function askQuit() {
+    if (!R.i && !answered) return leave();
+    K.panel({ title: "Закончить раунд?", text: "Ответы этого раунда не сохранятся.", buttons: [{ label: "Продолжить", cls: "big" }, { label: "Выйти", cls: "ghost", onClick: leave }] });
+  }
+
+  let answered = false;
+  function pickOpt(q, el) {
+    if (answered) return; answered = true;
+    const val = el.dataset.v;
+    const ok = q.t === "tf" ? (val === "1") === q.ok : val === q.ok;
+    app.querySelectorAll(".opt").forEach((b) => {
+      b.disabled = true;
+      const isRight = q.t === "tf" ? (b.dataset.v === "1") === q.ok : b.dataset.v === q.ok;
+      if (isRight) b.classList.add("right"); else if (b !== el) b.classList.add("dim");
+      if (isRight && q.t !== "tf") b.querySelector("i").textContent = "✓";
+    });
+    if (ok) el.classList.add("win");
+    else { el.classList.add("wrong", "soft-shake"); if (q.t !== "tf") el.querySelector("i").textContent = "×"; }
+    const rightText = q.t === "tf" ? (q.ok ? "Верно" : "Неверно") : q.ok;
+    result(q, ok, el, rightText);
+  }
+
+  function bindOrder(q) {
+    const slots = [...app.querySelectorAll(".slot")], pool = app.querySelector(".pool"), check = document.getElementById("check");
+    const fill = () => slots.filter((s) => s.dataset.v).length;
+    const upd = () => { check.disabled = fill() < slots.length; };
+    pool.addEventListener("click", (e) => {
+      const c = e.target.closest(".chipb"); if (!c || answered) return;
+      const s = slots.find((x) => !x.dataset.v); if (!s) return;
+      K.sfx("place"); K.vibrate(8);
+      s.dataset.v = c.dataset.v; s.querySelector("span").textContent = c.dataset.v; s.classList.add("full"); c.remove(); upd();
+    });
+    slots.forEach((s) => s.addEventListener("click", () => {
+      if (answered || !s.dataset.v) return;
+      K.sfx("tap");
+      // убираем этот и все следующие ответы обратно — порядок остаётся честным
+      slots.slice(slots.indexOf(s)).forEach((x) => { if (!x.dataset.v) return; pool.insertAdjacentHTML("beforeend", `<button class="chipb" data-v="${esc(x.dataset.v)}">${esc(x.dataset.v)}</button>`); delete x.dataset.v; x.querySelector("span").textContent = ""; x.classList.remove("full"); });
+      upd();
+    }));
+    document.getElementById("reset").onclick = () => { if (answered) return; K.sfx("tap"); slots[0].dataset.v && slots[0].click(); };
+    check.onclick = () => {
+      if (answered || fill() < slots.length) return; answered = true;
+      let all = true;
+      slots.forEach((s, k) => { s.disabled = true; const good = s.dataset.v === q.order[k]; all = all && good; s.classList.add(good ? "right" : "wrong"); });
+      document.querySelector(".ordbar").style.display = "none";
+      result(q, all, app.querySelector(".slots"), q.order.join(" → "));
+    };
+  }
+
+  function result(q, ok, el, rightText) {
+    const r = el.getBoundingClientRect();
+    if (ok) {
+      R.right++; R.streak++; R.best = Math.max(R.best, R.streak);
+      delete P.miss[q.key];
+      K.sfx("good"); K.vibrate(12);
+      K.burst(r.left + r.width / 2, r.top + r.height / 2, 18, undefined, { speed: 5 });
+    } else {
+      R.streak = 0; R.wrong.push(q.key); P.miss[q.key] = q.tid;
+      K.sfx("bad"); K.vibrate(40);
+    }
+    save();
+    app.querySelector(".progress i").style.width = (R.i + 1) / R.qs.length * 100 + "%";
+    const last = R.i + 1 >= R.qs.length;
+    const praise = ["Верно!", "Отлично!", "Точно!", "Молодец!", "Так держать!"];
+    const title = ok ? (R.streak >= 3 ? `${R.streak} подряд!` : praise[(Math.random() * praise.length) | 0]) : "Запомни";
+    openSheet(`<div class="card glass ${ok ? "good" : "bad"}">
+      <div class="hd">${ART(ok ? (R.streak >= 3 ? "fire" : "sparkles") : "bulb")}<b class="${ok ? "gold-text" : "bad-t"}">${title}</b></div>
+      ${ok ? "" : `<p class="ans">Правильный ответ: <strong>${esc(rightText)}</strong></p>`}
+      <p class="why">${esc(q.e)}</p>
+      <button class="btn big" id="nx">${last ? "Результат" : "Дальше"}</button></div>`);
+    const nx = document.getElementById("nx");
+    nx.onclick = () => { if (nx.dataset.done) return; nx.dataset.done = 1; K.sfx("tap"); R.i++; answered = false; last ? finish() : show(); };
+    setTimeout(() => nx.focus({ preventScroll: true }), 60);
+  }
+
+  function openSheet(html) {
+    closeSheet();
+    const s = document.createElement("div"); s.className = "sheet"; s.innerHTML = html; document.body.appendChild(s);
+    const pad = document.getElementById("pad");
+    if (pad) { pad.style.height = s.offsetHeight + 4 + "px"; requestAnimationFrame(() => { const b = pad.getBoundingClientRect().bottom; if (b > innerHeight) scrollBy({ top: b - innerHeight, behavior: "smooth" }); }); }
+  }
+  function closeSheet() { document.querySelectorAll(".sheet").forEach((s) => s.remove()); }
+
   function finish() {
-    const b = best(); if (b[cat] == null || right > b[cat]) { b[cat] = right; K.store.set("world-best", b); }
-    const stars = right === 10 ? 3 : right >= 8 ? 2 : right >= 5 ? 1 : 0;
-    K.sfx(stars ? "win" : "lose"); if (stars === 3) K.confetti();
-    const drops = right * 2;
-    K.panel({ title: stars === 3 ? "Ты настоящий Знайка!" : stars >= 2 ? "Отличный результат!" : "Хорошее начало!", stars, score: `${right}/10`, scoreLabel: "правильных ответов",
+    closeSheet();
+    const n = R.qs.length, right = R.right;
+    const stars = starsFor(right, n);
+    let newMaster = false, t = R.tid && topic(R.tid);
+    if (R.mode === "topic") {
+      if (stars > (P.stars[R.tid] || 0)) P.stars[R.tid] = stars;
+      if (stars === 3 && !P.master[R.tid]) { P.master[R.tid] = true; newMaster = true; }
+      save();
+    }
+    K.sfx(stars ? "win" : "lose"); if (stars === 3 || newMaster) K.confetti();
+    const drops = R.mode === "fix" ? right : right * 2 + (stars === 3 ? 5 : 0);
+    const [fArt, fText] = factOfDay();
+    const title = R.mode === "fix" ? (right === n ? "Все ошибки исправлены!" : "Ошибок стало меньше!")
+      : stars === 3 ? "Ты настоящий Знайка!" : stars === 2 ? "Отличный результат!" : stars === 1 ? "Хорошее начало!" : "Попробуй ещё раз!";
+    const wrongNow = R.wrong.filter((k) => P.miss[k]);
+    const buttons = [{ label: "Ещё раз", cls: "big", onClick: () => R.mode === "fix" ? startFix() : startTopic(R.tid) }];
+    if (wrongNow.length) buttons.push({ label: `Исправить ошибки (${wrongNow.length})`, cls: "sun", onClick: () => startFix(wrongNow) });
+    buttons.push({ label: "Все темы", cls: "ghost", onClick: leave });
+    if (R.mode === "fix" && !missCount()) buttons.shift();
+    K.panel({ title, stars: R.mode === "topic" ? stars : undefined, score: `${right}/${n}`, scoreLabel: `правильных ответов${R.best >= 3 ? ` · серия ${R.best} подряд` : ""}`,
       text: `+${drops} ${K.plural(drops, "капелька", "капельки", "капелек")}`,
-      buttons: [{ label: "Ещё раз", cls: "big", onClick: () => run(cat) }, { label: "Темы", cls: "ghost", onClick: home }] });
+      extra: `${newMaster ? `<div class="newmaster">${ART("crown")}<div>Новое звание!<br>Знаток темы «${t.name}»</div></div>` : ""}
+        <div class="fact">${ART(fArt)}<div><span>Факт дня</span><p>${fText}</p></div></div>`,
+      buttons });
     setTimeout(() => K.coins.add(drops, document.querySelector(".overlay .big-score")), 500);
   }
+
   home();
 })();
 </script>
